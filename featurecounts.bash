@@ -3,9 +3,9 @@
 ##############################################################################
 # Options:
 # 	-a FILE GTF
-#	-b INPUT BAM (BAM_PATH or ALIGNMENT_PATH)
+#		-b INPUT BAM (BAM_PATH or ALIGNMENT_PATH)
 # 	-t NUMBER OF THREADS
-#	-o OUTPUT
+#		-o OUTPUT
 ##############################################################################
 while getopts ":a:b:t:o:" opt; do
 	case $opt in
@@ -13,7 +13,7 @@ while getopts ":a:b:t:o:" opt; do
 		b ) INPUT_BAM=$OPTARG ;;
 		t ) THREADS=$OPTARG ;;
 		o ) OUTPUT=$OPTARG ;;
-		\?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;			
+		\?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
 		: ) echo "Option -$OPTARG requires an argument." >&2; exit 2;;
 	esac
 done
@@ -44,7 +44,7 @@ if [ -z $OUTPUT ]; then
 fi
 
 # Check if output directory is writable
-if [ ! -w $(dirname $OUTPUT) ]; then 
+if [ ! -w $(dirname $OUTPUT) ]; then
 	echo "Output directory is not writable!" >&2
 	exit 6
 fi
