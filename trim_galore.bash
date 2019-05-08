@@ -2,10 +2,10 @@
 
 ##############################################################################
 # Options:
-#	-a ADAPTER (OPZIONALE) --illumina --nextera --small_rna
-#	-q QUALITY (default 20)
-#	-p PHRED (33 o 64)
-#	-l LENGHT (default 14)
+#		-a ADAPTER (OPZIONALE) --illumina --nextera --small_rna
+#		-q QUALITY (default 20)
+#		-p PHRED (33 o 64)
+#		-l LENGHT (default 14)
 # 	-f FIRST INPUT FASTQ
 # 	-s OPTIONAL SECOND INPUT FASTQ (FOR PAIRED)
 # 	-o OUTPUT TRIMMED FASTQ
@@ -19,7 +19,7 @@ while getopts ":a:q:p:l:f:s:o:" opt; do
 		f ) INPUT_1=$OPTARG ;;
 		s ) INPUT_2=$OPTARG ;;
 		o ) OUTPUT=$OPTARG ;;
-		\?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;			
+		\?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
 		: ) echo "Option -$OPTARG requires an argument." >&2; exit 2;;
 	esac
 done
@@ -31,7 +31,7 @@ if [ -z $QUALITY ]; then
 fi
 # PHRED control
 
-# Control read lenght 
+# Control read lenght
 if [ -z $LENGHT ]; then
 	$LENGHT = 14
 fi
@@ -43,7 +43,7 @@ fi
 # Control sequencing strategy "single end" o "paired end"
 if [ -z $INPUT_2 ]; then
 	PAIRED=false
-elif [ ! -f $INPUT_2 ]; then 
+elif [ ! -f $INPUT_2 ]; then
 	echo "Second input file does not exist!" >&2
 	exit 4
 else
@@ -56,7 +56,7 @@ if [ -z $OUTPUT ]; then
 fi
 
 # Check if output directory is writable
-if [ ! -w $(dirname $OUTPUT) ]; then 
+if [ ! -w $(dirname $OUTPUT) ]; then
 	echo "Output directory is not writable!" >&2
 	exit 6
 fi
