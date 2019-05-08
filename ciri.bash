@@ -21,7 +21,7 @@ while getopts ":I:O:A:R:F:M:" opt; do
     M)
     \?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
 		: ) echo "Option -$OPTARG requires an argument." >&2; exit 2;;
-	esac
+  esac
 done
 
 #### Check parameters ####
