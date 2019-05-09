@@ -71,18 +71,14 @@ else
 	bwa mem -t $THREADS $REF_GENOME $INPUT_1 > $SAM_NAME
 fi
 
-# Check SAM file
+#Check SAM file
 if [ ! -f $SAM_NAME ]; then
 	echo "Unable to find bwa output file!" >&2
 	exit 8
 fi
 
-# Convert SAM to BAM
-if [ $PAIRED ]; then
-	samtools fixmate -O bam $SAM_NAME $OUTPUT
-else
-	samtools view -S -b $SAM_NAME > $OUTPUT
-fi
+# Move SAM file from tmp directory to output directory
+mv $SAM_NAME $OUTPUT
 
 if [ -f $SAM_NAME ]; then
 	rm $SAM_NAME
