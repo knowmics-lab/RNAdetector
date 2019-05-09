@@ -9,7 +9,7 @@
 #   -f FASTA file of all reference sequences. Please make sure this file is the same one provided to BWA-MEM. Either this argument or --ref-dir/-R is required for splicing signal searching.
 #   -m max spanning distance (default: 500,000)
 ##############################################################################
-while getopts ":i:o:s:a:f:m:" opt; do
+while getopts ":a:i:s:o:f:m:" opt; do
   case $opt in
     a) GTF_FILE=$OPTARG ;;
     i) INPUT_SAM_FILE=$OPTARG ;;
