@@ -4,18 +4,16 @@
 # Options:
 #		-a ADAPTER (OPZIONALE) --illumina --nextera --small_rna
 #		-q QUALITY (default 20)
-#		-p PHRED (33 o 64)
 #		-l LENGHT (default 14)
 # 	-f FIRST INPUT FASTQ
 # 	-s OPTIONAL SECOND INPUT FASTQ (FOR PAIRED)
 # 	-o OUTPUT TRIMMED FASTQ
 ##############################################################################
-while getopts ":a:q:p:l:f:s:o:" opt; do
+while getopts ":a:q:l:f:s:o:" opt; do
 	case $opt in
-		a ) ADAPTER=$OPTARG
-		q ) QUALITY=$OPTARG
-		p ) PHRED=$OPTARG
-		l ) LENGHT=$OPTARG
+		a ) ADAPTER=$OPTARG ;;
+		q ) QUALITY=$OPTARG ;;
+		l ) LENGHT=$OPTARG ;;
 		f ) INPUT_1=$OPTARG ;;
 		s ) INPUT_2=$OPTARG ;;
 		o ) OUTPUT=$OPTARG ;;
@@ -29,8 +27,6 @@ done
 if [ -z $QUALITY ]; then
 	$QUALITY = 20
 fi
-# PHRED control
-
 # Control read lenght
 if [ -z $LENGHT ]; then
 	$LENGHT = 14
@@ -47,7 +43,7 @@ elif [ ! -f $INPUT_2 ]; then
 	echo "Second input file does not exist!" >&2
 	exit 4
 else
-    PAIRED=true
+  PAIRED=true
 fi
 # Check output
 if [ -z $OUTPUT ]; then
