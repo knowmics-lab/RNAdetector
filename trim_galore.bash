@@ -9,6 +9,7 @@
 # 	-s OPTIONAL SECOND INPUT FASTQ (FOR PAIRED)
 # 	-o OUTPUT TRIMMED FASTQ
 ##############################################################################
+
 while getopts ":a:q:l:f:s:o:" opt; do
 	case $opt in
 		a ) ADAPTER=$OPTARG ;;
