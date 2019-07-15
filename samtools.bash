@@ -9,7 +9,7 @@ while getopts ":b:o:" opt; do
 	case $opt in
 		b ) INPUT=$OPTARG ;;
 		o ) OUTPUT=$OPTARG ;;
-		\?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;			
+		\?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
 		: ) echo "Option -$OPTARG requires an argument." >&2; exit 2;;
 	esac
 done
@@ -26,7 +26,7 @@ if [ -z $OUTPUT ]; then
 	exit 4
 fi
 # Check if output directory is writable
-if [ ! -w $(dirname $OUTPUT) ]; then 
+if [ ! -w $(dirname $OUTPUT) ]; then
 	echo "Output directory is not writable!" >&2
 	exit 5
 fi
