@@ -19,7 +19,6 @@ while getopts ":a:b:t:o:" opt; do
 done
 
 #### Check parameters ####
-
 # Check GTF annotation files
 if [ -z $GTF_FILE ] || [ ! -f $GTF_FILE ]; then
 	echo "Annotation file does not exist!"
