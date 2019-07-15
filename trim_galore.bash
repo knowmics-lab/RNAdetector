@@ -60,7 +60,7 @@ fi
 
 #### Trimming and adaptors removing ####
 if [ $PAIRED ]; then
-	trim_galore -q $QUALITY --paired -a $ADAPTER -a2 $ADAPTER -o $OUTPUT --dont_gzip --phred33 --length $LENGHT --no_report_file  $INPUT_1 $INPUT_2
+	TrimGalore-0.4.5/trim_galore -q $QUALITY --paired -a $ADAPTER -a2 $ADAPTER -o $OUTPUT --dont_gzip --phred33 --length $LENGHT --no_report_file  $INPUT_1 $INPUT_2
 else
-	trim_galore -q $QUALITY -a $ADAPTER -o $OUTPUT --dont_gzip --phred33 --length $LENGHT --no_report_file $INPUT_1
+	TrimGalore-0.4.5/trim_galore -q $QUALITY -a $ADAPTER -o $OUTPUT --dont_gzip --phred33 --length $LENGHT --no_report_file $INPUT_1
 fi
