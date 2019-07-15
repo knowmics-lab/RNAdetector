@@ -2,7 +2,6 @@
 
 ##############################################################################
 # Options:
-#		-a ADAPTER (OPZIONALE) --illumina --nextera --small_rna
 #		-q QUALITY (default 20)
 #		-l LENGHT (default 14)
 # 	-f FIRST INPUT FASTQ
@@ -12,7 +11,6 @@
 
 while getopts ":a:q:l:f:s:o:" opt; do
 	case $opt in
-		#a ) ADAPTER=$OPTARG ;;
 		q ) QUALITY=$OPTARG ;;
 		l ) LENGHT=$OPTARG ;;
 		f ) INPUT_1=$OPTARG ;;
