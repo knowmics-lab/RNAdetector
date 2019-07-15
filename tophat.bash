@@ -17,7 +17,7 @@ while getopts ":a:g:t:f:s:o:" opt; do
 		f ) INPUT_1=$OPTARG ;;
 		s ) INPUT_2=$OPTARG ;;
 		o ) OUTPUT=$OPTARG ;;
-		\?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;			
+		\?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
 		: ) echo "Option -$OPTARG requires an argument." >&2; exit 2;;
 	esac
 done
@@ -39,9 +39,9 @@ fi
 # Control sequencing strategy "single end" o "paired end"
 if [ -z $INPUT_2 ]; then
 	PAIRED=false
-elif [ ! -f $INPUT_2 ]; then 
+elif [ ! -f $INPUT_2 ]; then
 	echo "Second input file does not exist!" >&2
-	exit 5	
+	exit 5
 else
     PAIRED=true
 fi
@@ -58,7 +58,7 @@ if [ -z $OUTPUT ]; then
 fi
 
 # Check if output directory is writable
-if [ ! -w $(dirname $OUTPUT) ]; then 
+if [ ! -w $(dirname $OUTPUT) ]; then
 	echo "Output directory is not writable!" >&2
 	exit 7
 fi
