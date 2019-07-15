@@ -26,11 +26,11 @@ done
 #### Check parameters ####
 # Quality control
 if [ -z $QUALITY ]; then
-	$QUALITY = 20
+	QUALITY=20
 fi
 # Control read lenght
 if [ -z $LENGHT ]; then
-	$LENGHT = 14
+	LENGHT=14
 fi
 # Check input files
 if [ -z $INPUT_1 ] || [ ! -f $INPUT_1 ]; then
