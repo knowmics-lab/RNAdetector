@@ -12,7 +12,7 @@
 
 while getopts ":a:q:l:f:s:o:" opt; do
 	case $opt in
-		a ) ADAPTER=$OPTARG ;;
+		#a ) ADAPTER=$OPTARG ;;
 		q ) QUALITY=$OPTARG ;;
 		l ) LENGHT=$OPTARG ;;
 		f ) INPUT_1=$OPTARG ;;
@@ -60,7 +60,7 @@ fi
 
 #### Trimming and adaptors removing ####
 if [ $PAIRED ]; then
-	/mnt/d/tool/TrimGalore-0.6.0/trim_galore -q $QUALITY --paired -a $ADAPTER -a2 $ADAPTER -o $OUTPUT --dont_gzip --phred33 --length $LENGHT --no_report_file  $INPUT_1 $INPUT_2
+	/mnt/d/tool/TrimGalore-0.6.0/trim_galore -q $QUALITY --paired -o $OUTPUT --dont_gzip --phred33 --length $LENGHT --no_report_file  $INPUT_1 $INPUT_2
 else
-	/mnt/d/tool/TrimGalore-0.6.0/trim_galore -q $QUALITY -a $ADAPTER -o $OUTPUT --dont_gzip --phred33 --length $LENGHT --no_report_file $INPUT_1
+	/mnt/d/tool/TrimGalore-0.6.0/trim_galore -q $QUALITY -o $OUTPUT --dont_gzip --phred33 --length $LENGHT --no_report_file $INPUT_1
 fi
