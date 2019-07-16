@@ -1,0 +1,23 @@
+#!/bin/bash
+
+##############################################################################
+# Options:
+# 	-r FASTA files
+#   -i Indexed trascriptome
+#   -f FIRST INPUT FASTQ (trimmed FASTQ file)
+# 	-s OPTIONAL SECOND INPUT FASTQ (FOR PAIRED) (trimmed FASTQ file)
+# 	-t NUMBER OF THREADS
+#		-o OUTPUT
+##############################################################################
+while getopts ":r:i:f:s:t:o:" opt; do
+	case $opt in
+		r ) FASTA=$OPTARG ;;
+		i ) INDEXED_FASTA=$OPTARG ;;
+		f ) INPUT_1=$OPTARG ;;
+		s ) INPUT_2=$OPTARG ;;
+		t ) THREADS=$OPTARG ;;
+		o ) OUTPUT=$OPTARG ;;
+		\?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
+		: ) echo "Option -$OPTARG requires an argument." >&2; exit 2;;
+	esac
+done
