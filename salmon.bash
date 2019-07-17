@@ -73,11 +73,13 @@ if [ -z $DECOYS_FILE ] || [ ! -f $DECOYS_FILE ]; then
 fi
 
 #### Indexed transcriptome ####
-./bin/salmon index -t $FASTA -i $INDEXED_FASTA -decoys $DECOYS_FILE -k 31
+if [ -z $INDEXED_FASTA ]; then
+	./bin/salmon index -t $FASTA -i $INDEXED_FASTA -decoys $DECOYS_FILE -k 31
+fi
 
 # Check indexed fasta file
-if [ -z $FASTA ] || [ ! -f $FASTA ]; then
-	echo "FASTA file does not exist!"
+if [ -z $INDEXED_FASTA ] || [ ! -f $INDEXED_FASTA ]; then
+	echo "Indexed FASTA file does not exist!"
 	exit 9
 fi
 
