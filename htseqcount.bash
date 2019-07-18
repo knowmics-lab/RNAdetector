@@ -49,4 +49,7 @@ if [ ! -w $(dirname $OUTPUT) ]; then
 fi
 
 #### Counting ####
-htseq-count -f bam -m union --nonunique all -s no $INPUT_BAM $GTF_FILE > $OUTPUT/counts_results_ht.txt
+SAMPLE_NAME=$(basename $INPUT_BAM ".bam")
+SUFF="_ht.txt"
+OUTPUT_NAME=$SAMPLE_NAME$SUFF
+htseq-count -f bam -m union --nonunique all -s no $INPUT_BAM $GTF_FILE > $OUTPUT/$OUTPUT_NAME
