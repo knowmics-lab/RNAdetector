@@ -49,4 +49,7 @@ if [ ! -w $(dirname $OUTPUT) ]; then
 fi
 
 #### Counting ####
-/mnt/d/tool/subread-1.6.4-Linux-x86_64/bin/featureCounts -T $THREADS -a $GTF_FILE -o $OUTPUT/counts_results_fc.txt $INPUT_BAM
+SAMPLE_NAME=$(basename $INPUT_BAM ".bam")
+SUFF="_fc.txt"
+OUTPUT_NAME=$SAMPLE_NAME$SUFF
+/mnt/d/tool/subread-1.6.4-Linux-x86_64/bin/featureCounts -T $THREADS -a $GTF_FILE -o $OUTPUT/$OUTPUT_NAME $INPUT_BAM
