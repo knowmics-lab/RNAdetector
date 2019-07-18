@@ -6,6 +6,7 @@
 ##########################################################################################################
 
 library(readr)
+
 format_output_count_files <- function(path, output_path){
   counts_files_names <- list.files(path, pattern = "\\.txt")
   for (counts in counts_files_names){
@@ -24,6 +25,13 @@ format_output_count_files <- function(path, output_path){
       featureCounts_data <- featureCounts_data[,c(1,7)]
       colnames(featureCounts_data) <- c("name", "raw_counts")
       write.table(featureCounts_data,
+                  file = output_counts_path, col.names = TRUE, row.names = FALSE, quote = FALSE, sep = "\t")
+    } else if (suff == "ci.txt"){
+      ciri_data <- read_delim(counts_path, "\t", escape_double = FALSE, col_names = TRUE, trim_ws = TRUE)
+      ciri_data <- ciri_data[,c(10,5)]
+      colnames(ciri_data) <- c("name", "raw_counts")
+      ciri_data <- ciri_data[ciri_data$name!="n/a",, drop=FALSE]
+      write.table(ciri_data,
                   file = output_counts_path, col.names = TRUE, row.names = FALSE, quote = FALSE, sep = "\t")
     }
   }
