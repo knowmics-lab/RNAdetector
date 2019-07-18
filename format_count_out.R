@@ -12,7 +12,8 @@ format_output_count_files <- function(path, output_path){
     counts_path <- paste(path, counts, sep = "")
     output_counts_path <- paste(output_path, "formatted_", counts, sep = "")
     splitted_name <- unlist(strsplit(counts, "_"))
-    suff <- splitted_name[2]
+    n <- length(splitted_name)
+    suff <- splitted_name[n]
     if (suff == "ht.txt"){
       htseq_data <- read_delim(counts_path, "\t", escape_double = FALSE, col_names = FALSE, trim_ws = TRUE)
       colnames(htseq_data) <- c("name", "raw_counts")
