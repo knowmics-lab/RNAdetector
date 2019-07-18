@@ -74,7 +74,7 @@ fi
 
 #### Indexed transcriptome ####
 if [ -z $INDEXED_FASTA ]; then
-	./bin/salmon index -t $FASTA -i $INDEXED_FASTA -decoys $DECOYS_FILE -k 31
+	sudo docker run combinelab/salmon salmon index -t $FASTA -i $INDEXED_FASTA -decoys $DECOYS_FILE -k 31
 fi
 
 # Check indexed fasta file
@@ -85,7 +85,7 @@ fi
 
 #### Counting ####
 if [ $PAIRED ]; then
-	./bin/salmon quant -i $INDEXED_FASTA -l A -1 $INPUT_1 -2 $INPUT_2 --validateMappings -p $THREADS -o $OUTPUT
+	sudo docker run combinelab/salmon salmon quant -i $INDEXED_FASTA -l A -1 $INPUT_1 -2 $INPUT_2 --validateMappings -p $THREADS -o $OUTPUT
 else
-  ./bin/salmon quant -i $INDEXED_FASTA -l A -r $INPUT_1 --validateMappings -p $THREADS -o $OUTPUT
+  sudo docker run combinelab/salmon salmon quant -i $INDEXED_FASTA -l A -r $INPUT_1 --validateMappings -p $THREADS -o $OUTPUT
 fi
