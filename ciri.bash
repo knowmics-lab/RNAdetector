@@ -70,7 +70,7 @@ fi
 
 #### circRNA identification ####
 SAMPLE_NAME=$(basename $INPUT_SAM_FILE ".sam")
-SUFF="_ciri.txt"
+SUFF="_ci.txt"
 OUTPUT_NAME=$SAMPLE_NAME$SUFF
 
 if [ $PAIRED ]; then
