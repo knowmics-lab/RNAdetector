@@ -3,11 +3,11 @@
 library(readr)
 
 path <- "D:/NMSpipeline/read_counts/"
-output_path <- "D:/NMSpipeline/formatted_read_counts/formatted_"
+output_path <- "D:/NMSpipeline/formatted_read_counts/"
 counts_files_names <- list.files(path, pattern = "\\.txt")
 for (counts in counts_files_names){
   counts_path <- paste(path, counts, sep = "")
-  output_counts_path <- paste(output_path, counts, sep = "")
+  output_counts_path <- paste(output_path, "formatted_", counts, sep = "")
   splitted_name <- unlist(strsplit(counts, "_"))
   suff <- splitted_name[2]
   if (suff == "ht.txt"){
