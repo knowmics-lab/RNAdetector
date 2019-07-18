@@ -7,7 +7,7 @@
 # 	-t NUMBER OF THREADS
 # 	-f FIRST INPUT FASTQ (trimmed FASTQ file)
 # 	-s OPTIONAL SECOND INPUT FASTQ (FOR PAIRED) (trimmed FASTQ file)
-# 	-o OUTPUT BAM FILE
+# 	-o OUTPUT SAM FILE
 ##############################################################################
 while getopts ":a:g:t:f:s:o:" opt; do
 	case $opt in
