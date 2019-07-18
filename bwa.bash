@@ -3,7 +3,7 @@
 ##############################################################################
 # Options:
 # 	-a FILE GTF
-# 	-g REFERENCE GENOME FILE
+# 	-g INDEX REFERENCE GENOME FOLDER WITH PREFIX
 # 	-t NUMBER OF THREADS
 # 	-f FIRST INPUT FASTQ (trimmed FASTQ file)
 # 	-s OPTIONAL SECOND INPUT FASTQ (FOR PAIRED) (trimmed FASTQ file)
