@@ -66,7 +66,6 @@ if [ ! -w $(dirname $OUTPUT) ]; then
 fi
 
 # Check if decoy file exists
-# Check FASTA file
 if [ -z $DECOYS_FILE ] || [ ! -f $DECOYS_FILE ]; then
 	echo "Decoys file does not exist!"
 	exit 8
