@@ -65,7 +65,7 @@ fi
 
 #### Alignment ####
 TEMP_DIR=$(mktemp -d)
-if [ $PAIRED ]; then
+if [ $PAIRED = "true" ]; then
 	tophat2 -G $GTF_FILE -o $TEMP_DIR -p $THREADS $REF_GENOME $INPUT_1 $INPUT_2
 else
 	tophat2 -G $GTF_FILE -o $TEMP_DIR -p $THREADS $REF_GENOME $INPUT_1
