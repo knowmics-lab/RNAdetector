@@ -2,7 +2,7 @@
 
 ##############################################################################
 # Options:
-# 	-r FASTA files
+# 	-r FASTA transcripts files
 #   -i Indexed trascriptome
 #   -d decoys file
 #   -f FIRST INPUT FASTQ (trimmed FASTQ file)
