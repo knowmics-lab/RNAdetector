@@ -43,7 +43,7 @@ if [ ! -w $(dirname $OUTPUT) ]; then
 fi
 
 #### Quality control with FASTQC ####
-if [ $PAIRED ]; then
+if [ $PAIRED = "true" ]; then
 	fastqc $INPUT_1 $INPUT_2 --outdir=$OUTPUT
 else
 	fastqc $INPUT_1 --outdir=$OUTPUT
