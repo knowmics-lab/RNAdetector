@@ -65,7 +65,7 @@ fi
 
 #### Alignment ####
 SAM_NAME=$(mktemp --suffix=".sam")
-if [ $PAIRED ]; then
+if [ $PAIRED = "true" ]; then
 	bwa mem -t $THREADS $REF_GENOME $INPUT_1 $INPUT_2 > $SAM_NAME
 else
 	bwa mem -t $THREADS $REF_GENOME $INPUT_1 > $SAM_NAME
