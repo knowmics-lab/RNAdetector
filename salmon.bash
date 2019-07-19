@@ -8,7 +8,7 @@
 #   -f FIRST INPUT FASTQ (trimmed FASTQ file)
 # 	-s OPTIONAL SECOND INPUT FASTQ (FOR PAIRED) (trimmed FASTQ file)
 # 	-t NUMBER OF THREADS
-#		-o OUTPUT
+#		-o OUTPUT directory
 ##############################################################################
 while getopts ":r:i:d:f:s:t:o:" opt; do
 	case $opt in
@@ -28,7 +28,7 @@ done
 
 # Check FASTA file
 if [ -z $FASTA ] || [ ! -f $FASTA ]; then
-	echo "FASTA file does not exist!"
+	echo "FASTA file with transcripts does not exist!"
 	exit 3
 fi
 
@@ -84,8 +84,12 @@ if [ -z $INDEXED_FASTA ] || [ ! -f $INDEXED_FASTA ]; then
 fi
 
 #### Counting ####
+SAMPLE_NAME=$(basename $INPUT_1 ".fastq")
+SUFF="_sa.txt"
+OUTPUT_NAME=$SAMPLE_NAME$SUFF
+
 if [ $PAIRED ]; then
-	sudo docker run combinelab/salmon salmon quant -i $INDEXED_FASTA -l A -1 $INPUT_1 -2 $INPUT_2 --validateMappings -p $THREADS -o $OUTPUT
+	sudo docker run combinelab/salmon salmon quant -i $INDEXED_FASTA -l A -1 $INPUT_1 -2 $INPUT_2 --validateMappings -p $THREADS -o $OUTPUT/$OUTPUT_NAME
 else
-  sudo docker run combinelab/salmon salmon quant -i $INDEXED_FASTA -l A -r $INPUT_1 --validateMappings -p $THREADS -o $OUTPUT
+  sudo docker run combinelab/salmon salmon quant -i $INDEXED_FASTA -l A -r $INPUT_1 --validateMappings -p $THREADS -o $OUTPUT/$OUTPUT_NAME
 fi
