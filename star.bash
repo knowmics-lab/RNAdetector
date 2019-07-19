@@ -64,7 +64,7 @@ fi
 
 #### Alignment ####
 TEMP_DIR=$(mktemp -d) # creo una cartella temporanea per i file di output
-if [ $PAIRED ]; then
+if [ $PAIRED = "true" ]; then
 	STAR --runMode alignReads STAR --genomeDir $REF_GENOME --readFilesIn $INPUT_1 $INPUT_2 --outSAMtype BAM SortedByCoordinate --outFileNamePrefix $TEMP_DIR --runThreadN $THREADS
 else
 	STAR --runMode alignReads STAR --genomeDir $REF_GENOME --readFilesIn $INPUT_1 --outSAMtype BAM SortedByCoordinate --outFileNamePrefix $TEMP_DIR --runThreadN $THREADS
