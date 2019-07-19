@@ -57,7 +57,7 @@ if [ ! -w $(dirname $OUTPUT) ]; then
 fi
 
 #### Trimming and adaptors removing ####
-if [ $PAIRED ]; then
+if [ $PAIRED = "true" ]; then
 	/mnt/d/tool/TrimGalore-0.6.0/trim_galore -q $QUALITY --paired -o $OUTPUT --dont_gzip --phred33 --length $LENGHT --no_report_file  $INPUT_1 $INPUT_2
 else
 	/mnt/d/tool/TrimGalore-0.6.0/trim_galore -q $QUALITY -o $OUTPUT --dont_gzip --phred33 --length $LENGHT --no_report_file $INPUT_1
