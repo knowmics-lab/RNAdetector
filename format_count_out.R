@@ -18,12 +18,15 @@ format_output_count_files <- function(path, output_path){
     if (suff == "ht.txt"){
       htseq_data <- read_delim(counts_path, "\t", escape_double = FALSE, col_names = FALSE, trim_ws = TRUE)
       colnames(htseq_data) <- c("name", "raw_counts")
+      htseq_data <- htseq_data[order(htseq_data$name, decreasing = FALSE),]
+      htseq_data <- htseq_data[-c(1:5),]
       write.table(htseq_data,
                   file = output_counts_path, col.names = TRUE, row.names = FALSE, quote = FALSE, sep = "\t")
     } else if (suff == "fc.txt") {
       featureCounts_data <- read_delim(counts_path, "\t", escape_double = FALSE, trim_ws = TRUE, skip = 1)
       featureCounts_data <- featureCounts_data[,c(1,7)]
       colnames(featureCounts_data) <- c("name", "raw_counts")
+      featureCounts_data <- featureCounts_data[order(featureCounts_data$name, decreasing = FALSE),]
       write.table(featureCounts_data,
                   file = output_counts_path, col.names = TRUE, row.names = FALSE, quote = FALSE, sep = "\t")
     } else if (suff == "ci.txt"){
@@ -31,6 +34,7 @@ format_output_count_files <- function(path, output_path){
       ciri_data <- ciri_data[,c(10,5)]
       colnames(ciri_data) <- c("name", "raw_counts")
       ciri_data <- ciri_data[ciri_data$name!="n/a",, drop=FALSE]
+      ciri_data <- ciri_data[order(ciri_data$name, decreasing = FALSE),]
       write.table(ciri_data,
                   file = output_counts_path, col.names = TRUE, row.names = FALSE, quote = FALSE, sep = "\t")
     }
