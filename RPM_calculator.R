@@ -29,4 +29,3 @@ RPM_calculator <- function(path_in, path_out){
   }
 }
 
-
