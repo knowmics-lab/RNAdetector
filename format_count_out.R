@@ -37,6 +37,13 @@ format_output_count_files <- function(path, output_path){
       ciri_data <- ciri_data[order(ciri_data$name, decreasing = FALSE),]
       write.table(ciri_data,
                   file = output_counts_path, col.names = TRUE, row.names = FALSE, quote = FALSE, sep = "\t")
+    } else if (suff == "sa.txt"){
+      salmon_data <- read_delim(counts_path, "\t", escape_double = FALSE, col_names = TRUE, trim_ws = TRUE)
+      salmon_data <- salmon_data[,c(1,5)]
+      colnames(salmon_data) <- c("name", "raw_counts")
+      salmon_data <- salmon_data[order(salmon_data$name, decreasing = FALSE),]
+      write.table(salmon_data,
+                  file = output_counts_path, col.names = TRUE, row.names = FALSE, quote = FALSE, sep = "\t")
     }
   }
 }
