@@ -2,24 +2,26 @@
 #
 # - Formatted raw counts input files path. Es. "D:/Human/proj_CLL_CD74_case_study/reads_quantification/prova/"
 # - Output path. Es. "D:/NMSpipeline/DEresults"
-# - Condition
+# - Path sample info matrix. Es. "D:/Human/proj_CLL_CD74_case_study/reads_quantification/sample_info.txt"
 # 
-#
 ####################################################
-
-library(BiocInstaller)
-biocLite("DESeq2")
+chooseCRANmirror()
+install.packages("BiocManager")
+BiocManager::install("DESeq2")
+BiocManager::install("btergm")
+BiocManager::install("rlang")
+BiocManager::install()
 library(DESeq2)
 library(readr)
 
 # parametri della funzione
 path_input <- "D:/Human/proj_CLL_CD74_case_study/reads_quantification/prova/"
 path_output <- "D:/NMSpipeline/DEresults"
-
+sample_info_path <- "D:/Human/proj_CLL_CD74_case_study/reads_quantification/sample_info.txt"
 
 
 # funzione
-deseq_DE_analysis <- function(path_input, path_output){
+deseq_DE_analysis <- function(path_input, path_output, sample_info_path){
   
 }
 
@@ -40,7 +42,7 @@ row.names(merged_raw_counts_data) <- merged_raw_counts_data$merged_raw_counts_da
 merged_raw_counts_data <- merged_raw_counts_data[,-c(1)]
 
 # Differential expression analysis
-sample_info <- data.frame(condition = , row.names = names(merged_raw_counts_data)) # come definire la condition??
+sample_info <- read_delim(sample_info_path, "\t", escape_double = FALSE, trim_ws = TRUE)
 
 DESeq.ds<-DESeqDataSetFromMatrix(countData = merged_raw_counts_data,
                                  colData = sample_info,
@@ -53,7 +55,7 @@ log.norm.counts <- log2(counts_normalized + 1)
 DESeq.ds.rlog <- rlog(DESeq.ds, blind = TRUE)
 rlog.norm.counts <- assay(DESeq.ds.rlog)
 
-colData(DESeq.ds)$condition <- relevel(colData(DESeq.ds)$condition, "IDENTIFICATIVO CAMPIONI CONTROLLO NEL DATAFRAME CON LE INFO")
+colData(DESeq.ds)$condition <- relevel(colData(DESeq.ds)$condition, "ctrl")
 DESeq.ds <- DESeq(DESeq.ds)
 DGE.results <- results(DESeq.ds,independentFiltering = TRUE, alpha = 0.05)
 DGE.results.sorted <- DGE.results[order(DGE.results$padj),]
