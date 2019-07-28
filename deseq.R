@@ -60,9 +60,3 @@ DGE.results.sorted <- DGE.results[order(DGE.results$padj),]
 
 
 
-
-# identify genes with the desired adjusted p-value cut-off
-DGEgenes<-rownames(subset(DGE.results.sorted, padj<0.05))
-
-
-
