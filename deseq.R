@@ -5,12 +5,10 @@
 # - Path sample info matrix. Es. "D:/Human/proj_CLL_CD74_case_study/reads_quantification/sample_info.txt"
 # 
 ####################################################
-chooseCRANmirror()
-install.packages("BiocManager")
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+
 BiocManager::install("DESeq2")
-BiocManager::install("btergm")
-BiocManager::install("rlang")
-BiocManager::install()
 library(DESeq2)
 library(readr)
 
