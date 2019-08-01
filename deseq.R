@@ -1,7 +1,7 @@
 #### Differential Expression analysis - DESeq 2 ####
 #
 # - Formatted raw counts input files path. Es. "D:/Human/proj_CLL_CD74_case_study/reads_quantification/prova/"
-# - Output path. Es. "D:/NMSpipeline/DEresults/deseq_test.txt"
+# - Output path. Es. "D:/NMSpipeline/DE_results/deseq_test.txt"
 # - Path sample info matrix. Es. "D:/Human/proj_CLL_CD74_case_study/reads_quantification/sample_info.txt"
 # 
 ####################################################
