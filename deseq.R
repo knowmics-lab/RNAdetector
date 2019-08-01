@@ -51,6 +51,7 @@ deseq_DE_analysis <- function(path_input, path_output, sample_info_path){
   final_results <- as.data.frame(DGE.results.sorted@listData)
   row.names(final_results) <- DGE.results.sorted@rownames
   final_results <- final_results[,c(2,5,6)]
+  final_results <- final_results[order(final_results$log2FoldChange, decreasing = TRUE),]
   write.table(final_results,
               file = path_output,
               row.names = TRUE,
