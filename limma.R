@@ -46,7 +46,7 @@ limma_DE_analysis <- function(path_input, path_output, sample_info_path){
   # Format output
   results <- topTable(fit_2, coef=1, number = Inf, adjust.method ="BH", sort.by="logFC")
   results <- results[,c(1,4,5)]
-  results[order(results$logFC, decreasing = TRUE),]
+  results <- results[order(results$logFC, decreasing = TRUE),]
   write.table(results,
               file = path_output,
               col.names = TRUE,
