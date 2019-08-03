@@ -54,4 +54,3 @@ limma_DE_analysis <- function(path_input, path_output, sample_info_path){
               quote = FALSE,
               sep = "\t")
 }
-
