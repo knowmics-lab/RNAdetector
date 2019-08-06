@@ -4,11 +4,6 @@
 # - Insert the path of the output folder. Es: "D:/NMSpipeline/normalized_counts/"
 #
 ####################################################################################################################################
-if (!requireNamespace("BiocManager", quietly = TRUE))
-  install.packages("BiocManager")
-
-BiocManager::install("NOISeq")
-library(NOISeq)
 library(readr)
 
 normalization <- function(path_in, path_out){
