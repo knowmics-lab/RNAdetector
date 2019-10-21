@@ -1,0 +1,12 @@
+/GUI/node_modules
+/GUI/public/hot
+/GUI/public/storage
+/GUI/storage/*.key
+/GUI/vendor
+.env
+.env.backup
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
