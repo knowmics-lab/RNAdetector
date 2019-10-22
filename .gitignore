@@ -3,6 +3,7 @@
 /GUI/public/storage
 /GUI/storage/*.key
 /GUI/vendor
+.vagrant
 .env
 .env.backup
 .phpunit.result.cache
