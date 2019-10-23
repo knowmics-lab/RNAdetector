@@ -63,7 +63,7 @@ fi
 
 #### Counting ####
 SAMPLE_NAME=$(basename $INPUT_1 ".fastq")
-SUFF="_sa"
+SUFF="_sa.txt"
 OUTPUT_NAME=$SAMPLE_NAME$SUFF
 
 TEMP_DIR="TMP"
