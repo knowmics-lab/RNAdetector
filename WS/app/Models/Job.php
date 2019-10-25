@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Storage;
+use App\Models\User;
 
 /**
  * App\Models\Job
@@ -62,15 +64,15 @@ class Job extends Model
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function user()
+    public function user(): BelongsTo
     {
-        return $this->belongsTo('App\Models\User', 'user_id', 'id');
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
     /**
      * Set the status attribute.
      *
-     * @param $value
+     * @param string $value
      */
     public function setStatusAttribute($value): void
     {
@@ -87,7 +89,7 @@ class Job extends Model
      *
      * @return string
      */
-    public function getJobDirectory()
+    public function getJobDirectory(): string
     {
         $path = 'jobs/' . $this->id;
         $disk = Storage::disk('public');
@@ -102,7 +104,7 @@ class Job extends Model
      *
      * @return bool
      */
-    public function deleteJobDirectory()
+    public function deleteJobDirectory(): bool
     {
         return Storage::disk('public')->deleteDirectory($this->getJobDirectory());
     }
@@ -160,7 +162,7 @@ class Job extends Model
      *
      * @return $this
      */
-    public function setParameter($parameter, $value): self
+    public function setParameter(string $parameter, $value): self
     {
         $tmp                  = $this->job_parameters;
         $tmp[$parameter]      = $value;
@@ -192,7 +194,7 @@ class Job extends Model
      *
      * @return $this
      */
-    public function setParameters($parameters)
+    public function setParameters(array $parameters): self
     {
         $this->job_parameters = [];
         return $this->addParameters($parameters);

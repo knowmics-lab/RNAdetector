@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -68,5 +68,40 @@ class User extends Authenticatable
         'admin'             => 'boolean',
     ];
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function jobs(): HasMany
+    {
+        return $this->hasMany(Job::class, 'user_id', 'id');
+    }
+
+    /**
+     * Returns some statistics about the user or the system if the user is an administrator.
+     *
+     * @return array
+     */
+    public function statistics(): array
+    {
+        $stats = [];
+        if ($this->admin) {
+            $stats['jobs'] = [
+                'all'        => Job::count(),
+                'queued'     => Job::whereStatus(Job::QUEUED)->count(),
+                'processing' => Job::whereStatus(Job::PROCESSING)->count(),
+                'failed'     => Job::whereStatus(Job::FAILED)->count(),
+                'completed'  => Job::whereStatus(Job::COMPLETED)->count(),
+            ];
+        } else {
+            $stats['jobs'] = [
+                'all'        => Job::whereUserId($this->id)->count(),
+                'queued'     => Job::whereUserId($this->id)->whereStatus(Job::QUEUED)->count(),
+                'processing' => Job::whereUserId($this->id)->whereStatus(Job::PROCESSING)->count(),
+                'failed'     => Job::whereUserId($this->id)->whereStatus(Job::FAILED)->count(),
+                'completed'  => Job::whereUserId($this->id)->whereStatus(Job::COMPLETED)->count(),
+            ];
+        }
+        return $stats;
+    }
 
 }
