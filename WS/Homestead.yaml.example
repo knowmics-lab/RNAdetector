@@ -1,0 +1,21 @@
+ip: 192.168.10.10
+memory: 4096
+cpus: 2
+provider: virtualbox
+authorize: ~/.ssh/id_rsa.pub
+keys:
+    - ~/.ssh/id_rsa
+folders:
+    - map: 'D:\repos\RNAdetector\WS'
+      to: /home/vagrant/code
+sites:
+    - map: rnadetector.test
+      to: /home/vagrant/code/public
+databases:
+    - rnadetector
+features:
+    - mariadb: true
+    - ohmyzsh: false
+    - webdriver: false
+name: gui
+hostname: gui
