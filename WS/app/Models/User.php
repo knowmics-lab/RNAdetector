@@ -14,7 +14,7 @@ use Illuminate\Notifications\Notifiable;
  * @property string                                                                                                         $email
  * @property \Illuminate\Support\Carbon|null                                                                                $email_verified_at
  * @property string                                                                                                         $password
- * @property int                                                                                                            $admin
+ * @property bool                                                                                                           $admin
  * @property string|null                                                                                                    $api_token
  * @property string|null                                                                                                    $remember_token
  * @property \Illuminate\Support\Carbon|null                                                                                $created_at
@@ -65,5 +65,8 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'admin'             => 'boolean',
     ];
+
+
 }

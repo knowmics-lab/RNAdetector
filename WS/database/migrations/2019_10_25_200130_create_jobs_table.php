@@ -17,7 +17,7 @@ class CreateJobsTable extends Migration
             $table->bigIncrements('id');
             $table->string('job_type');
             $table->enum('status', ['queued', 'processing', 'completed', 'failed']);
-            $table->json('job_input');
+            $table->json('job_parameters');
             $table->json('job_output');
             $table->text('log');
             $table->unsignedBigInteger('user_id')->index();
