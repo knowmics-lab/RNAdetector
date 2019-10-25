@@ -14,3 +14,4 @@ yarn-error.log
 .idea
 .phpstorm.meta.php
 _ide_helper.php
+package-lock.json
