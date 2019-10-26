@@ -110,6 +110,29 @@ class Job extends Model
     }
 
     /**
+     * Checks if the current should run or not.
+     * Only queued jobs should run.
+     *
+     * @return bool
+     */
+    public function shouldNotRun(): bool
+    {
+        return in_array($this->status, [self::PROCESSING, self::COMPLETED, self::FAILED], true);
+    }
+
+    /**
+     * Set a new status value and save this model
+     * @param $newStatus
+     * @return $this
+     */
+    public function setStatus($newStatus): self
+    {
+        $this->status = $newStatus;
+        $this->save();
+        return $this;
+    }
+
+    /**
      * Set the value of one or more output data.
      * If $parameter is an associative array sets multiple parameters at the same time.
      *
@@ -120,6 +143,7 @@ class Job extends Model
     public function setOutput($parameter, $value = null): self
     {
         $tmp = $this->job_output;
+        if (!is_array($tmp)) $tmp = [];
         if ($value === null && is_array($parameter)) {
             foreach ($parameter as $p => $v) {
                 $tmp[$p] = $v;
@@ -222,5 +246,25 @@ class Job extends Model
         }
         return $this->job_parameters[$parameter] ?? $default;
     }
+
+    /**
+     * Append text to the log
+     *
+     * @param string $text
+     * @param bool   $appendNewLine
+     * @param bool   $commit
+     */
+    public function appendLog(string $text, bool $appendNewLine = true, bool $commit = true): void
+    {
+        if ($appendNewLine) {
+            $text .= PHP_EOL;
+        }
+        //echo $text; // @TODO FOR DEBUG ONLY
+        $this->log .= $text;
+        if ($commit) {
+            $this->save();
+        }
+    }
+
 
 }
