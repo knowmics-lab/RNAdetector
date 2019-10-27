@@ -11,10 +11,15 @@
 |
 */
 
-Route::get('/', function () {
+Route::get('/', static function () {
     return view('welcome');
 });
 
-Auth::routes();
+Auth::routes([
+    'register' => false,
+    'reset'    => false,
+    'confirm'  => false,
+    'verify'   => false,
+]);
 
 Route::get('/home', 'HomeController@index')->name('home');
