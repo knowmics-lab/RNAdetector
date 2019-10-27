@@ -36,6 +36,7 @@ use Storage;
 class Job extends Model
 {
 
+    public const READY = 'ready';
     public const QUEUED = 'queued';
     public const PROCESSING = 'processing';
     public const COMPLETED = 'completed';
@@ -76,9 +77,9 @@ class Job extends Model
     public function setStatusAttribute($value): void
     {
         if (!in_array($value, [
-            self::QUEUED, self::PROCESSING, self::COMPLETED, self::FAILED,
+            self::READY, self::QUEUED, self::PROCESSING, self::COMPLETED, self::FAILED,
         ], true)) {
-            $value = self::QUEUED;
+            $value = self::READY;
         }
         $this->attributes['status'] = $value;
     }
@@ -109,7 +110,27 @@ class Job extends Model
     }
 
     /**
-     * Checks if the current should run or not.
+     * Checks if the current job can be modified
+     *
+     * @return bool
+     */
+    public function canBeModified(): bool
+    {
+        return $this->status === self::READY;
+    }
+
+    /**
+     * Checks if the current job can be deleted
+     *
+     * @return bool
+     */
+    public function canBeDeleted(): bool
+    {
+        return in_array($this->status, [self::READY, self::COMPLETED, self::FAILED], true);
+    }
+
+    /**
+     * Checks if the current job should run or not.
      * Only queued jobs should run.
      *
      * @return bool

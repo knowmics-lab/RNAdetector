@@ -22,7 +22,6 @@ class User extends JsonResource
                 'admin'      => $this->admin,
                 'created_at' => $this->created_at,
                 'updated_at' => $this->updated_at,
-                'jobs'       => new JobCollection($this->whenLoaded('jobs')),
             ],
             'links' => [
                 'self' => route('users.show', $this->resource),

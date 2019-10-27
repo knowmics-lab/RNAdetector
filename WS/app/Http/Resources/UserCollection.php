@@ -6,6 +6,14 @@ use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class UserCollection extends ResourceCollection
 {
+
+    /**
+     * Indicates if the resource's collection keys should be preserved.
+     *
+     * @var bool
+     */
+    public $preserveKeys = true;
+
     /**
      * Transform the resource collection into an array.
      *
@@ -14,7 +22,7 @@ class UserCollection extends ResourceCollection
      */
     public function toArray($request)
     {
-        return $this->collection->map(function ($item) {
+        return $this->collection->map(static function ($item) {
             return [
                 'id'         => $item->id,
                 'name'       => $item->name,
@@ -23,6 +31,6 @@ class UserCollection extends ResourceCollection
                 'created_at' => $item->created_at,
                 'updated_at' => $item->updated_at,
             ];
-        })->all();
+        })->keyBy('id')->all();
     }
 }

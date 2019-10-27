@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Exceptions\ProcessingJobException;
+use Auth;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -55,9 +56,12 @@ class Request implements ShouldQueue
             if (!$jobProcessor->isInputValid()) {
                 throw new ProcessingJobException('Job input format is not valid');
             }
+            Auth::login($this->model->user);
             $jobProcessor->handle();
+            Auth::logout();
             $this->model->setStatus(JobModel::COMPLETED);
         } catch (ProcessingJobException $e) {
+            $this->model->appendLog('Error: ' . $e);
             $this->model->setStatus(JobModel::FAILED);
             if ($jobProcessor !== null && ($jobProcessor instanceof Types\AbstractJob)) {
                 $jobProcessor->cleanupOnFail();

@@ -30,7 +30,7 @@ class JobPolicy
      */
     public function view(User $user, Job $job)
     {
-        return $user->admin || $job->user_id = $user->id;
+        return $user->admin || $job->user_id === $user->id;
     }
 
     /**
@@ -53,7 +53,7 @@ class JobPolicy
      */
     public function update(User $user, Job $job)
     {
-        return $user->admin || $job->user_id = $user->id;
+        return $user->admin || $job->user_id === $user->id;
     }
 
     /**
@@ -65,7 +65,7 @@ class JobPolicy
      */
     public function delete(User $user, Job $job)
     {
-        return $user->admin || $job->user_id = $user->id;
+        return $user->admin || $job->user_id === $user->id;
     }
 
     /**
@@ -77,7 +77,7 @@ class JobPolicy
      */
     public function restore(User $user, Job $job)
     {
-        return $user->admin || $job->user_id = $user->id;
+        return $user->admin || $job->user_id === $user->id;
     }
 
     /**
@@ -89,7 +89,7 @@ class JobPolicy
      */
     public function forceDelete(User $user, Job $job)
     {
-        return $user->admin || $job->user_id = $user->id;
+        return $user->admin || $job->user_id === $user->id;
     }
 
     /**
@@ -99,8 +99,8 @@ class JobPolicy
      * @param \App\Models\Job  $job
      * @return mixed
      */
-    public function submit(User $user, Job $job)
+    public function submitJob(User $user, Job $job)
     {
-        return $user->admin || $job->user_id = $user->id;
+        return $user->admin || $job->user_id === $user->id;
     }
 }

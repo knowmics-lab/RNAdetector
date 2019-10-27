@@ -5,18 +5,23 @@ namespace App\Jobs\Types;
 
 use App\Exceptions\ProcessingJobException;
 use App\Models\Job as JobModel;
+use Cache;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Symfony\Component\Finder\Finder;
 
 /**
- * @method static string description(\App\Models\Job|string $where)
- * @method static array parametersSpec(\App\Models\Job|string $where)
- * @method static array outputSpec(\App\Models\Job|string $where)
- * @method static array validationSpec(\App\Models\Job|string $where)
+ * @method static string description(\App\Models\Job|\App\Jobs\Types\AbstractJob|string $where)
+ * @method static array parametersSpec(\App\Models\Job|\App\Jobs\Types\AbstractJob|string $where)
+ * @method static array outputSpec(\App\Models\Job|\App\Jobs\Types\AbstractJob|string $where)
+ * @method static array validationSpec(\App\Models\Job|\App\Jobs\Types\AbstractJob|string $where)
  */
 class Factory
 {
+    /**
+     * @var \Illuminate\Support\Collection|null
+     */
+    private static $_cachedList = null;
 
     /**
      * Given a Job Model, this method builds an object that will be able to process this job
@@ -66,6 +71,8 @@ class Factory
                 $jobClass = null;
                 if ($where instanceof JobModel) {
                     $jobClass = '\App\Jobs\Types\\' . Str::studly($where->job_type);
+                } elseif ($where instanceof AbstractJob) {
+                    $jobClass = get_class($where);
                 } elseif (is_string($where) && class_exists($where)) {
                     $r = new \ReflectionClass($where);
                     if ($r->isSubclassOf(AbstractJob::class) && !$r->isAbstract()) {
@@ -75,7 +82,7 @@ class Factory
                     $jobClass = '\App\Jobs\Types\\' . Str::studly($where);
                 }
                 if (!class_exists($jobClass)) {
-                    throw new ProcessingJobException('Unable to find a class suitable for this job.');
+                    throw new ProcessingJobException('Invalid parameter where specified in static method ' . $name . ' from __callStatic.');
                 }
                 return call_user_func([$jobClass, $name]);
             }
@@ -91,28 +98,33 @@ class Factory
      */
     public static function listTypes(): Collection
     {
-        $list   = [];
-        $finder = new Finder();
-        $finder->files()->name('*Type.php')->in(app_path('Jobs/Types/'));
-        foreach ($finder as $file) {
-            $ns = '\App\Jobs\Types';
-            if ($relativePath = $file->getRelativePath()) {
-                $ns .= '\\' . str_replace('/', '\\', $relativePath);
-            }
-            $class = $ns . '\\' . $file->getBasename('.php');
-            try {
-                $r = new \ReflectionClass($class);
-                if ($r->isSubclassOf(AbstractJob::class) && !$r->isAbstract() && $r->getConstructor()->getNumberOfRequiredParameters() === 1) {
-                    $list[] = [
-                        'id'          => Str::snake($file->getBasename('.php')),
-                        'description' => call_user_func([$class, 'description']),
-                    ];
+        if (!Cache::has('types-list')) {
+            $list   = [];
+            $finder = new Finder();
+            $finder->files()->name('*Type.php')->in(app_path('Jobs/Types/'));
+            foreach ($finder as $file) {
+                $ns = '\App\Jobs\Types';
+                if ($relativePath = $file->getRelativePath()) {
+                    $ns .= '\\' . str_replace('/', '\\', $relativePath);
                 }
-            } catch (\ReflectionException $ignore) {
-                continue;
+                $class = $ns . '\\' . $file->getBasename('.php');
+                try {
+                    $r = new \ReflectionClass($class);
+                    if ($r->isSubclassOf(AbstractJob::class) && !$r->isAbstract() && $r->getConstructor()->getNumberOfRequiredParameters() === 1) {
+                        $list[] = [
+                            'id'          => Str::snake($file->getBasename('.php')),
+                            'description' => call_user_func([$class, 'description']),
+                        ];
+                    }
+                } catch (\ReflectionException $ignore) {
+                    continue;
+                }
             }
+            $list = collect($list);
+            Cache::put('types-list', $list, now()->addMinutes(10)); //List is computed every 10 minutes
+            return $list;
         }
-        return Collection::make($list);
+        return Cache::get('types-list');
     }
 
 }

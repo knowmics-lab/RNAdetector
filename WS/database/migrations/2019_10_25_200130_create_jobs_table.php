@@ -16,7 +16,7 @@ class CreateJobsTable extends Migration
         Schema::create('jobs', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('job_type');
-            $table->enum('status', ['queued', 'processing', 'completed', 'failed']);
+            $table->enum('status', ['ready', 'queued', 'processing', 'completed', 'failed'])->default('ready');
             $table->json('job_parameters');
             $table->json('job_output');
             $table->text('log');
