@@ -14,8 +14,13 @@ use Illuminate\Http\Request;
 */
 
 Route::apiResource('users', 'Api\\UserController')->names([
+    'show' => 'users.show',
+])->middleware('auth:api');
 
-]);
+Route::middleware([
+    'auth:api',
+    'can:generate-token,user',
+])->get('/users/{user}/token', 'Api\\UserController@token');
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();

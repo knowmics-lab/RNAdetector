@@ -45,7 +45,9 @@ class Request implements ShouldQueue
     {
         $jobProcessor = null;
         try {
-            if ($this->model->shouldNotRun()) return; // job is being processed (or has been processed) by another thread.
+            if ($this->model->shouldNotRun()) {  // job is being processed (or has been processed) by another thread.
+                return;
+            }
             $this->model->log = '';
             $this->model->setStatus(JobModel::PROCESSING);
             $this->delete();

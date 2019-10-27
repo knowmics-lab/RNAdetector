@@ -15,13 +15,18 @@ class User extends JsonResource
     public function toArray($request): array
     {
         return [
-            'id'         => $this->id,
-            'name'       => $this->name,
-            'email'      => $this->email,
-            'admin'      => $this->admin,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-            'jobs'       => new JobCollection($this->whenLoaded('jobs')),
+            'data'  => [
+                'id'         => $this->id,
+                'name'       => $this->name,
+                'email'      => $this->email,
+                'admin'      => $this->admin,
+                'created_at' => $this->created_at,
+                'updated_at' => $this->updated_at,
+                'jobs'       => new JobCollection($this->whenLoaded('jobs')),
+            ],
+            'links' => [
+                'self' => route('users.show', $this->resource),
+            ],
         ];
     }
 }

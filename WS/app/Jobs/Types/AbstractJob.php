@@ -72,6 +72,13 @@ abstract class AbstractJob
     abstract public static function outputSpec(): array;
 
     /**
+     * Returns an array containing rules for input validation.
+     *
+     * @return array
+     */
+    abstract public static function validationSpec(): array;
+
+    /**
      * Checks the input of this job and returns true iff the input contains valid data
      * The default implementation does nothing.
      *

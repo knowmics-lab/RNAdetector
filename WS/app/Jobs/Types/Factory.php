@@ -9,6 +9,12 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Symfony\Component\Finder\Finder;
 
+/**
+ * @method static string description(\App\Models\Job|string $where)
+ * @method static array parametersSpec(\App\Models\Job|string $where)
+ * @method static array outputSpec(\App\Models\Job|string $where)
+ * @method static array validationSpec(\App\Models\Job|string $where)
+ */
 class Factory
 {
 
@@ -36,6 +42,46 @@ class Factory
             throw new ProcessingJobException('An error occurred during type class instantiation', 0, $e);
         }
         throw new ProcessingJobException('The type of job ' . $jobModel->id . ' is not valid!');
+    }
+
+    /**
+     * Implementation of virtual static methods
+     *
+     * @param string $name
+     * @param array  $arguments
+     * @return mixed
+     * @throws \App\Exceptions\ProcessingJobException
+     * @throws \ReflectionException
+     */
+    public static function __callStatic($name, $arguments)
+    {
+        if (in_array($name, [
+            'description',
+            'parametersSpec',
+            'outputSpec',
+            'validationSpec',
+        ])) {
+            if (count($arguments) === 1) {
+                $where    = $arguments[0];
+                $jobClass = null;
+                if ($where instanceof JobModel) {
+                    $jobClass = '\App\Jobs\Types\\' . Str::studly($where->job_type);
+                } elseif (is_string($where) && class_exists($where)) {
+                    $r = new \ReflectionClass($where);
+                    if ($r->isSubclassOf(AbstractJob::class) && !$r->isAbstract()) {
+                        $jobClass = $where;
+                    }
+                } elseif (is_string($where) && !class_exists($where)) {
+                    $jobClass = '\App\Jobs\Types\\' . Str::studly($where);
+                }
+                if (!class_exists($jobClass)) {
+                    throw new ProcessingJobException('Unable to find a class suitable for this job.');
+                }
+                return call_user_func([$jobClass, $name]);
+            }
+            throw new ProcessingJobException('Undefined parameter in static method ' . $name . ' from __callStatic.');
+        }
+        throw new ProcessingJobException('Undefined static method ' . $name . ' from __callStatic.');
     }
 
     /**

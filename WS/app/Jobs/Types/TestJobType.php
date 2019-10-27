@@ -17,7 +17,7 @@ class TestJobType extends AbstractJob
     public static function parametersSpec(): array
     {
         return [
-            'name' => 'A string containing a name',
+            'name' => 'An optional string containing a name',
         ];
     }
 
@@ -30,6 +30,18 @@ class TestJobType extends AbstractJob
     {
         return [
             'greetings' => 'A greeting to the user',
+        ];
+    }
+
+    /**
+     * Returns an array containing rules for input validation.
+     *
+     * @return array
+     */
+    public static function validationSpec(): array
+    {
+        return [
+            'name' => ['filled', 'min:2', 'max:20'],
         ];
     }
 
