@@ -9,18 +9,18 @@ use Illuminate\Notifications\Notifiable;
 /**
  * App\Models\User
  *
- * @property int                                                                                                            $id
- * @property string                                                                                                         $name
- * @property string                                                                                                         $email
- * @property \Illuminate\Support\Carbon|null                                                                                $email_verified_at
- * @property string                                                                                                         $password
- * @property bool                                                                                                           $admin
- * @property string|null                                                                                                    $api_token
- * @property string|null                                                                                                    $remember_token
- * @property \Illuminate\Support\Carbon|null                                                                                $created_at
- * @property \Illuminate\Support\Carbon|null                                                                                $updated_at
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property \Illuminate\Support\Carbon|null $email_verified_at
+ * @property string $password
+ * @property bool $admin
+ * @property string|null $api_token
+ * @property string|null $remember_token
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \Illuminate\Notifications\DatabaseNotificationCollection|\Illuminate\Notifications\DatabaseNotification[] $notifications
- * @property-read int|null                                                                                                  $notifications_count
+ * @property-read int|null $notifications_count
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User query()
@@ -46,7 +46,11 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password', 'api_token', 'admin',
+        'name',
+        'email',
+        'password',
+        'api_token',
+        'admin',
     ];
 
     /**
@@ -55,7 +59,9 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token', 'api_token',
+        'password',
+        'remember_token',
+        'api_token',
     ];
 
     /**
@@ -87,6 +93,7 @@ class User extends Authenticatable
         if ($this->admin) {
             $stats['jobs'] = [
                 'all'        => Job::count(),
+                'ready'      => Job::whereStatus(Job::READY)->count(),
                 'queued'     => Job::whereStatus(Job::QUEUED)->count(),
                 'processing' => Job::whereStatus(Job::PROCESSING)->count(),
                 'failed'     => Job::whereStatus(Job::FAILED)->count(),
@@ -95,12 +102,14 @@ class User extends Authenticatable
         } else {
             $stats['jobs'] = [
                 'all'        => Job::whereUserId($this->id)->count(),
+                'ready'      => Job::whereUserId($this->id)->whereStatus(Job::READY)->count(),
                 'queued'     => Job::whereUserId($this->id)->whereStatus(Job::QUEUED)->count(),
                 'processing' => Job::whereUserId($this->id)->whereStatus(Job::PROCESSING)->count(),
                 'failed'     => Job::whereUserId($this->id)->whereStatus(Job::FAILED)->count(),
                 'completed'  => Job::whereUserId($this->id)->whereStatus(Job::COMPLETED)->count(),
             ];
         }
+
         return $stats;
     }
 

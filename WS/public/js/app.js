@@ -36920,6 +36920,13 @@ module.exports = function(module) {
 
 __webpack_require__(/*! ./bootstrap */ "./resources/js/bootstrap.js");
 
+window.$(function () {
+  window.$('.logout-button').click(function (e) {
+    e.preventDefault();
+    window.$('#logout-form').submit();
+  });
+});
+
 /***/ }),
 
 /***/ "./resources/js/bootstrap.js":
