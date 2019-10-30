@@ -48,3 +48,12 @@ Route::middleware(
 
 Route::middleware('auth:api')->get('/job-types', 'Api\\JobTypeController@index')->name('job-types.index');
 Route::middleware('auth:api')->get('/job-types/{type}', 'Api\\JobTypeController@show')->name('job-types.show');
+
+Route::middleware('auth:api')->any(
+    '/tus/{any?}',
+    function () {
+        $response = app('tus-server')->serve();
+
+        return $response->send();
+    }
+)->where('any', '.*');
