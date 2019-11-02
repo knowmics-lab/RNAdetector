@@ -16,10 +16,11 @@ class TusServiceProvider extends ServiceProvider
     {
         $this->app->singleton(
             'tus-server',
-            function ($app) {
+            static function ($app) {
                 $server = new TusServer();
-                $server->setApiPath('/api/tus') // tus server endpoint.
-                       ->setUploadDir(storage_path('app/public/uploads')); // uploads dir.
+
+                /*$server->setApiPath('/api/tus') // tus server endpoint.
+                       ->setUploadDir(storage_path('app/public/uploads')); // uploads dir.*/
 
                 return $server;
             }

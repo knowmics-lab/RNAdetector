@@ -36,11 +36,11 @@ use Storage;
 class Job extends Model
 {
 
-    public const READY = 'ready';
-    public const QUEUED = 'queued';
+    public const READY      = 'ready';
+    public const QUEUED     = 'queued';
     public const PROCESSING = 'processing';
-    public const COMPLETED = 'completed';
-    public const FAILED = 'failed';
+    public const COMPLETED  = 'completed';
+    public const FAILED     = 'failed';
 
     /**
      * The attributes that are mass assignable.
@@ -48,7 +48,12 @@ class Job extends Model
      * @var array
      */
     protected $fillable = [
-        'job_type', 'status', 'job_parameters', 'job_output', 'log', 'user_id',
+        'job_type',
+        'status',
+        'job_parameters',
+        'job_output',
+        'log',
+        'user_id',
     ];
 
     /**
@@ -76,9 +81,17 @@ class Job extends Model
      */
     public function setStatusAttribute($value): void
     {
-        if (!in_array($value, [
-            self::READY, self::QUEUED, self::PROCESSING, self::COMPLETED, self::FAILED,
-        ], true)) {
+        if (!in_array(
+            $value,
+            [
+                self::READY,
+                self::QUEUED,
+                self::PROCESSING,
+                self::COMPLETED,
+                self::FAILED,
+            ],
+            true
+        )) {
             $value = self::READY;
         }
         $this->attributes['status'] = $value;
@@ -96,6 +109,7 @@ class Job extends Model
         if (!$disk->exists($path)) {
             $disk->makeDirectory($path);
         }
+
         return $path;
     }
 
@@ -142,13 +156,16 @@ class Job extends Model
 
     /**
      * Set a new status value and save this model
+     *
      * @param $newStatus
+     *
      * @return $this
      */
     public function setStatus($newStatus): self
     {
         $this->status = $newStatus;
         $this->save();
+
         return $this;
     }
 
@@ -158,12 +175,15 @@ class Job extends Model
      *
      * @param array|string $parameter
      * @param null|mixed   $value
+     *
      * @return $this
      */
     public function setOutput($parameter, $value = null): self
     {
         $tmp = $this->job_output;
-        if (!is_array($tmp)) $tmp = [];
+        if (!is_array($tmp)) {
+            $tmp = [];
+        }
         if ($value === null && is_array($parameter)) {
             foreach ($parameter as $p => $v) {
                 $tmp[$p] = $v;
@@ -172,6 +192,7 @@ class Job extends Model
             $tmp[$parameter] = $value;
         }
         $this->job_output = $tmp;
+
         return $this;
     }
 
@@ -193,8 +214,10 @@ class Job extends Model
             foreach ($parameter as $key) {
                 $slice[$key] = $this->job_output[$key] ?? $default;
             }
+
             return $slice;
         }
+
         return $this->job_output[$parameter] ?? $default;
     }
 
@@ -208,9 +231,10 @@ class Job extends Model
      */
     public function setParameter(string $parameter, $value): self
     {
-        $tmp                  = $this->job_parameters;
-        $tmp[$parameter]      = $value;
+        $tmp = $this->job_parameters;
+        $tmp[$parameter] = $value;
         $this->job_parameters = $tmp;
+
         return $this;
     }
 
@@ -228,6 +252,7 @@ class Job extends Model
             $tmp[$param] = $value;
         }
         $this->job_parameters = $tmp;
+
         return $this;
     }
 
@@ -241,6 +266,7 @@ class Job extends Model
     public function setParameters(array $parameters): self
     {
         $this->job_parameters = [];
+
         return $this->addParameters($parameters);
     }
 
@@ -262,8 +288,10 @@ class Job extends Model
             foreach ($parameter as $key) {
                 $slice[$key] = $this->job_parameters[$key] ?? $default;
             }
+
             return $slice;
         }
+
         return $this->job_parameters[$parameter] ?? $default;
     }
 

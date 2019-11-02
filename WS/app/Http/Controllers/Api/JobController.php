@@ -31,6 +31,7 @@ class JobController extends Controller
      * Display a listing of the resource.
      *
      * @param \Illuminate\Http\Request $request
+     *
      * @return \App\Http\Resources\JobCollection
      */
     public function index(Request $request): JobCollection
@@ -44,6 +45,7 @@ class JobController extends Controller
         if ($user->admin) {
             return new JobCollection(Job::paginate($perPage));
         }
+
         return new JobCollection(Job::whereUserId($user->id)->paginate($perPage));
     }
 
@@ -51,6 +53,7 @@ class JobController extends Controller
      * Prepare array for nested validation
      *
      * @param array $specs
+     *
      * @return array
      */
     private function _prepareNestedValidation(array $specs): array
@@ -62,6 +65,7 @@ class JobController extends Controller
             }
             $nestedSpecs[$field] = $rules;
         }
+
         return $nestedSpecs;
     }
 
@@ -69,29 +73,36 @@ class JobController extends Controller
      * Store a newly created resource in storage.
      *
      * @param \Illuminate\Http\Request $request
+     *
      * @return \App\Http\Resources\Job
      * @throws \Illuminate\Validation\ValidationException
      */
     public function store(Request $request): JobResource
     {
-        $jobTypes             = Factory::listTypes();
-        $validValues          = $this->validate($request, [
-            'type'       => ['required', 'string', Rule::in($jobTypes->pluck('id'))],
-            'parameters' => ['filled', 'array'],
-        ]);
+        $jobTypes = Factory::listTypes();
+        $validValues = $this->validate(
+            $request,
+            [
+                'type'       => ['required', 'string', Rule::in($jobTypes->pluck('id'))],
+                'parameters' => ['filled', 'array'],
+            ]
+        );
         $parametersValidation = $this->_prepareNestedValidation(Factory::validationSpec($validValues['type']));
-        $validParameters      = $this->validate($request, $parametersValidation);
-        $type                 = $validValues['type'];
-        $validParameters      = $validParameters['parameters'] ?? [];
-        $job                  = Job::create([
-            'job_type'       => $type,
-            'status'         => Job::READY,
-            'job_parameters' => $validParameters,
-            'job_output'     => [],
-            'log'            => '',
-            'user_id'        => \Auth::guard('api')->id(),
-        ]);
+        $validParameters = $this->validate($request, $parametersValidation);
+        $type = $validValues['type'];
+        $validParameters = $validParameters['parameters'] ?? [];
+        $job = Job::create(
+            [
+                'job_type'       => $type,
+                'status'         => Job::READY,
+                'job_parameters' => $validParameters,
+                'job_output'     => [],
+                'log'            => '',
+                'user_id'        => \Auth::guard('api')->id(),
+            ]
+        );
         $job->save();
+
         return new JobResource($job);
     }
 
@@ -99,6 +110,7 @@ class JobController extends Controller
      * Display the specified resource.
      *
      * @param \App\Models\Job $job
+     *
      * @return \App\Http\Resources\Job
      */
     public function show(Job $job): JobResource
@@ -111,6 +123,7 @@ class JobController extends Controller
      *
      * @param \Illuminate\Http\Request $request
      * @param \App\Models\Job          $job
+     *
      * @return \App\Http\Resources\Job
      * @throws \Illuminate\Validation\ValidationException
      */
@@ -120,10 +133,11 @@ class JobController extends Controller
             abort(400, 'Unable to modify a submitted, running, or completed job.');
         }
         $parametersValidation = $this->_prepareNestedValidation(Factory::validationSpec($job));
-        $validParameters      = $this->validate($request, $parametersValidation);
-        $validParameters      = $validParameters['parameters'] ?? [];
-        $job->job_parameters  = array_merge($job->job_parameters, $validParameters);
+        $validParameters = $this->validate($request, $parametersValidation);
+        $validParameters = $validParameters['parameters'] ?? [];
+        $job->job_parameters = array_merge($job->job_parameters, $validParameters);
         $job->save();
+
         return new JobResource($job);
     }
 
@@ -131,6 +145,7 @@ class JobController extends Controller
      * Remove the specified resource from storage.
      *
      * @param \App\Models\Job $job
+     *
      * @return \Illuminate\Http\JsonResponse
      * @throws \Exception
      */
@@ -141,16 +156,20 @@ class JobController extends Controller
         }
         $job->deleteJobDirectory();
         $job->delete();
-        return response()->json([
-            'message' => 'Job deleted.',
-            'errors'  => false,
-        ]);
+
+        return response()->json(
+            [
+                'message' => 'Job deleted.',
+                'errors'  => false,
+            ]
+        );
     }
 
     /**
      * Submit the specified resource for execution
      *
      * @param \App\Models\Job $job
+     *
      * @return \App\Http\Resources\Job
      */
     public function submit(Job $job): JobResource
@@ -160,6 +179,28 @@ class JobController extends Controller
         }
         $job->setStatus(Job::QUEUED);
         JobRequest::dispatch($job);
+
         return new JobResource($job);
+    }
+
+    /**
+     * Upload a file to the specified job
+     *
+     * @param \App\Models\Job $job
+     *
+     * @return mixed
+     */
+    public function upload(Job $job)
+    {
+        if (!$job->canBeModified()) {
+            abort(400, 'Unable to upload a file for a job that is already submitted.');
+        }
+        /** @var \TusPhp\Tus\Server $server */
+        $server = app('tus-server');
+        $server->setApiPath(route('jobs.upload', $job, false))
+               ->setUploadDir(storage_path('app/public/' . $job->getJobDirectory()));
+        $response = $server->serve();
+
+        return $response->send();
     }
 }

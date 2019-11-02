@@ -46,14 +46,21 @@ Route::middleware(
     ]
 )->get('/jobs/{job}/submit', 'Api\\JobController@submit')->name('jobs.submit');
 
+Route::middleware(
+    [
+        'auth:api',
+        'can:upload-job,job',
+    ]
+)->any('/jobs/{job}/upload/{any?}', 'Api\\JobController@upload')->where('any', '.*')->name('jobs.upload');
+
 Route::middleware('auth:api')->get('/job-types', 'Api\\JobTypeController@index')->name('job-types.index');
 Route::middleware('auth:api')->get('/job-types/{type}', 'Api\\JobTypeController@show')->name('job-types.show');
 
-Route::middleware('auth:api')->any(
+/*Route::middleware('auth:api')->any(
     '/tus/{any?}',
     function () {
         $response = app('tus-server')->serve();
 
         return $response->send();
     }
-)->where('any', '.*');
+)->where('any', '.*');*/

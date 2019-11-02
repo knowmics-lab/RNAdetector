@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Uppy</title>
+    <link href="https://transloadit.edgly.net/releases/uppy/v1.5.2/uppy.min.css" rel="stylesheet">
+  </head>
+  <body>
+    <div id="drag-drop-area"></div>
+
+    <script src="https://transloadit.edgly.net/releases/uppy/v1.5.2/uppy.min.js"></script>
+    <script>
+      var uppy = Uppy.Core()
+        .use(Uppy.Dashboard, {
+		  debug: true,
+          inline: true,
+          target: '#drag-drop-area'
+        })
+        .use(Uppy.Tus, {
+			endpoint: 'http://rnadetector.test/api/jobs/3/upload',
+			headers: {
+				'Authorization': 'Bearer 1qk9GeWuCLVQmxGgLc7Sn8GhbWYSt114lCd5NWYLplIWMxgR3Jef5NImeGNcVKFsrXIK0uzviaQDzww1'
+			}
+		})
+
+      uppy.on('complete', (result) => {
+		console.log('successful files:', result.successful)
+		console.log('failed files:', result.failed)
+      })
+    </script>
+  </body>
+</html>
