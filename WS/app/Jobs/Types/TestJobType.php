@@ -50,6 +50,18 @@ class TestJobType extends AbstractJob
     }
 
     /**
+     * Checks the input of this job and returns true iff the input contains valid data
+     * The default implementation does nothing.
+     *
+     * @return bool
+     */
+    public function isInputValid(): bool
+    {
+        return true;
+    }
+
+
+    /**
      * Handles all the computation for this job.
      * This function should throw a ProcessingJobException if something went wrong during the computation.
      * If no exceptions are thrown the job is considered as successfully completed.

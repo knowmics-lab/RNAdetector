@@ -34,6 +34,7 @@ class Job extends JsonResource
             'links' => [
                 'self'   => route('jobs.show', $this->resource),
                 'owner'  => route('users.show', $this->user),
+                'upload' => route('jobs.upload', $this->resource),
                 'submit' => route('jobs.submit', $this->resource),
             ],
         ];
