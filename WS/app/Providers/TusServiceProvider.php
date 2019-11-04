@@ -1,4 +1,9 @@
 <?php
+/**
+ * RNADetector Web Service
+ *
+ * @author S. Alaimo, Ph.D. <alaimos at gmail dot com>
+ */
 
 namespace App\Providers;
 
@@ -18,9 +23,6 @@ class TusServiceProvider extends ServiceProvider
             'tus-server',
             static function ($app) {
                 $server = new TusServer();
-
-                /*$server->setApiPath('/api/tus') // tus server endpoint.
-                       ->setUploadDir(storage_path('app/public/uploads')); // uploads dir.*/
 
                 return $server;
             }
