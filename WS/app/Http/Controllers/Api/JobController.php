@@ -92,7 +92,9 @@ class JobController extends Controller
                 'parameters' => ['filled', 'array'],
             ]
         );
-        $parametersValidation = $this->_prepareNestedValidation(Factory::validationSpec($validValues['type']));
+        $parametersValidation = $this->_prepareNestedValidation(
+            Factory::validationSpec($validValues['type'], $request)
+        );
         $validParameters = $this->validate($request, $parametersValidation);
         $type = $validValues['type'];
         $validParameters = $validParameters['parameters'] ?? [];
@@ -137,7 +139,7 @@ class JobController extends Controller
         if (!$job->canBeModified()) {
             abort(400, 'Unable to modify a submitted, running, or completed job.');
         }
-        $parametersValidation = $this->_prepareNestedValidation(Factory::validationSpec($job));
+        $parametersValidation = $this->_prepareNestedValidation(Factory::validationSpec($job, $request));
         $validParameters = $this->validate($request, $parametersValidation);
         $validParameters = $validParameters['parameters'] ?? [];
         $job->job_parameters = array_merge($job->job_parameters, $validParameters);

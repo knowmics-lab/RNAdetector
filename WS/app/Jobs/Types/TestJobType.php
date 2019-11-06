@@ -9,6 +9,7 @@ namespace App\Jobs\Types;
 
 
 use App\Exceptions\ProcessingJobException;
+use Illuminate\Http\Request;
 
 class TestJobType extends AbstractJob
 {
@@ -40,9 +41,11 @@ class TestJobType extends AbstractJob
     /**
      * Returns an array containing rules for input validation.
      *
+     * @param \Illuminate\Http\Request $request
+     *
      * @return array
      */
-    public static function validationSpec(): array
+    public static function validationSpec(Request $request): array
     {
         return [
             'name' => ['filled', 'min:2', 'max:20'],

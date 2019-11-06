@@ -12,6 +12,7 @@ use App\Exceptions\CommandException;
 use App\Exceptions\ProcessingJobException;
 use App\Models\Job as JobModel;
 use App\Utils;
+use Illuminate\Http\Request;
 
 abstract class AbstractJob
 {
@@ -46,11 +47,13 @@ abstract class AbstractJob
      * Set the model containing all the data for this job
      *
      * @param \App\Models\Job $model
+     *
      * @return $this
      */
     public function setModel(JobModel $model): self
     {
         $this->model = $model;
+
         return $this;
     }
 
@@ -78,9 +81,11 @@ abstract class AbstractJob
     /**
      * Returns an array containing rules for input validation.
      *
+     * @param \Illuminate\Http\Request $request
+     *
      * @return array
      */
-    abstract public static function validationSpec(): array;
+    abstract public static function validationSpec(Request $request): array;
 
     /**
      * Checks the input of this job and returns true iff the input contains valid data
@@ -139,6 +144,7 @@ abstract class AbstractJob
      * @param string     $command
      * @param array|null $output
      * @param array      $errorCodeMap
+     *
      * @return boolean
      * @throws \App\Exceptions\ProcessingJobException
      */
