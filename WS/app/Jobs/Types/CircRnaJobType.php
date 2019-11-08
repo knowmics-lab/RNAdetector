@@ -73,7 +73,7 @@ class CircRnaJobType extends AbstractJob
             'secondInputFile'      => [
                 Rule::requiredIf(
                     static function () use ($request) {
-                        return $request->get('parameters.inputType') === 'fastq' && ((bool)$request->get(
+                        return $request->get('parameters.inputType') === self::FASTQ && ((bool)$request->get(
                                 'parameters.paired',
                                 false
                             )) === true;
@@ -124,7 +124,7 @@ class CircRnaJobType extends AbstractJob
         if (!empty($customGTFFile) && !$disk->exists($dir . $customGTFFile)) {
             return false;
         }
-        if (!empty($customFASTAGenome) && !$disk->exists($dir . '/' . $customFASTAGenome)) {
+        if (!empty($customFASTAGenome) && !$disk->exists($dir . $customFASTAGenome)) {
             return false;
         }
 
