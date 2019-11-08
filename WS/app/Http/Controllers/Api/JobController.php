@@ -17,6 +17,7 @@ use App\Models\Job;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -102,12 +103,13 @@ class JobController extends Controller
             [
                 'job_type'       => $type,
                 'status'         => Job::READY,
-                'job_parameters' => $validParameters,
+                'job_parameters' => [],
                 'job_output'     => [],
                 'log'            => '',
                 'user_id'        => \Auth::guard('api')->id(),
             ]
         );
+        $job->setParameters(Arr::dot($validParameters));
         $job->save();
 
         return new JobResource($job);
@@ -142,7 +144,7 @@ class JobController extends Controller
         $parametersValidation = $this->_prepareNestedValidation(Factory::validationSpec($job, $request));
         $validParameters = $this->validate($request, $parametersValidation);
         $validParameters = $validParameters['parameters'] ?? [];
-        $job->job_parameters = array_merge($job->job_parameters, $validParameters);
+        $job->addParameters(Arr::dot($validParameters));
         $job->save();
 
         return new JobResource($job);
@@ -205,7 +207,7 @@ class JobController extends Controller
         /** @var \TusPhp\Tus\Server $server */
         $server = app('tus-server');
         $server->setApiPath(route('jobs.upload', $job, false))
-               ->setUploadDir(storage_path('app/public/' . $job->getJobDirectory()));
+               ->setUploadDir($job->getAbsoluteJobDirectory());
         $response = $server->serve();
 
         return $response->send();

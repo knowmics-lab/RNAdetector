@@ -119,6 +119,44 @@ class Job extends Model
     }
 
     /**
+     * Returns the absolute path of the job storage directory
+     *
+     * @return string
+     */
+    public function getAbsoluteJobDirectory(): string
+    {
+        return storage_path('app/public/' . $this->getJobDirectory());
+    }
+
+    /**
+     * Returns the path of a temporary file in the job directory
+     *
+     * @param string $prefix
+     * @param string $suffix
+     *
+     * @return string
+     */
+    public function getJobTempFile(string $prefix = '', string $suffix = ''): string
+    {
+        $filename = preg_replace('/[^\w]+/', '', uniqid($prefix, true)) . $suffix;
+
+        return $this->getJobDirectory() . '/' . $filename;
+    }
+
+    /**
+     * Returns the absolute path of a temporary file in the job directory
+     *
+     * @param string $prefix
+     * @param string $suffix
+     *
+     * @return string
+     */
+    public function getJobTempFileAbsolute(string $prefix = '', string $suffix = ''): string
+    {
+        return storage_path('app/public/' . $this->getJobTempFile($prefix, $suffix));
+    }
+
+    /**
      * Delete the job directory
      *
      * @return bool
@@ -191,10 +229,10 @@ class Job extends Model
         }
         if ($value === null && is_array($parameter)) {
             foreach ($parameter as $p => $v) {
-                $tmp[$p] = $v;
+                data_set($tmp, $p, $v);
             }
         } else {
-            $tmp[$parameter] = $value;
+            data_set($tmp, $parameter, $value);
         }
         $this->job_output = $tmp;
 
@@ -217,13 +255,13 @@ class Job extends Model
         if (is_array($parameter)) {
             $slice = [];
             foreach ($parameter as $key) {
-                $slice[$key] = $this->job_output[$key] ?? $default;
+                $slice[$key] = data_get($this->job_output, $key, $default);
             }
 
             return $slice;
         }
 
-        return $this->job_output[$parameter] ?? $default;
+        return data_get($this->job_output, $parameter, $default);
     }
 
     /**
@@ -237,7 +275,7 @@ class Job extends Model
     public function setParameter(string $parameter, $value): self
     {
         $tmp = $this->job_parameters;
-        $tmp[$parameter] = $value;
+        data_set($tmp, $parameter, $value);
         $this->job_parameters = $tmp;
 
         return $this;
@@ -254,7 +292,7 @@ class Job extends Model
     {
         $tmp = $this->job_parameters;
         foreach ($parameters as $param => $value) {
-            $tmp[$param] = $value;
+            data_set($tmp, $param, $value);
         }
         $this->job_parameters = $tmp;
 
@@ -291,13 +329,13 @@ class Job extends Model
         if (is_array($parameter)) {
             $slice = [];
             foreach ($parameter as $key) {
-                $slice[$key] = $this->job_parameters[$key] ?? $default;
+                $slice[$key] = data_get($this->job_parameters, $key, $default);
             }
 
             return $slice;
         }
 
-        return $this->job_parameters[$parameter] ?? $default;
+        return data_get($this->job_parameters, $parameter, $default);
     }
 
     /**
