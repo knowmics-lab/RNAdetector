@@ -141,11 +141,20 @@ class CircRnaJobType extends AbstractJob
      */
     public function handle(): void
     {
-        try {
+        $paired = (bool)$this->model->getParameter('paired', false);
+        $inputType = $this->model->getParameter('inputType');
+        $convertBam = (bool)$this->model->getParameter('convertBam', false);
+        $firstInputFile = $this->model->getParameter('firstInputFile');
+        $secondInputFile = $this->model->getParameter('secondInputFile');
+        $trimGaloreEnable = (bool)$this->model->getParameter('trimGalore.enable', $inputType === self::FASTQ);
+        $trimGaloreQuality = (int)$this->model->getParameter('trimGalore.quality', 20);
+        $trimGaloreLength = (int)$this->model->getParameter('trimGalore.length', 14);
+        $customGTFFile = $this->model->getParameter('customGTFFile');
+        $customFASTAGenome = $this->model->getParameter('customFASTAGenome');
+        $threads = (int)$this->model->getParameter('threads', 1);
+        $ciriSpanningDistance = (int)$this->model->getParameter('ciriSpanningDistance', 500000);
 
-        } catch (\Exception $e) {
-            throw new ProcessingJobException('An error occurred during job processing.', 0, $e);
-        }
+
     }
 
     /**
@@ -155,6 +164,6 @@ class CircRnaJobType extends AbstractJob
      */
     public static function description(): string
     {
-        return 'A greeting to the user';
+        return 'Runs circRNA analysis from sequencing data';
     }
 }
