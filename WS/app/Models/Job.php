@@ -125,7 +125,19 @@ class Job extends Model
      */
     public function getAbsoluteJobDirectory(): string
     {
-        return storage_path('app/public/' . $this->getJobDirectory());
+        return $this->absoluteJobPath($this->getJobDirectory());
+    }
+
+    /**
+     * Returns the absolute path of a job path
+     *
+     * @param string $path
+     *
+     * @return string
+     */
+    public function absoluteJobPath(string $path): string
+    {
+        return storage_path('app/public/' . $path);
     }
 
     /**
@@ -138,7 +150,7 @@ class Job extends Model
      */
     public function getJobTempFile(string $prefix = '', string $suffix = ''): string
     {
-        $filename = preg_replace('/[^\w]+/', '', uniqid($prefix, true)) . $suffix;
+        $filename = preg_replace('/[\W]+/', '', uniqid($prefix, true)) . $suffix;
 
         return $this->getJobDirectory() . '/' . $filename;
     }
@@ -153,7 +165,7 @@ class Job extends Model
      */
     public function getJobTempFileAbsolute(string $prefix = '', string $suffix = ''): string
     {
-        return storage_path('app/public/' . $this->getJobTempFile($prefix, $suffix));
+        return $this->absoluteJobPath($this->getJobTempFile($prefix, $suffix));
     }
 
     /**
