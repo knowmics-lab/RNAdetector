@@ -34,7 +34,6 @@ class LongRnaJobType extends AbstractJob
             'paired'               => 'A boolean value to indicate whether sequencing strategy is paired-ended or not (Default false)',
             'firstInputFile'       => 'Required, input file for the analysis',
             'secondInputFile'      => 'Required if paired is true and inputType is fastq. The second reads file',
-            'inputBAM'             => 'Optional input BAM file if FASTQ files are not provided',
             'inputType'            => 'Required, type of the input file (fastq, bam)',
             'convertBam'           => 'If inputType is bam converts input in another format: fastq.',
             'trimGalore'           => [
@@ -71,7 +70,7 @@ class LongRnaJobType extends AbstractJob
     {
         return [
             'paired'               => ['filled', 'boolean'],
-            'firstInputFile'       => ['required', 'string'], # quà c'è da aggiungere la condizione che è richiesto solo se non viene fornito in alternativa al FASTQ un file BAM
+            'firstInputFile'       => ['required', 'string'],
             'secondInputFile'      => [
                 Rule::requiredIf(
                     static function () use ($request) {
@@ -83,7 +82,6 @@ class LongRnaJobType extends AbstractJob
                 ),
                 'string',
             ],
-            'inputBAM'                  => [], #quà c'è da aggiungere la condizione che il file BAM è richiesto qualora l'utente non fornisca alcun file FASTQ
             'inputType'                 => ['required', Rule::in(self::VALID_INPUT_TYPES)],
             'convertBam'                => ['filled', 'boolean'],
             'trimGalore'                => ['filled', 'array'],
@@ -108,7 +106,6 @@ class LongRnaJobType extends AbstractJob
         $inputType = $this->model->getParameter('inputType');
         $firstInputFile = $this->model->getParameter('firstInputFile');
         $secondInputFile = $this->model->getParameter('secondInputFile');
-        $inputBAM = $this->model->getParameter('inputBAM');
         $customFASTATranscriptome= $this->model->getParameter('customFASTATranscriptome');
         if (!in_array($inputType, self::VALID_INPUT_TYPES, true)) {
             return false;
@@ -139,9 +136,10 @@ class LongRnaJobType extends AbstractJob
         string $firstInputFile,
         ?string $secondInputFile,
         int $threads = 1,
+        ?string $customFASTATranscriptome =null,
         ?string $customTranscriptomeName = null
-    ): string {
-        if ($customTranscriptomeName === null) {
+    ): array {
+        if ($customFASTATranscriptome === null) {
             $transcriptomeDir = env('HUMAN_SALMON_INDEXED_TRANSCRIPTOME');
             $index = false;
         } else {
@@ -156,12 +154,14 @@ class LongRnaJobType extends AbstractJob
                 throw new ProcessingJobException('Unable to create indexed transcriptome');
             }
         }
-        $salmonOutput = $this->model->getJobTempFileAbsolute('salmon_output', '.txt');
+        $salmonOutputRelative = $this->model->getJobTempFile('salmon_output', '.txt');
+        $salmonOutput = $this->model->absoluteJobPath($salmonOutputRelative);
+        $salmonOutputUrl = \Storage::disk('public')->url($salmonOutput);
         // Call Salmon counting scripts
         if (!file_exists($salmonOutput)) {
             throw new ProcessingJobException('Unable to create Salmon output file');
         }
-        return $salmonOutput;
+        return [$salmonOutputRelative, $salmonOutputUrl];
     }
 
     /**
