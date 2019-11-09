@@ -137,7 +137,7 @@ class LongRnaJobType extends AbstractJob
         int $threads = 1,
         ?string $customTranscriptomeName = null
     ): string {
-        
+
 
     }
 
