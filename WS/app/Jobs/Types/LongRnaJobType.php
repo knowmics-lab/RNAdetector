@@ -32,7 +32,7 @@ class LongRnaJobType extends AbstractJob
     {
         return [
             'paired'               => 'A boolean value to indicate whether sequencing strategy is paired-ended or not (Default false)',
-            'firstInputFile'       => 'Required, input file for the analysis',
+            'firstInputFile'       => 'Required, input file for the analysis. FASTQ or BAM',
             'secondInputFile'      => 'Required if paired is true and inputType is fastq. The second reads file',
             'inputType'            => 'Required, type of the input file (fastq, bam)',
             'convertBam'           => 'If inputType is bam converts input in another format: fastq.',
@@ -173,13 +173,57 @@ class LongRnaJobType extends AbstractJob
      */
     public function handle(): void
     {
-        try {
-            $name = $this->model->getParameter('name', \Auth::user()->name);
-            $this->model->setOutput('greetings', 'Hello ' . $name . '!!');
-        } catch (\Exception $e) {
-            throw new ProcessingJobException('An error occurred during job processing.', 0, $e);
+        $paired = (bool)$this->model->getParameter('paired', false);
+        $inputType = $this->model->getParameter('inputType');
+        $convertBam = (bool)$this->model->getParameter('convertBam', false);
+        $firstInputFile = $this->model->getParameter('firstInputFile');
+        $secondInputFile = $this->model->getParameter('secondInputFile');
+        $trimGaloreEnable = (bool)$this->model->getParameter('trimGalore.enable', $inputType === self::FASTQ);
+        $trimGaloreQuality = (int)$this->model->getParameter('trimGalore.quality', 20);
+        $trimGaloreLength = (int)$this->model->getParameter('trimGalore.length', 14);
+        $customFASTATranscriptome = $this->model->getParameter('customFASTATranscriptome');
+        $customTranscriptomeName = $this->model->getParameter(
+            'customTranscriptomeName',
+            ($customFASTATranscriptome !== null) ? pathinfo($customFASTATranscriptome, PATHINFO_FILENAME) : null
+        );
+        $threads = (int)$this->model->getParameter('threads', 1);
+        if ($inputType === self::BAM && $convertBam) {
+            $inputType = self::FASTQ;
+            [$firstInputFile, $secondInputFile] = self::convertBamToFastq($this->model, $paired, $firstInputFile);
         }
+        if ($inputType === self::FASTQ) {
+            if ($trimGaloreEnable) {
+                [$firstTrimmedFastq, $secondTrimmedFastq] = self::runTrimGalore(
+                    $this->model,
+                    $paired,
+                    $firstInputFile,
+                    $secondInputFile,
+                    $trimGaloreQuality,
+                    $trimGaloreLength
+                );
+            } else {
+                [$firstTrimmedFastq, $secondTrimmedFastq] = [$firstInputFile, $secondInputFile];
+            }
+        }
+        [$salmonOutput,$salmonOutputUrl] = $this->runSalmon(
+            $paired,
+            $firstInputFile,
+            $secondInputFile,
+            $threads,
+            $customFASTATranscriptome,
+            $customTranscriptomeName
+        );
+        $this->model->setOutput(
+            [
+                'outputFile' => [
+                    'path' => $salmonOutput,
+                    'url'  => $salmonOutputUrl,
+                ],
+            ]
+        );
+        $this->model->save();
     }
+
 
     /**
      * Returns a description for this job
@@ -188,6 +232,6 @@ class LongRnaJobType extends AbstractJob
      */
     public static function description(): string
     {
-        return 'A greeting to the user';
+        return 'Runs mRNAs and\or lncRNAs (long RNAs reads) analysis from sequencing data';
     }
 }
