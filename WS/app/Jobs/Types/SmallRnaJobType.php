@@ -106,8 +106,82 @@ class SmallRnaJobType extends AbstractJob
      */
     public function isInputValid(): bool
     {
+        $paired = (bool)$this->model->getParameter('paired', false);
+        $inputType = $this->model->getParameter('inputType');
+        $firstInputFile = $this->model->getParameter('firstInputFile');
+        $secondInputFile = $this->model->getParameter('secondInputFile');
+        $customGTFFile = $this->model->getParameter('customGTFFile');
+        $customFASTAGenome = $this->model->getParameter('customFASTAGenome');
+        if (!in_array($inputType, self::VALID_INPUT_TYPES, true)) {
+            return false;
+        }
+        $disk = Storage::disk('public');
+        $dir = $this->model->getJobDirectory() . '/';
+        if (!$disk->exists($dir . $firstInputFile)) {
+            return false;
+        }
+        if ($paired && $inputType === self::FASTQ && (empty($secondInputFile) || !$disk->exists(
+                    $dir . $secondInputFile
+                ))) {
+            return false;
+        }
+        if (!empty($customGTFFile) && !$disk->exists($dir . $customGTFFile)) {
+            return false;
+        }
+        if (!empty($customFASTAGenome) && !$disk->exists($dir . $customFASTAGenome)) {
+            return false;
+        }
         return true;
     }
+
+    /**
+     * Runs TopHat
+     *
+     * @param bool        $paired
+     * @param string      $firstInputFile
+     * @param string|null $secondInputFile
+     * @param int         $threads
+     * @param string|null $customGTFFile
+     * @param string|null $customFASTAGenome
+     * @param string|null $customGenomeName
+     *
+     * @return string
+     * @throws \App\Exceptions\ProcessingJobException
+     */
+
+    private function runTophat(
+        bool $paired,
+        string $firstInputFile,
+        ?string $secondInputFile,
+        int $threads = 1,
+        ?string $customGTFFile = null,
+        ?string $customFASTAGenome = null,
+        ?string $customGenomeName = null
+    ): string {
+        if ($customGTFFile === null) {
+            $customGTFFile = env('HUMAN_GTF_PATH');
+        }
+        if ($customFASTAGenome === null) {
+            $genomeDir = env('HUMAN_BOWTIE_GENOME');
+            $index = false;
+        } else {
+            $genomeDir = env('CUSTOM_GENOME_PATH') . '/' . $customGenomeName;
+            if (!file_exists($genomeDir) || !is_dir($genomeDir)) {
+                $index = true;
+            }
+        }
+        if ($index) {
+            // Call Bowtie index script
+            if (!file_exists($genomeDir) && !is_dir($genomeDir)) {
+                throw new ProcessingJobException('Unable to create indexed genome');
+            }
+        }
+        $samOutput = $this->model->getJobTempFileAbsolute('bwa_output', '.sam');
+        // Call BWA
+        if (!file_exists($samOutput)) {
+            throw new ProcessingJobException('Unable to create BWA output file');
+        }
+
 
 
     /**
