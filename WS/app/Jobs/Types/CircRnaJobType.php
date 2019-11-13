@@ -164,9 +164,9 @@ class CircRnaJobType extends AbstractJob
         if ($customGTFFile === null) {
             $customGTFFile = env('HUMAN_GTF_PATH');
         }
+        $index = false;
         if ($customFASTAGenome === null) {
             $genomeDir = env('HUMAN_BWA_GENOME');
-            $index = false;
         } else {
             $genomeDir = env('CUSTOM_GENOME_PATH') . '/' . $customGenomeName;
             if (!file_exists($genomeDir) || !is_dir($genomeDir)) {
@@ -255,6 +255,7 @@ class CircRnaJobType extends AbstractJob
             [$firstInputFile, $secondInputFile] = self::convertBamToFastq($this->model, $paired, $firstInputFile);
         }
         if ($inputType === self::FASTQ) {
+            [$firstTrimmedFastq, $secondTrimmedFastq] = [$firstInputFile, $secondInputFile];
             if ($trimGaloreEnable) {
                 [$firstTrimmedFastq, $secondTrimmedFastq] = self::runTrimGalore(
                     $this->model,
@@ -264,8 +265,6 @@ class CircRnaJobType extends AbstractJob
                     $trimGaloreQuality,
                     $trimGaloreLength
                 );
-            } else {
-                [$firstTrimmedFastq, $secondTrimmedFastq] = [$firstInputFile, $secondInputFile];
             }
             $ciriInputFile = $this->runBWA(
                 $paired,
