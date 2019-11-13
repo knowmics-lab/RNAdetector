@@ -18,6 +18,11 @@ use Storage;
 
 class SmallRnaJobType extends AbstractJob
 {
+    use ConvertsBamToFastqTrait, RunTrimGaloreTrait;
+
+    private const FASTQ             = 'fastq';
+    private const BAM               = 'BAM';
+    private const VALID_INPUT_TYPES = [self::FASTQ, self::BAM];
 
     /**
      * Returns an array containing for each input parameter an help detailing its content and use.
@@ -27,8 +32,22 @@ class SmallRnaJobType extends AbstractJob
     public static function parametersSpec(): array
     {
         return [
-            'name' => 'An optional string containing a name',
+            'paired'               => 'A boolean value to indicate whether sequencing strategy is paired-ended or not (Default false)',
+            'firstInputFile'       => 'Required, input file for the analysis',
+            'secondInputFile'      => 'Required if paired is true and inputType is fastq. The second reads file',
+            'inputType'            => 'Required, type of the input file (fastq, bam)',
+            'convertBam'           => 'If inputType is bam converts input in another format: fastq.',
+            'trimGalore'           => [
+                'enable'  => 'A boolean value to indicate whether trim galore should run (This parameter works only for fastq files)',
+                'quality' => 'Minimal PHREAD quality for trimming (Default 20)',
+                'length'  => 'Minimal reads length (Default 14)',
+            ],
+            'customGTFFile'        => 'An optional GTF file for custom annotation of reads (Not needed for human hg19)',
+            'customGenomeName'     => 'An optional name for the custom genome',
+            'customFASTAGenome'    => 'An optional Genome to employ for custom annotation (Not needed for human hg19)',
+            'threads'              => 'Number of threads for this analysis (Default 1)',
         ];
+
     }
 
     /**
@@ -39,7 +58,7 @@ class SmallRnaJobType extends AbstractJob
     public static function outputSpec(): array
     {
         return [
-            'greetings' => 'A greeting to the user',
+            'outputFile' => 'Formatted read counts files (If multiple files a zip archive is returned)',
         ];
     }
 
@@ -53,7 +72,29 @@ class SmallRnaJobType extends AbstractJob
     public static function validationSpec(Request $request): array
     {
         return [
-            'name' => ['filled', 'min:2', 'max:20'],
+            'paired'               => ['filled', 'boolean'],
+            'firstInputFile'       => ['required', 'string'],
+            'secondInputFile'      => [
+                Rule::requiredIf(
+                    static function () use ($request) {
+                        return $request->get('parameters.inputType') === self::FASTQ && ((bool)$request->get(
+                                'parameters.paired',
+                                false
+                            )) === true;
+                    }
+                ),
+                'string',
+            ],
+            'inputType'            => ['required', Rule::in(self::VALID_INPUT_TYPES)],
+            'convertBam'           => ['filled', 'boolean'],
+            'trimGalore'           => ['filled', 'array'],
+            'trimGalore.enable'    => ['filled', 'boolean'],
+            'trimGalore.quality'   => ['filled', 'integer'],
+            'trimGalore.length'    => ['filled', 'integer'],
+            'customGTFFile'        => ['filled', 'string'],
+            'customGenomeName'     => ['filled', 'alpha_num'],
+            'customFASTAGenome'    => ['filled', 'string'],
+            'threads'              => ['filled', 'integer'],
         ];
     }
 
