@@ -31,7 +31,7 @@ fi
 
 # Check output
 if [ -z  "$PREFIX_OUTPUT" ]; then
-	echo "Output file must be specified!" >&2
+	echo "Output prefix must be specified!" >&2
 	exit 4
 fi
 
