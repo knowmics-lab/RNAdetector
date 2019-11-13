@@ -9,6 +9,8 @@ namespace App;
 
 use App\Exceptions\CommandException;
 use App\Exceptions\ProcessingJobException;
+use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Process;
 
 final class Utils
 {
@@ -16,37 +18,46 @@ final class Utils
     /**
      * Runs a shell command and checks for successful completion of execution
      *
-     * @param string     $command
-     * @param array|null $output
+     * @param array         $command
+     * @param string|null   $cwd
+     * @param int|null      $timeout
+     * @param callable|null $callback
      *
-     * @return boolean
+     * @return string|null
      */
-    public static function runCommand(string $command, array &$output = null): bool
-    {
-        $returnCode = -1;
-        exec($command, $output, $returnCode);
-        if ($returnCode !== 0) {
-            throw new CommandException($returnCode);
+    public static function runCommand(
+        array $command,
+        ?string $cwd = null,
+        ?int $timeout = null,
+        ?callable $callback = null
+    ): ?string {
+        $process = new Process($command, $cwd, null, null, $timeout);
+        $process->run($callback);
+        if (!$process->isSuccessful()) {
+            throw new ProcessFailedException($process);
         }
-        return true;
+
+        return $process->getOutput();
     }
 
     /**
      * Map command exception to message
      *
-     * @param string           $command
-     * @param CommandException $e
-     * @param array            $errorCodeMap
+     * @param \Symfony\Component\Process\Exception\ProcessFailedException $e
+     * @param array                                                       $errorCodeMap
      *
      * @return \App\Exceptions\ProcessingJobException
      */
-    public static function mapCommandException(string $command, CommandException $e, array $errorCodeMap = []): ProcessingJobException
-    {
-        $code = (int)$e->getMessage();
+    public static function mapCommandException(
+        ProcessFailedException $e,
+        array $errorCodeMap = []
+    ): ProcessingJobException {
+        $code = $e->getProcess()->getExitCode();
         if (isset($errorCodeMap[$code])) {
-            return new ProcessingJobException($errorCodeMap[$code]);
+            return new ProcessingJobException($errorCodeMap[$code], $code, $e);
         }
-        return new ProcessingJobException('Execution of command "' . $command . '" returned error code ' . $code . '.');
+
+        return new ProcessingJobException($e->getMessage(), $code, $e);
     }
 
 }

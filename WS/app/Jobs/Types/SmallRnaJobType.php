@@ -157,7 +157,8 @@ class SmallRnaJobType extends AbstractJob
         ?string $customGTFFile = null,
         ?string $customFASTAGenome = null,
         ?string $customGenomeName = null
-    ): string {
+    ): string
+    {
         if ($customGTFFile === null) {
             $customGTFFile = env('HUMAN_GTF_PATH');
         }
@@ -181,7 +182,7 @@ class SmallRnaJobType extends AbstractJob
         if (!file_exists($samOutput)) {
             throw new ProcessingJobException('Unable to create BWA output file');
         }
-
+    }
 
 
     /**

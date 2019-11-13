@@ -163,27 +163,68 @@ class CircRnaJobType extends AbstractJob
     ): string {
         if ($customGTFFile === null) {
             $customGTFFile = env('HUMAN_GTF_PATH');
+            $this->log('Using Human genome annotation.');
+        } else {
+            $this->log('Using custom genome annotation.');
         }
         $index = false;
         if ($customFASTAGenome === null) {
             $genomeDir = env('HUMAN_BWA_GENOME');
+            $this->log('Using Human genome.');
         } else {
             $genomeDir = env('CUSTOM_GENOME_PATH') . '/' . $customGenomeName;
             if (!file_exists($genomeDir) || !is_dir($genomeDir)) {
                 $index = true;
+            } else {
+                $this->log('Using previously indexed genome.');
             }
         }
         if ($index) {
+            $this->log('Indexing custom genome');
             // Call BWA index script
+            $this->log('Custom genome indexed');
             if (!file_exists($genomeDir) && !is_dir($genomeDir)) {
                 throw new ProcessingJobException('Unable to create indexed genome');
             }
         }
         $samOutput = $this->model->getJobTempFileAbsolute('bwa_output', '.sam');
-        // Call BWA
+
+        $command = [
+            'bash',
+            env('BASH_SCRIPT_PATH') . '/bwa.bash',
+            '-a',
+            $customGTFFile,
+            '-g',
+            $genomeDir,
+            '-t',
+            $threads,
+            '-o',
+            $samOutput,
+            '-f',
+            $firstInputFile,
+        ];
+        if ($paired) {
+            $command[] = '-s';
+            $command[] = $secondInputFile;
+        }
+        $output = AbstractJob::runCommand(
+            $command,
+            $this->model->getAbsoluteJobDirectory(),
+            null,
+            null,
+            [
+                3 => 'Input file does not exist.',
+                4 => 'Input file does not exist.',
+                5 => 'Second input file does not exist.',
+                6 => 'Output file must be specified.',
+                7 => 'Output directory is not writable.',
+                8 => 'Unable to find bwa output file.',
+            ]
+        );
         if (!file_exists($samOutput)) {
             throw new ProcessingJobException('Unable to create BWA output file');
         }
+        $this->log($output);
 
         return $samOutput;
     }
@@ -209,6 +250,9 @@ class CircRnaJobType extends AbstractJob
     ): array {
         if ($customGTFFile === null) {
             $customGTFFile = env('HUMAN_GTF_PATH');
+            $this->log('Using Human genome annotation.');
+        } else {
+            $this->log('Using custom genome annotation.');
         }
         if ($customFASTAGenome === null) {
             $customFASTAGenome = env('HUMAN_FASTA_PATH');
@@ -216,10 +260,40 @@ class CircRnaJobType extends AbstractJob
         $ciriOutputRelative = $this->model->getJobTempFile('ciri_output', '.txt');
         $ciriOutput = $this->model->absoluteJobPath($ciriOutputRelative);
         $ciriOutputUrl = \Storage::disk('public')->url($ciriOutput);
-        // Call CIRI
+        $output = AbstractJob::runCommand(
+            [
+                'bash',
+                env('BASH_SCRIPT_PATH') . '/ciri.bash',
+                '-a',
+                $customGTFFile,
+                '-f',
+                $customFASTAGenome,
+                '-s',
+                ($paired) ? 'paired' : 'single',
+                '-m',
+                $spanningDistance,
+                '-i',
+                $ciriInputFile,
+                '-o',
+                $ciriOutput,
+            ],
+            $this->model->getAbsoluteJobDirectory(),
+            null,
+            null,
+            [
+                3 => 'Annotation file does not exist.',
+                4 => 'Input file does not exist.',
+                5 => 'Sequencing strategy not valid.',
+                6 => 'Output file must be specified.',
+                7 => 'Output directory is not writable.',
+                8 => 'FASTA file does not exist.',
+                9 => 'Unable to find CIRI output file.',
+            ]
+        );
         if (!file_exists($ciriOutput)) {
             throw new ProcessingJobException('Unable to create CIRI output file');
         }
+        $this->log($output);
 
         return [$ciriOutputRelative, $ciriOutputUrl];
     }
@@ -233,6 +307,7 @@ class CircRnaJobType extends AbstractJob
      */
     public function handle(): void
     {
+        $this->log('Starting CircRNA analysis.');
         $paired = (bool)$this->model->getParameter('paired', false);
         $inputType = $this->model->getParameter('inputType');
         $convertBam = (bool)$this->model->getParameter('convertBam', false);
@@ -252,12 +327,20 @@ class CircRnaJobType extends AbstractJob
         $ciriInputFile = null;
         if ($inputType === self::BAM && $convertBam) {
             $inputType = self::FASTQ;
-            [$firstInputFile, $secondInputFile] = self::convertBamToFastq($this->model, $paired, $firstInputFile);
+            $this->log('Converting BAM to FASTQ.');
+            [$firstInputFile, $secondInputFile, $bashOutput] = self::convertBamToFastq(
+                $this->model,
+                $paired,
+                $firstInputFile
+            );
+            $this->log($bashOutput);
+            $this->log('BAM converted to FASTQ.');
         }
         if ($inputType === self::FASTQ) {
             [$firstTrimmedFastq, $secondTrimmedFastq] = [$firstInputFile, $secondInputFile];
             if ($trimGaloreEnable) {
-                [$firstTrimmedFastq, $secondTrimmedFastq] = self::runTrimGalore(
+                $this->log('Trimming reads using TrimGalore');
+                [$firstTrimmedFastq, $secondTrimmedFastq, $bashOutput] = self::runTrimGalore(
                     $this->model,
                     $paired,
                     $firstInputFile,
@@ -265,7 +348,10 @@ class CircRnaJobType extends AbstractJob
                     $trimGaloreQuality,
                     $trimGaloreLength
                 );
+                $this->log($bashOutput);
+                $this->log('Trimming completed');
             }
+            $this->log('Aligning reads with BWA');
             $ciriInputFile = $this->runBWA(
                 $paired,
                 $firstTrimmedFastq,
@@ -275,15 +361,19 @@ class CircRnaJobType extends AbstractJob
                 $customFASTAGenome,
                 $customGenomeName
             );
+            $this->log('Alignment completed.');
         } elseif ($inputType === self::BAM) {
             $ciriInputFile = $this->model->getJobTempFileAbsolute('bam2sam', '.sam');
+            $this->log('Converting BAM to SAM.');
             // Call conversion script
+            $this->log('BAM converted to SAM.');
             if (!file_exists($ciriInputFile)) {
                 throw new ProcessingJobException('Unable to create converted BAM file');
             }
         } else {
             $ciriInputFile = $firstInputFile;
         }
+        $this->log('Computing counts of CircRNA using CIRI.');
         [$ciriOutput, $ciriOutputUrl] = $this->runCIRI(
             $paired,
             $ciriInputFile,
@@ -291,6 +381,7 @@ class CircRnaJobType extends AbstractJob
             $customFASTAGenome,
             $ciriSpanningDistance
         );
+        $this->log('CircRNA Analysis completed!');
         $this->model->setOutput(
             [
                 'outputFile' => [

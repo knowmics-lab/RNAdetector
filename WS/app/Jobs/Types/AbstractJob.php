@@ -13,6 +13,7 @@ use App\Exceptions\ProcessingJobException;
 use App\Models\Job as JobModel;
 use App\Utils;
 use Illuminate\Http\Request;
+use Symfony\Component\Process\Exception\ProcessFailedException;
 
 abstract class AbstractJob
 {
@@ -141,19 +142,26 @@ abstract class AbstractJob
     /**
      * Runs a shell command and checks for successful completion of execution
      *
-     * @param string     $command
-     * @param array|null $output
-     * @param array      $errorCodeMap
+     * @param array         $command
+     * @param string|null   $cwd
+     * @param int|null      $timeout
+     * @param callable|null $callback
+     * @param array         $errorCodeMap
      *
-     * @return boolean
+     * @return string
      * @throws \App\Exceptions\ProcessingJobException
      */
-    protected function runCommand(string $command, array &$output = null, array $errorCodeMap = []): bool
-    {
+    public static function runCommand(
+        array $command,
+        ?string $cwd = null,
+        ?int $timeout = null,
+        ?callable $callback = null,
+        array $errorCodeMap = []
+    ): string {
         try {
-            return Utils::runCommand($command, $output);
-        } catch (CommandException $e) {
-            throw Utils::mapCommandException($command, $e, $errorCodeMap);
+            return Utils::runCommand($command, $cwd, $timeout, $callback);
+        } catch (ProcessFailedException $e) {
+            throw Utils::mapCommandException($e, $errorCodeMap);
         }
     }
 }

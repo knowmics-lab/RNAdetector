@@ -5,6 +5,7 @@ namespace App\Jobs\Types\Traits;
 
 
 use App\Exceptions\ProcessingJobException;
+use App\Jobs\Types\AbstractJob;
 use App\Models\Job;
 
 trait RunTrimGaloreTrait
@@ -31,7 +32,34 @@ trait RunTrimGaloreTrait
         $length = 14
     ): array {
         $outputDirectory = $model->getJobTempFileAbsolute('trim_galore_');
-        //call trim galore
+        $command = [
+            'bash',
+            env('BASH_SCRIPT_PATH') . '/trim_galore.bash',
+            '-q',
+            $quality,
+            '-l',
+            $length,
+            '-o',
+            $outputDirectory,
+            '-f',
+            $firstInputFile,
+        ];
+        if ($paired) {
+            $command[] = '-s';
+            $command[] = $secondInputFile;
+        }
+        $output = AbstractJob::runCommand(
+            $command,
+            $model->getAbsoluteJobDirectory(),
+            null,
+            null,
+            [
+                3 => 'Input file does not exist.',
+                4 => 'Second input file does not exist.',
+                5 => 'Output directory must be specified.',
+                6 => 'Output directory is not writable.',
+            ]
+        );
         if (!file_exists($outputDirectory) || !is_dir($outputDirectory)) {
             throw new ProcessingJobException('Unable to create trimGalore output folder');
         }
@@ -49,6 +77,6 @@ trait RunTrimGaloreTrait
             }
         }
 
-        return [$firstOutput, $secondOutput];
+        return [$firstOutput, $secondOutput, $output];
     }
 }
