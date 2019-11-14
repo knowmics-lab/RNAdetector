@@ -20,13 +20,13 @@ done
 
 #### Check parameters ####
 # Check GTF annotation files
-if [ -z $GTF_FILE ] || [ ! -f $GTF_FILE ]; then
+if [ -z "$GTF_FILE" ] || [ ! -f "$GTF_FILE" ]; then
 	echo "Annotation file does not exist!"
 	exit 3
 fi
 
 # Check input files
-if [ -z $INPUT_BAM ] || [ ! -f $INPUT_BAM ]; then
+if [ -z "$INPUT_BAM" ] || [ ! -f "$INPUT_BAM" ]; then
 	echo "Input file does not exist!" >&2
 	exit 4
 fi
@@ -37,19 +37,19 @@ if [ -z $THREADS ]; then
 fi
 
 # Check output
-if [ -z $OUTPUT ]; then
+if [ -z "$OUTPUT" ]; then
 	echo "Output file must be specified!" >&2
 	exit 5
 fi
 
 # Check if output directory is writable
-if [ ! -w $(dirname $OUTPUT) ]; then
+if [ ! -w "$(dirname "$OUTPUT")" ]; then
 	echo "Output directory is not writable!" >&2
 	exit 6
 fi
 
 #### Counting ####
-SAMPLE_NAME=$(basename $INPUT_BAM ".bam")
+SAMPLE_NAME=$(basename "$INPUT_BAM" ".bam")
 SUFF="_ht.txt"
 OUTPUT_NAME=$SAMPLE_NAME$SUFF
-htseq-count -f bam -m union --nonunique all -s no $INPUT_BAM $GTF_FILE > $OUTPUT/$OUTPUT_NAME
+htseq-count -f bam -m union --nonunique all -s no "$INPUT_BAM" "$GTF_FILE" > "$OUTPUT"/"$OUTPUT_NAME"
