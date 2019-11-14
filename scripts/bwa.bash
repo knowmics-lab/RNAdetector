@@ -31,21 +31,21 @@ done
 #### Check parameters ####
 
 # Check GTF annotation files
-if [ -z $GTF_FILE ] || [ ! -f $GTF_FILE ]; then
+if [ -z "$GTF_FILE" ] || [ ! -f "$GTF_FILE" ]; then
   echo "Annotation file does not exist!"
   exit 3
 fi
 
 # Check input files
-if [ -z $INPUT_1 ] || [ ! -f $INPUT_1 ]; then
+if [ -z "$INPUT_1" ] || [ ! -f "$INPUT_1" ]; then
   echo "Input file does not exist!" >&2
   exit 4
 fi
 
 # Control sequencing strategy "single end" o "paired end"
-if [ -z $INPUT_2 ]; then
+if [ -z "$INPUT_2" ]; then
   PAIRED=false
-elif [ ! -f $INPUT_2 ]; then
+elif [ ! -f "$INPUT_2" ]; then
   echo "Second input file does not exist!" >&2
   exit 5
 else
@@ -58,13 +58,13 @@ if [ -z $THREADS ]; then
 fi
 
 # Check output
-if [ -z $OUTPUT ]; then
+if [ -z "$OUTPUT" ]; then
   echo "Output file must be specified!" >&2
   exit 6
 fi
 
 # Check if output directory is writable
-if [ ! -w $(dirname $OUTPUT) ]; then
+if [ ! -w "$(dirname "$OUTPUT")" ]; then
   echo "Output directory is not writable!" >&2
   exit 7
 fi
@@ -72,20 +72,20 @@ fi
 #### Alignment ####
 SAM_NAME=$(mktemp --suffix=".sam")
 if [ $PAIRED = "true" ]; then
-  bwa mem -t $THREADS $REF_GENOME $INPUT_1 $INPUT_2 >$SAM_NAME
+  bwa mem -t $THREADS "$REF_GENOME" "$INPUT_1" "$INPUT_2" >"$SAM_NAME"
 else
-  bwa mem -t $THREADS $REF_GENOME $INPUT_1 >$SAM_NAME
+  bwa mem -t $THREADS "$REF_GENOME" "$INPUT_1" >"$SAM_NAME"
 fi
 
 #Check SAM file
-if [ ! -f $SAM_NAME ]; then
+if [ ! -f "$SAM_NAME" ]; then
   echo "Unable to find bwa output file!" >&2
   exit 8
 fi
 
 # Move SAM file from tmp directory to output directory
-mv $SAM_NAME $OUTPUT
+mv "$SAM_NAME" "$OUTPUT"
 
-if [ -f $SAM_NAME ]; then
-  rm $SAM_NAME
+if [ -f "$SAM_NAME" ]; then
+  rm "$SAM_NAME"
 fi
