@@ -161,27 +161,32 @@ class SmallRnaJobType extends AbstractJob
     {
         if ($customGTFFile === null) {
             $customGTFFile = env('HUMAN_GTF_PATH');
-        }
+            $this->log('Using Human genome annotation.');
+        }else{$this->log('Using custom genome annotation.');}
+        $index = false;
         if ($customFASTAGenome === null) {
             $genomeDir = env('HUMAN_BOWTIE_GENOME');
-            $index = false;
+            $this->log('Using Human genome.');
         } else {
             $genomeDir = env('CUSTOM_GENOME_PATH') . '/' . $customGenomeName;
             if (!file_exists($genomeDir) || !is_dir($genomeDir)) {
                 $index = true;
-            }
+            }else{$this->log('Using previously indexed genome.');}
         }
         if ($index) {
+            $this->log('Indexing custom genome');
             // Call Bowtie index script
+            $this->log('Custom genome indexed');
             if (!file_exists($genomeDir) && !is_dir($genomeDir)) {
                 throw new ProcessingJobException('Unable to create indexed genome');
             }
         }
-        $samOutput = $this->model->getJobTempFileAbsolute('bwa_output', '.sam');
-        // Call BWA
-        if (!file_exists($samOutput)) {
-            throw new ProcessingJobException('Unable to create BWA output file');
+        $bamOutput = $this->model->getJobTempFileAbsolute('bowtie_output', '.bam');
+        // Call TopHat
+        if (!file_exists($bamOutput)) {
+            throw new ProcessingJobException('Unable to create TopHat output file');
         }
+        return $bamOutput;
     }
 
 
