@@ -189,6 +189,61 @@ class SmallRnaJobType extends AbstractJob
         return $bamOutput;
     }
 
+    /**
+     *
+     * Runs HTseq-count
+     *
+     * @param string $htseqInputFile
+     * @param string|null $customGTFFile
+     * @param int $threads
+     * @return array
+     * @throws ProcessingJobException
+     */
+
+    private function runHTSEQ(
+        string $htseqInputFile,
+        ?string $customGTFFile = null,
+        int $threads = 1
+    ): array {
+        if ($customGTFFile === null) {
+            $customGTFFile = env('HUMAN_GTF_PATH');
+            $this->log('Using Human genome annotation.');
+        } else {
+            $this->log('Using custom genome annotation.');
+        }
+        $htseqOutputRelative = $this->model->getJobTempFile('htseq_output', '.txt');
+        $htseqOutput = $this->model->absoluteJobPath($htseqOutputRelative);
+        $htseqOutputUrl = \Storage::disk('public')->url($htseqOutput);
+        // Runs HTseq-count
+        if (!file_exists($htseqOutput)) {
+            throw new ProcessingJobException('Unable to create HTseq-count output file');
+        }
+
+        return [$htseqOutputRelative, $htseqOutputUrl];
+    }
+
+
+    private function runFeatureCount(
+        string $featurecountInputFile,
+        ?string $customGTFFile = null,
+        int $threads = 1
+    ): array {
+        if ($customGTFFile === null) {
+            $customGTFFile = env('HUMAN_GTF_PATH');
+            $this->log('Using Human genome annotation.');
+        } else {
+            $this->log('Using custom genome annotation.');
+        }
+        $featurecountOutputRelative = $this->model->getJobTempFile('featurecount_output', '.txt');
+        $featurecountOutput = $this->model->absoluteJobPath($featurecountOutputRelative);
+        $featurecountOutputUrl = \Storage::disk('public')->url($featurecountOutput);
+        // Runs FeatureCount
+        if (!file_exists($featurecountOutput)) {
+            throw new ProcessingJobException('Unable to create HTseq-count output file');
+        }
+
+        return [$featurecountOutputRelative, $featurecountOutputUrl];
+    }
 
     /**
      * Handles all the computation for this job.
