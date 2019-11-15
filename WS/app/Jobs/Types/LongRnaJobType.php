@@ -152,6 +152,7 @@ class LongRnaJobType extends AbstractJob
         $index = false;
         if ($customFASTATranscriptome === null) {
             $transcriptomeDir = env('HUMAN_SALMON_INDEXED_TRANSCRIPTOME');
+            $this->log('Using Human mRNAs\lncRNAs indexed transcriptome.');
         } else {
             $transcriptomeDir = env('CUSTOM_TRANSCRIPTOME_PATH') . '/' . $customTranscriptomeName;
             if (!file_exists($transcriptomeDir) || !is_dir($transcriptomeDir)) {
@@ -159,10 +160,32 @@ class LongRnaJobType extends AbstractJob
             }
         }
         if ($index) {
+            $this->log('Indexing custom transcriptome');
             // Call Salmon index script
+            $command = [
+                'bash',
+                env('BASH_SCRIPT_PATH') . '/salmon_index_2.sh',
+                '-r',
+                $customFASTATranscriptome,
+                '-i',
+                $transcriptomeDir
+            ];
+            $output = AbstractJob::runCommand(
+                $command,
+                $this->model->getAbsoluteJobDirectory(),
+                null,
+                null,
+                [
+                    3 => 'FASTA file with transcripts does not exist.',
+                    4 => 'Indexed trascriptome folder does not exist.',
+                ]
+            );
+            $this->log('Custom transcriptome indexed');
             if (!file_exists($transcriptomeDir) && !is_dir($transcriptomeDir)) {
                 throw new ProcessingJobException('Unable to create indexed transcriptome');
             }
+            $this->log($output);
+            return $transcriptomeDir;
         }
         $salmonOutputRelative = $this->model->getJobTempFile('salmon_output', '.txt');
         $salmonOutput = $this->model->absoluteJobPath($salmonOutputRelative);
@@ -178,10 +201,40 @@ class LongRnaJobType extends AbstractJob
                 throw new ProcessingJobException('Unsupported input type');
         }
         // Call Salmon counting scripts
+        $command = [
+            'bash',
+            env('BASH_SCRIPT_PATH') . '/salmon_counting.sh',
+            '-i',
+            $transcriptomeDir,
+            '-f',
+            $firstInputFile,
+            '-t',
+            $threads,
+            '-o',
+            $salmonOutput
+        ];
+        if ($paired) {
+            $command[] = '-s';
+            $command[] = $secondInputFile;
+        }
+        $output = AbstractJob::runCommand(
+            $command,
+            $this->model->getAbsoluteJobDirectory(),
+            null,
+            null,
+            [
+                3 => 'Input file does not exist.',
+                4 => 'Second input file does not exist.',
+                5 => 'Output file must be specified.',
+                6 => 'Output directory is not writable.',
+                7 => 'Indexed trascriptome does not exist.',
+                8 => 'Unable to find salmon output file.',
+            ]
+        );
         if (!file_exists($salmonOutput)) {
             throw new ProcessingJobException('Unable to create Salmon output file');
         }
-
+        $this->log($output);
         return [$salmonOutputRelative, $salmonOutputUrl];
     }
 
