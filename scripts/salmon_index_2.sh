@@ -16,15 +16,15 @@ done
 
 #### Check parameters ####
 # Check FASTA file
-if [ -z $FASTA ] || [ ! -f $FASTA ]; then
+if [ -z "$FASTA" ] || [ ! -f "$FASTA" ]; then
 	echo "FASTA file with transcripts does not exist!"
 	exit 3
 fi
 
 #### Indexed transcriptome ####
-sudo docker run -v `pwd`:`pwd` -w `pwd` combinelab/salmon salmon index -t $FASTA -i $INDEXED_FASTA -k 31
+sudo docker run -v `pwd`:`pwd` -w `pwd` combinelab/salmon salmon index -t "$FASTA" -i "$INDEXED_FASTA" -k 31
 
-if [ ! -d $INDEXED_FASTA ]; then
+if [ ! -d "$INDEXED_FASTA" ]; then
 	echo "Indexed trascriptome does not exist!"
 	exit 4
 fi
