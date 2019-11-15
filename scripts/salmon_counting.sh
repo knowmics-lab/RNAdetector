@@ -22,15 +22,15 @@ done
 
 #### Check parameters ####
 # Check input files
-if [ -z $INPUT_1 ] || [ ! -f $INPUT_1 ]; then
+if [ -z "$INPUT_1" ] || [ ! -f "$INPUT_1" ]; then
 	echo "Input file does not exist!" >&2
 	exit 3
 fi
 
 # Control sequencing strategy "single end" o "paired end"
-if [ -z $INPUT_2 ]; then
+if [ -z "$INPUT_2" ]; then
 	PAIRED=false
-elif [ ! -f $INPUT_2 ]; then
+elif [ ! -f "$INPUT_2" ]; then
 	echo "Second input file does not exist!" >&2
 	exit 4
 else
@@ -43,49 +43,49 @@ if [ -z $THREADS ]; then
 fi
 
 # Check output
-if [ -z $OUTPUT ]; then
+if [ -z "$OUTPUT" ]; then
 	echo "Output file must be specified!" >&2
 	exit 5
 fi
 
 # Check if output directory is writable
-if [ ! -w $(dirname $OUTPUT) ]; then
+if [ ! -w "$(dirname "$OUTPUT")" ]; then
 	echo "Output directory is not writable!" >&2
 	exit 6
 fi
 
 # Check indexed fasta file
-if [ ! -d $INDEXED_FASTA ]; then
+if [ ! -d "$INDEXED_FASTA" ]; then
 	echo "Indexed trascriptome does not exist!"
 	exit 7
 fi
 
 
 #### Counting ####
-SAMPLE_NAME=$(basename $INPUT_1 ".fastq")
+SAMPLE_NAME=$(basename "$INPUT_1" ".fastq")
 SUFF="_sa.txt"
 OUTPUT_NAME=$SAMPLE_NAME$SUFF
 
 TEMP_DIR="TMP"
 if [ $PAIRED = "true" ]; then
-	sudo docker run -v `pwd`:`pwd` -w `pwd` combinelab/salmon salmon quant -i $INDEXED_FASTA -l A -1 $INPUT_1 -2 $INPUT_2 --validateMappings -p $THREADS -o $OUTPUT/$TEMP_DIR
+	sudo docker run -v `pwd`:`pwd` -w `pwd` combinelab/salmon salmon quant -i "$INDEXED_FASTA" -l A -1 "$INPUT_1" -2 "$INPUT_2" --validateMappings -p $THREADS -o "$OUTPUT"/$TEMP_DIR
 else
-  sudo docker run -v `pwd`:`pwd` -w `pwd` combinelab/salmon salmon quant -i $INDEXED_FASTA -l A -r $INPUT_1 --validateMappings -p $THREADS -o $OUTPUT/$TEMP_DIR
+  sudo docker run -v `pwd`:`pwd` -w `pwd` combinelab/salmon salmon quant -i "$INDEXED_FASTA" -l A -r "$INPUT_1" --validateMappings -p $THREADS -o "$OUTPUT"/$TEMP_DIR
 fi
 
 OUTPUT_FILE="$OUTPUT/$TEMP_DIR/quant.sf"
 
 # Check output file
-if [ ! -f $OUTPUT_FILE ]; then
+if [ ! -f "$OUTPUT_FILE" ]; then
 	echo "Unable to find output file!" >&2
 	exit 8
 fi
 
 # Move output file from tmp directory to output directory
-sudo chmod -R 777 $OUTPUT/$TEMP_DIR
-mv $OUTPUT_FILE $OUTPUT/$OUTPUT_NAME
+sudo chmod -R 777 "$OUTPUT"/$TEMP_DIR
+mv "$OUTPUT_FILE" "$OUTPUT"/"$OUTPUT_NAME"
 
 # Removing items of tmp directory
-if [ -d $OUTPUT/$TEMP_DIR ]; then
-	rm -rf $OUTPUT/$TEMP_DIR
+if [ -d "$OUTPUT"/"$TEMP_DIR" ]; then
+	rm -rf "$OUTPUT"/"$TEMP_DIR"
 fi
