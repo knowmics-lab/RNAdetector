@@ -182,6 +182,27 @@ class CircRnaJobType extends AbstractJob
         if ($index) {
             $this->log('Indexing custom genome');
             // Call BWA index script
+            $command = [
+                'bash',
+                env('BASH_SCRIPT_PATH') . '/bwa_index.sh',
+                '-f',
+                $customFASTAGenome,
+                '-p',
+                basename($customGenomeName),
+                '-a',
+                // non so come passare questo parametro
+            ];
+            $output = AbstractJob::runCommand(
+                $command,
+                $this->model->getAbsoluteJobDirectory(),
+                null,
+                null,
+                [
+                    3 => 'Input file does not exist.',
+                    4 => 'Output prefix must be specified',
+                    5 => 'Output directory is not writable',
+                ]
+            );
             $this->log('Custom genome indexed');
             if (!file_exists($genomeDir) && !is_dir($genomeDir)) {
                 throw new ProcessingJobException('Unable to create indexed genome');
