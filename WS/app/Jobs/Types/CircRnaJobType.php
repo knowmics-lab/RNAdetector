@@ -234,7 +234,7 @@ class CircRnaJobType extends AbstractJob
             null,
             null,
             [
-                3 => 'Input file does not exist.',
+                3 => 'Annotation file does not exist.',
                 4 => 'Input file does not exist.',
                 5 => 'Second input file does not exist.',
                 6 => 'Output file must be specified.',
