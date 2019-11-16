@@ -254,12 +254,7 @@ class SmallRnaJobType extends AbstractJob
      */
     public function handle(): void
     {
-        try {
-            $name = $this->model->getParameter('name', \Auth::user()->name);
-            $this->model->setOutput('greetings', 'Hello ' . $name . '!!');
-        } catch (\Exception $e) {
-            throw new ProcessingJobException('An error occurred during job processing.', 0, $e);
-        }
+
     }
 
     /**
