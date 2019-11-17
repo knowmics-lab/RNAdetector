@@ -193,44 +193,68 @@ class LongRnaJobType extends AbstractJob
         switch ($inputType) {
             case self::FASTQ:
                 // TODO: Call salmon counting on fastq
+                $command = [
+                    'bash',
+                    env('BASH_SCRIPT_PATH') . '/salmon_counting.sh',
+                    '-i',
+                    $transcriptomeDir,
+                    '-f',
+                    $firstInputFile,
+                    '-t',
+                    $threads,
+                    '-o',
+                    $salmonOutput
+                ];
+                if ($paired) {
+                    $command[] = '-s';
+                    $command[] = $secondInputFile;
+                }
+                $output = AbstractJob::runCommand(
+                    $command,
+                    $this->model->getAbsoluteJobDirectory(),
+                    null,
+                    null,
+                    [
+                        3 => 'Input file does not exist.',
+                        4 => 'Second input file does not exist.',
+                        5 => 'Output file must be specified.',
+                        6 => 'Output directory is not writable.',
+                        7 => 'Indexed trascriptome does not exist.',
+                        8 => 'Unable to find output file.',
+                    ]
+                );
                 break;
             case self::BAM:
                 // TODO: Call salmon counting on bam
+                $command = [
+                    'bash',
+                    env('BASH_SCRIPT_PATH') . '/salmon_counting_bam.sh',
+                    '-r',
+                    $customFASTATranscriptome,
+                    '-i',
+                    $firstInputFile,
+                    '-t',
+                    $threads,
+                    '-o',
+                    $salmonOutput
+                ];
+                $output = AbstractJob::runCommand(
+                    $command,
+                    $this->model->getAbsoluteJobDirectory(),
+                    null,
+                    null,
+                    [
+                        3 => 'Input file does not exist.',
+                        4 => 'FASTA transcriptome file does not exist.',
+                        5 => 'Output directory must be specified.',
+                        6 => 'Output directory is not writable.',
+                        7 => 'Unable to find output file.',
+                    ]
+                );
                 break;
             default:
                 throw new ProcessingJobException('Unsupported input type');
         }
-        // Call Salmon counting scripts
-        $command = [
-            'bash',
-            env('BASH_SCRIPT_PATH') . '/salmon_counting.sh',
-            '-i',
-            $transcriptomeDir,
-            '-f',
-            $firstInputFile,
-            '-t',
-            $threads,
-            '-o',
-            $salmonOutput
-        ];
-        if ($paired) {
-            $command[] = '-s';
-            $command[] = $secondInputFile;
-        }
-        $output = AbstractJob::runCommand(
-            $command,
-            $this->model->getAbsoluteJobDirectory(),
-            null,
-            null,
-            [
-                3 => 'Input file does not exist.',
-                4 => 'Second input file does not exist.',
-                5 => 'Output file must be specified.',
-                6 => 'Output directory is not writable.',
-                7 => 'Indexed trascriptome does not exist.',
-                8 => 'Unable to find salmon output file.',
-            ]
-        );
         if (!file_exists($salmonOutput)) {
             throw new ProcessingJobException('Unable to create Salmon output file');
         }
