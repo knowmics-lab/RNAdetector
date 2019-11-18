@@ -11,7 +11,8 @@ namespace App\Jobs\Types;
 use App\Exceptions\ProcessingJobException;
 use App\Jobs\Types\Traits\ConvertsBamToFastqTrait;
 use App\Jobs\Types\Traits\RunTrimGaloreTrait;
-use App\Utils;
+use App\Models\Annotation;
+use App\Models\Reference;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Storage;
@@ -44,9 +45,8 @@ class CircRnaJobType extends AbstractJob
                 'quality' => 'Minimal PHREAD quality for trimming (Default 20)',
                 'length'  => 'Minimal reads length (Default 14)',
             ],
-            'customGTFFile'        => 'An optional GTF file for custom annotation of reads (Not needed for human hg19)',
-            'customGenomeName'     => 'An optional name for the custom genome',
-            'customFASTAGenome'    => 'An optional Genome to employ for custom annotation (Not needed for human hg19)',
+            'genome'               => 'An optional name for a reference genome (Default human hg19)',
+            'annotation'           => 'An optional name for a genome annotation (Default human hg19)',
             'threads'              => 'Number of threads for this analysis (Default 1)',
             'ciriSpanningDistance' => 'The maximum spanning distance used in CIRI (Default 500000)',
         ];
@@ -93,9 +93,8 @@ class CircRnaJobType extends AbstractJob
             'trimGalore.enable'    => ['filled', 'boolean'],
             'trimGalore.quality'   => ['filled', 'integer'],
             'trimGalore.length'    => ['filled', 'integer'],
-            'customGTFFile'        => ['filled', 'string'],
-            'customGenomeName'     => ['filled', 'alpha_num'],
-            'customFASTAGenome'    => ['filled', 'string'],
+            'genome'               => ['filled', 'alpha_dash', Rule::exists('references', 'name')],
+            'annotation'           => ['filled', 'alpha_dash', Rule::exists('annotations', 'name')],
             'threads'              => ['filled', 'integer'],
             'ciriSpanningDistance' => ['filled', 'integer'],
         ];
@@ -113,8 +112,6 @@ class CircRnaJobType extends AbstractJob
         $inputType = $this->model->getParameter('inputType');
         $firstInputFile = $this->model->getParameter('firstInputFile');
         $secondInputFile = $this->model->getParameter('secondInputFile');
-        $customGTFFile = $this->model->getParameter('customGTFFile');
-        $customFASTAGenome = $this->model->getParameter('customFASTAGenome');
         if (!in_array($inputType, self::VALID_INPUT_TYPES, true)) {
             return false;
         }
@@ -128,12 +125,6 @@ class CircRnaJobType extends AbstractJob
                 ))) {
             return false;
         }
-        if (!empty($customGTFFile) && !$disk->exists($dir . $customGTFFile)) {
-            return false;
-        }
-        if (!empty($customFASTAGenome) && !$disk->exists($dir . $customFASTAGenome)) {
-            return false;
-        }
 
         return true;
     }
@@ -141,13 +132,12 @@ class CircRnaJobType extends AbstractJob
     /**
      * Runs BWA analysis
      *
-     * @param bool        $paired
-     * @param string      $firstInputFile
-     * @param string|null $secondInputFile
-     * @param int         $threads
-     * @param string|null $customGTFFile
-     * @param string|null $customFASTAGenome
-     * @param string|null $customGenomeName
+     * @param bool                   $paired
+     * @param string                 $firstInputFile
+     * @param string|null            $secondInputFile
+     * @param \App\Models\Reference  $genome
+     * @param \App\Models\Annotation $annotation
+     * @param int                    $threads
      *
      * @return string
      * @throws \App\Exceptions\ProcessingJobException
@@ -156,67 +146,21 @@ class CircRnaJobType extends AbstractJob
         bool $paired,
         string $firstInputFile,
         ?string $secondInputFile,
-        int $threads = 1,
-        ?string $customGTFFile = null,
-        ?string $customFASTAGenome = null,
-        ?string $customGenomeName = null
+        Reference $genome,
+        Annotation $annotation,
+        int $threads = 1
     ): string {
-        if ($customGTFFile === null) {
-            $customGTFFile = env('HUMAN_GTF_PATH');
-            $this->log('Using Human genome annotation.');
-        } else {
-            $this->log('Using custom genome annotation.');
-        }
-        $index = false;
-        if ($customFASTAGenome === null) {
-            $genomeDir = env('HUMAN_BWA_GENOME');
-            $this->log('Using Human genome.');
-        } else {
-            $genomeDir = env('CUSTOM_GENOME_PATH') . '/' . $customGenomeName;
-            if (!file_exists($genomeDir) || !is_dir($genomeDir)) {
-                $index = true;
-            } else {
-                $this->log('Using previously indexed genome.');
-            }
-        }
-        if ($index) {
-            $this->log('Indexing custom genome');
-            // Call BWA index script
-            $command = [
-                'bash',
-                self::scriptPath('bwa_index.sh'),
-                '-f',
-                $customFASTAGenome,
-                '-p',
-                basename($customGenomeName),
-                '-a',
-                // TODO non so come passare questo parametro
-            ];
-            $output = AbstractJob::runCommand(
-                $command,
-                $this->model->getAbsoluteJobDirectory(),
-                null,
-                null,
-                [
-                    3 => 'Input file does not exist.',
-                    4 => 'Output prefix must be specified',
-                    5 => 'Output directory is not writable',
-                ]
-            );
-            $this->log('Custom genome indexed');
-            if (!file_exists($genomeDir) && !is_dir($genomeDir)) {
-                throw new ProcessingJobException('Unable to create indexed genome');
-            }
+        if (!$genome->isAvailableFor('bwa')) {
+            throw new ProcessingJobException('The specified genome is not indexed for BWA analysis.');
         }
         $samOutput = $this->model->getJobTempFileAbsolute('bwa_output', '.sam');
-
         $command = [
             'bash',
             self::scriptPath('bwa.bash'),
             '-a',
-            $customGTFFile,
+            $annotation->path,
             '-g',
-            $genomeDir,
+            $genome->basename(),
             '-t',
             $threads,
             '-o',
@@ -228,7 +172,7 @@ class CircRnaJobType extends AbstractJob
             $command[] = '-s';
             $command[] = $secondInputFile;
         }
-        $output = AbstractJob::runCommand(
+        $output = self::runCommand(
             $command,
             $this->model->getAbsoluteJobDirectory(),
             null,
@@ -253,11 +197,11 @@ class CircRnaJobType extends AbstractJob
     /**
      * Runs CIRI analysis
      *
-     * @param bool        $paired
-     * @param string      $ciriInputFile
-     * @param string|null $customGTFFile
-     * @param string|null $customFASTAGenome
-     * @param int         $spanningDistance
+     * @param bool                   $paired
+     * @param string                 $ciriInputFile
+     * @param \App\Models\Reference  $genome
+     * @param \App\Models\Annotation $annotation
+     * @param int                    $spanningDistance
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
@@ -265,19 +209,10 @@ class CircRnaJobType extends AbstractJob
     private function runCIRI(
         bool $paired,
         string $ciriInputFile,
-        ?string $customGTFFile = null,
-        ?string $customFASTAGenome = null,
+        Reference $genome,
+        Annotation $annotation,
         int $spanningDistance = 500000
     ): array {
-        if ($customGTFFile === null) {
-            $customGTFFile = env('HUMAN_GTF_PATH');
-            $this->log('Using Human genome annotation.');
-        } else {
-            $this->log('Using custom genome annotation.');
-        }
-        if ($customFASTAGenome === null) {
-            $customFASTAGenome = env('HUMAN_FASTA_PATH');
-        }
         $ciriOutputRelative = $this->model->getJobTempFile('ciri_output', '.txt');
         $ciriOutput = $this->model->absoluteJobPath($ciriOutputRelative);
         $ciriOutputUrl = \Storage::disk('public')->url($ciriOutput);
@@ -286,9 +221,9 @@ class CircRnaJobType extends AbstractJob
                 'bash',
                 self::scriptPath('ciri.bash'),
                 '-a',
-                $customGTFFile,
+                $annotation->path,
                 '-f',
-                $customFASTAGenome,
+                $genome->path,
                 '-s',
                 ($paired) ? 'paired' : 'single',
                 '-m',
@@ -337,14 +272,12 @@ class CircRnaJobType extends AbstractJob
         $trimGaloreEnable = (bool)$this->model->getParameter('trimGalore.enable', $inputType === self::FASTQ);
         $trimGaloreQuality = (int)$this->model->getParameter('trimGalore.quality', 20);
         $trimGaloreLength = (int)$this->model->getParameter('trimGalore.length', 14);
-        $customGTFFile = $this->model->getParameter('customGTFFile');
-        $customFASTAGenome = $this->model->getParameter('customFASTAGenome');
-        $customGenomeName = $this->model->getParameter(
-            'customGenomeName',
-            ($customFASTAGenome !== null) ? pathinfo($customFASTAGenome, PATHINFO_FILENAME) : null
-        );
+        $genomeName = $this->model->getParameter('genome', env('HUMAN_GENOME_NAME'));
+        $annotationName = $this->model->getParameter('annotation', env('HUMAN_ANNOTATION_NAME'));
         $threads = (int)$this->model->getParameter('threads', 1);
         $ciriSpanningDistance = (int)$this->model->getParameter('ciriSpanningDistance', 500000);
+        $genome = Reference::whereName($genomeName)->firstOrFail();
+        $annotation = Annotation::whereName($annotationName)->firstOrFail();
         $ciriInputFile = null;
         if ($inputType === self::BAM && $convertBam) {
             $inputType = self::FASTQ;
@@ -377,10 +310,9 @@ class CircRnaJobType extends AbstractJob
                 $paired,
                 $firstTrimmedFastq,
                 $secondTrimmedFastq,
-                $threads,
-                $customGTFFile,
-                $customFASTAGenome,
-                $customGenomeName
+                $genome,
+                $annotation,
+                $threads
             );
             $this->log('Alignment completed.');
         } elseif ($inputType === self::BAM) {
@@ -416,8 +348,8 @@ class CircRnaJobType extends AbstractJob
         [$ciriOutput, $ciriOutputUrl] = $this->runCIRI(
             $paired,
             $ciriInputFile,
-            $customGTFFile,
-            $customFASTAGenome,
+            $genome,
+            $annotation,
             $ciriSpanningDistance
         );
         $this->log('CircRNA Analysis completed!');

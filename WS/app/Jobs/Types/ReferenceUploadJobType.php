@@ -85,11 +85,12 @@ class ReferenceUploadJobType extends AbstractJob
     }
 
     /**
+     * @param string $name
      * @param string $referenceFilename
      *
      * @throws \App\Exceptions\ProcessingJobException
      */
-    private function indexBWA(string $referenceFilename): void
+    private function indexBWA(string $name, string $referenceFilename): void
     {
         $this->log('Indexing reference for bwa.');
         $output = self::runCommand(
@@ -99,7 +100,7 @@ class ReferenceUploadJobType extends AbstractJob
                 '-f',
                 $referenceFilename,
                 '-p',
-                basename($referenceFilename),
+                dirname($referenceFilename) . '/' . $name,
             ],
             $this->model->getAbsoluteJobDirectory(),
             null,
@@ -115,11 +116,12 @@ class ReferenceUploadJobType extends AbstractJob
     }
 
     /**
+     * @param string $name
      * @param string $referenceFilename
      *
      * @throws \App\Exceptions\ProcessingJobException
      */
-    private function indexTopHat(string $referenceFilename): void
+    private function indexTopHat(string $name, string $referenceFilename): void
     {
         $this->log('Indexing reference for TopHat.');
         $output = self::runCommand(
@@ -129,7 +131,7 @@ class ReferenceUploadJobType extends AbstractJob
                 '-f',
                 $referenceFilename,
                 '-p',
-                dirname($referenceFilename),
+                dirname($referenceFilename) . '/' . $name,
             ],
             $this->model->getAbsoluteJobDirectory(),
             null,
@@ -145,11 +147,12 @@ class ReferenceUploadJobType extends AbstractJob
     }
 
     /**
+     * @param string $name
      * @param string $referenceFilename
      *
      * @throws \App\Exceptions\ProcessingJobException
      */
-    private function indexSalmon(string $referenceFilename): void
+    private function indexSalmon(string $name, string $referenceFilename): void
     {
         $this->log('Indexing reference for Salmon.');
         $output = self::runCommand(
@@ -159,7 +162,7 @@ class ReferenceUploadJobType extends AbstractJob
                 '-r',
                 $referenceFilename,
                 '-i',
-                dirname($referenceFilename),
+                dirname($referenceFilename) . '/' . $name,
             ],
             $this->model->getAbsoluteJobDirectory(),
             null,
@@ -197,13 +200,13 @@ class ReferenceUploadJobType extends AbstractJob
         $tophat = (bool)($index['tophat'] ?? false);
         $salmon = (bool)($index['salmon'] ?? false);
         if ($bwa) {
-            $this->indexBWA($referenceFilename);
+            $this->indexBWA($name, $referenceFilename);
         }
         if ($tophat) {
-            $this->indexTopHat($referenceFilename);
+            $this->indexTopHat($name, $referenceFilename);
         }
         if ($salmon) {
-            $this->indexSalmon($referenceFilename);
+            $this->indexSalmon($name, $referenceFilename);
         }
         Reference::create(
             [

@@ -25,7 +25,7 @@ if [ -z "$FASTA_FILE" ] || [ ! -f "$FASTA_FILE" ]; then
 fi
 
 # Check algorithm for genome indexing
-if [ -z $ALGORITHM ]; then
+if [ -z "$ALGORITHM" ]; then
   ALGORITHM="is"
 fi
 
@@ -43,4 +43,4 @@ fi
 
 
 #### Genome indexing ####
-bwa index -p "$PREFIX_OUTPUT" -a "$ALGORITHM" -f "$FASTA_FILE"
+bwa index -p "$PREFIX_OUTPUT" -a "$ALGORITHM" "$FASTA_FILE"

@@ -29,7 +29,6 @@ use RecursiveIteratorIterator;
 class Reference extends Model
 {
 
-
     /**
      * The attributes that are mass assignable.
      *
@@ -74,6 +73,28 @@ class Reference extends Model
 
             rmdir($path);
         }
+    }
+
+    /**
+     * Returns the basename for this reference sequence
+     *
+     * @return string
+     */
+    public function basename(): string
+    {
+        return dirname($this->path) . '/' . $this->name;
+    }
+
+    /**
+     * Checks if this reference sequence is available for a specific algorithm
+     *
+     * @param string $algorithm
+     *
+     * @return bool
+     */
+    public function isAvailableFor(string $algorithm): bool
+    {
+        return $this->available_for[$algorithm] ?? false;
     }
 
     /**
