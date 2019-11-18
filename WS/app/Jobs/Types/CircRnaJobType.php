@@ -184,13 +184,13 @@ class CircRnaJobType extends AbstractJob
             // Call BWA index script
             $command = [
                 'bash',
-                env('BASH_SCRIPT_PATH') . '/bwa_index.sh',
+                self::scriptPath('bwa_index.sh'),
                 '-f',
                 $customFASTAGenome,
                 '-p',
                 basename($customGenomeName),
                 '-a',
-                // non so come passare questo parametro
+                // TODO non so come passare questo parametro
             ];
             $output = AbstractJob::runCommand(
                 $command,
@@ -212,7 +212,7 @@ class CircRnaJobType extends AbstractJob
 
         $command = [
             'bash',
-            env('BASH_SCRIPT_PATH') . '/bwa.bash',
+            self::scriptPath('bwa.bash'),
             '-a',
             $customGTFFile,
             '-g',
@@ -284,7 +284,7 @@ class CircRnaJobType extends AbstractJob
         $output = AbstractJob::runCommand(
             [
                 'bash',
-                env('BASH_SCRIPT_PATH') . '/ciri.bash',
+                self::scriptPath('ciri.bash'),
                 '-a',
                 $customGTFFile,
                 '-f',
@@ -386,7 +386,25 @@ class CircRnaJobType extends AbstractJob
         } elseif ($inputType === self::BAM) {
             $ciriInputFile = $this->model->getJobTempFileAbsolute('bam2sam', '.sam');
             $this->log('Converting BAM to SAM.');
-            // Call conversion script
+            $output = self::runCommand(
+                [
+                    'bash',
+                    self::scriptPath('bam2sam.sh'),
+                    '-b',
+                    $firstInputFile,
+                    '-o',
+                    $ciriInputFile,
+                ],
+                $this->model->getAbsoluteJobDirectory(),
+                null,
+                null,
+                [
+                    3 => 'Input file does not exist.',
+                    4 => 'Output file must be specified.',
+                    5 => 'Output directory is not writable.',
+                ]
+            );
+            $this->log($output);
             $this->log('BAM converted to SAM.');
             if (!file_exists($ciriInputFile)) {
                 throw new ProcessingJobException('Unable to create converted BAM file');

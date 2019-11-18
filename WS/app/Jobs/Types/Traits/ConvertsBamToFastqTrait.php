@@ -30,7 +30,7 @@ trait ConvertsBamToFastqTrait
         $secondFastQ = ($paired) ? $model->getJobTempFileAbsolute('bam2fastq_', '.fastq') : null;
         $command = [
             'bash',
-            env('BASH_SCRIPT_PATH') . '/bam2fastq.bash',
+            AbstractJob::scriptPath('bam2fastq.bash'),
             '-b',
             $firstInputFile,
             '-f',

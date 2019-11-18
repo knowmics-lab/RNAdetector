@@ -34,7 +34,7 @@ trait RunTrimGaloreTrait
         $outputDirectory = $model->getJobTempFileAbsolute('trim_galore_');
         $command = [
             'bash',
-            env('BASH_SCRIPT_PATH') . '/trim_galore.bash',
+            AbstractJob::scriptPath('trim_galore.bash'),
             '-q',
             $quality,
             '-l',

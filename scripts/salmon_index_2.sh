@@ -22,7 +22,7 @@ if [ -z "$FASTA" ] || [ ! -f "$FASTA" ]; then
 fi
 
 #### Indexed transcriptome ####
-sudo docker run -v `pwd`:`pwd` -w `pwd` combinelab/salmon salmon index -t "$FASTA" -i "$INDEXED_FASTA" -k 31
+salmon index -t "$FASTA" -i "$INDEXED_FASTA" -k 31
 
 if [ ! -d "$INDEXED_FASTA" ]; then
 	echo "Indexed trascriptome does not exist!"

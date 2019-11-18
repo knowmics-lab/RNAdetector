@@ -14,16 +14,16 @@ use Storage;
 /**
  * App\Models\Job
  *
- * @property int                             $id
- * @property string                          $job_type
- * @property string                          $status
- * @property array                           $job_parameters
- * @property array                           $job_output
- * @property string                          $log
- * @property int                             $user_id
+ * @property int $id
+ * @property string $job_type
+ * @property string $status
+ * @property array $job_parameters
+ * @property array $job_output
+ * @property string $log
+ * @property int $user_id
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\User           $user
+ * @property-read \App\Models\User $user
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job query()

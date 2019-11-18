@@ -140,6 +140,18 @@ abstract class AbstractJob
     }
 
     /**
+     * Returns the real path of a script
+     *
+     * @param string $script
+     *
+     * @return string
+     */
+    public static function scriptPath(string $script): string
+    {
+        return realpath(env('BASH_SCRIPT_PATH') . '/' . $script);
+    }
+
+    /**
      * Runs a shell command and checks for successful completion of execution
      *
      * @param array         $command

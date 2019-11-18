@@ -162,16 +162,15 @@ class LongRnaJobType extends AbstractJob
         if ($index) {
             $this->log('Indexing custom transcriptome');
             // Call Salmon index script
-            $command = [
-                'bash',
-                env('BASH_SCRIPT_PATH') . '/salmon_index_2.sh',
-                '-r',
-                $customFASTATranscriptome,
-                '-i',
-                $transcriptomeDir
-            ];
             $output = AbstractJob::runCommand(
-                $command,
+                [
+                    'bash',
+                    self::scriptPath('salmon_index_2.sh'),
+                    '-r',
+                    $customFASTATranscriptome,
+                    '-i',
+                    $transcriptomeDir,
+                ],
                 $this->model->getAbsoluteJobDirectory(),
                 null,
                 null,
@@ -185,6 +184,7 @@ class LongRnaJobType extends AbstractJob
                 throw new ProcessingJobException('Unable to create indexed transcriptome');
             }
             $this->log($output);
+
             return $transcriptomeDir;
         }
         $salmonOutputRelative = $this->model->getJobTempFile('salmon_output', '.txt');
@@ -192,10 +192,9 @@ class LongRnaJobType extends AbstractJob
         $salmonOutputUrl = \Storage::disk('public')->url($salmonOutput);
         switch ($inputType) {
             case self::FASTQ:
-                // TODO: Call salmon counting on fastq
                 $command = [
                     'bash',
-                    env('BASH_SCRIPT_PATH') . '/salmon_counting.sh',
+                    self::scriptPath('salmon_counting.sh'),
                     '-i',
                     $transcriptomeDir,
                     '-f',
@@ -203,7 +202,7 @@ class LongRnaJobType extends AbstractJob
                     '-t',
                     $threads,
                     '-o',
-                    $salmonOutput
+                    $salmonOutput,
                 ];
                 if ($paired) {
                     $command[] = '-s';
@@ -226,20 +225,19 @@ class LongRnaJobType extends AbstractJob
                 break;
             case self::BAM:
                 // TODO: Call salmon counting on bam
-                $command = [
-                    'bash',
-                    env('BASH_SCRIPT_PATH') . '/salmon_counting_bam.sh',
-                    '-r',
-                    $customFASTATranscriptome,
-                    '-i',
-                    $firstInputFile,
-                    '-t',
-                    $threads,
-                    '-o',
-                    $salmonOutput
-                ];
                 $output = AbstractJob::runCommand(
-                    $command,
+                    [
+                        'bash',
+                        self::scriptPath('salmon_counting_bam.sh'),
+                        '-r',
+                        $customFASTATranscriptome,
+                        '-i',
+                        $firstInputFile,
+                        '-t',
+                        $threads,
+                        '-o',
+                        $salmonOutput,
+                    ],
                     $this->model->getAbsoluteJobDirectory(),
                     null,
                     null,
@@ -259,6 +257,7 @@ class LongRnaJobType extends AbstractJob
             throw new ProcessingJobException('Unable to create Salmon output file');
         }
         $this->log($output);
+
         return [$salmonOutputRelative, $salmonOutputUrl];
     }
 
