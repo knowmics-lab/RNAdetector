@@ -11,7 +11,7 @@ namespace App\Jobs\Types;
 use App\Exceptions\ProcessingJobException;
 use App\Jobs\Types\Traits\ConvertsBamToFastqTrait;
 use App\Jobs\Types\Traits\RunTrimGaloreTrait;
-use App\Utils;
+use App\Models\Reference;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Storage;
@@ -32,19 +32,18 @@ class LongRnaJobType extends AbstractJob
     public static function parametersSpec(): array
     {
         return [
-            'paired'                   => 'A boolean value to indicate whether sequencing strategy is paired-ended or not (Default false)',
-            'firstInputFile'           => 'Required, input file for the analysis. FASTQ or BAM',
-            'secondInputFile'          => 'Required if paired is true and inputType is fastq. The second reads file',
-            'inputType'                => 'Required, type of the input file (fastq, bam)',
-            'convertBam'               => 'If inputType is bam converts input in another format: fastq.',
-            'trimGalore'               => [
+            'paired'          => 'A boolean value to indicate whether sequencing strategy is paired-ended or not (Default false)',
+            'firstInputFile'  => 'Required, input file for the analysis. FASTQ or BAM',
+            'secondInputFile' => 'Required if paired is true and inputType is fastq. The second reads file',
+            'inputType'       => 'Required, type of the input file (fastq, bam)',
+            'convertBam'      => 'If inputType is bam converts input in another format: fastq.',
+            'trimGalore'      => [
                 'enable'  => 'A boolean value to indicate whether trim galore should run (This parameter works only for fastq files)',
                 'quality' => 'Minimal PHREAD quality for trimming (Default 20)',
                 'length'  => 'Minimal reads length (Default 14)',
             ],
-            'customFASTATranscriptome' => 'An optional Transcriptome to employ for custom annotation (Not needed for human hg19 mRNAs and lncRNAs)',
-            'customTranscriptomeName'  => 'An optional name for the custom transcriptome',
-            'threads'                  => 'Number of threads for this analysis (Default 1)',
+            'transcriptome'   => 'An optional transcriptome to employ for annotation (Not needed for human hg19 mRNAs and lncRNAs)',
+            'threads'         => 'Number of threads for this analysis (Default 1)',
         ];
     }
 
@@ -70,9 +69,9 @@ class LongRnaJobType extends AbstractJob
     public static function validationSpec(Request $request): array
     {
         return [
-            'paired'                   => ['filled', 'boolean'],
-            'firstInputFile'           => ['required', 'string'],
-            'secondInputFile'          => [
+            'paired'             => ['filled', 'boolean'],
+            'firstInputFile'     => ['required', 'string'],
+            'secondInputFile'    => [
                 Rule::requiredIf(
                     static function () use ($request) {
                         return $request->get('parameters.inputType') === self::FASTQ && ((bool)$request->get(
@@ -83,15 +82,14 @@ class LongRnaJobType extends AbstractJob
                 ),
                 'string',
             ],
-            'inputType'                => ['required', Rule::in(self::VALID_INPUT_TYPES)],
-            'convertBam'               => ['filled', 'boolean'],
-            'trimGalore'               => ['filled', 'array'],
-            'trimGalore.enable'        => ['filled', 'boolean'],
-            'trimGalore.quality'       => ['filled', 'integer'],
-            'trimGalore.length'        => ['filled', 'integer'],
-            'customFASTATranscriptome' => ['filled', 'string'],
-            'customTranscriptomeName'  => ['filled', 'alpha_num'],
-            'threads'                  => ['filled', 'integer'],
+            'inputType'          => ['required', Rule::in(self::VALID_INPUT_TYPES)],
+            'convertBam'         => ['filled', 'boolean'],
+            'trimGalore'         => ['filled', 'array'],
+            'trimGalore.enable'  => ['filled', 'boolean'],
+            'trimGalore.quality' => ['filled', 'integer'],
+            'trimGalore.length'  => ['filled', 'integer'],
+            'transcriptome'      => ['filled', 'alpha_dash', Rule::exists('references', 'name')],
+            'threads'            => ['filled', 'integer'],
         ];
     }
 
@@ -107,7 +105,6 @@ class LongRnaJobType extends AbstractJob
         $inputType = $this->model->getParameter('inputType');
         $firstInputFile = $this->model->getParameter('firstInputFile');
         $secondInputFile = $this->model->getParameter('secondInputFile');
-        $customFASTATranscriptome = $this->model->getParameter('customFASTATranscriptome');
         if (!in_array($inputType, self::VALID_INPUT_TYPES, true)) {
             return false;
         }
@@ -121,21 +118,17 @@ class LongRnaJobType extends AbstractJob
                 ))) {
             return false;
         }
-        if (!empty($customFASTATranscriptome) && !$disk->exists($dir . $customFASTATranscriptome)) {
-            return false;
-        }
 
         return true;
     }
 
     /**
-     * @param bool        $paired
-     * @param string      $firstInputFile
-     * @param string|null $secondInputFile
-     * @param string      $inputType
-     * @param int         $threads
-     * @param string|null $customFASTATranscriptome
-     * @param string|null $customTranscriptomeName
+     * @param bool                  $paired
+     * @param string                $firstInputFile
+     * @param string|null           $secondInputFile
+     * @param string                $inputType
+     * @param \App\Models\Reference $transcriptome
+     * @param int                   $threads
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
@@ -145,58 +138,23 @@ class LongRnaJobType extends AbstractJob
         string $firstInputFile,
         ?string $secondInputFile,
         string $inputType,
-        int $threads = 1,
-        ?string $customFASTATranscriptome = null,
-        ?string $customTranscriptomeName = null
+        Reference $transcriptome,
+        int $threads = 1
     ): array {
-        $index = false;
-        if ($customFASTATranscriptome === null) {
-            $transcriptomeDir = env('HUMAN_SALMON_INDEXED_TRANSCRIPTOME');
-            $this->log('Using Human mRNAs\lncRNAs indexed transcriptome.');
-        } else {
-            $transcriptomeDir = env('CUSTOM_TRANSCRIPTOME_PATH') . '/' . $customTranscriptomeName;
-            if (!file_exists($transcriptomeDir) || !is_dir($transcriptomeDir)) {
-                $index = true;
-            }
+        if (!$transcriptome->isAvailableFor('salmon')) {
+            throw new ProcessingJobException('The specified reference sequence is not indexed for salmon analysis.');
         }
-        if ($index) {
-            $this->log('Indexing custom transcriptome');
-            // Call Salmon index script
-            $output = AbstractJob::runCommand(
-                [
-                    'bash',
-                    self::scriptPath('salmon_index_2.sh'),
-                    '-r',
-                    $customFASTATranscriptome,
-                    '-i',
-                    $transcriptomeDir,
-                ],
-                $this->model->getAbsoluteJobDirectory(),
-                null,
-                null,
-                [
-                    3 => 'FASTA file with transcripts does not exist.',
-                    4 => 'Indexed trascriptome folder does not exist.',
-                ]
-            );
-            $this->log('Custom transcriptome indexed');
-            if (!file_exists($transcriptomeDir) && !is_dir($transcriptomeDir)) {
-                throw new ProcessingJobException('Unable to create indexed transcriptome');
-            }
-            $this->log($output);
-
-            return $transcriptomeDir;
-        }
+        $this->log('Computing counts using Salmon.');
         $salmonOutputRelative = $this->model->getJobTempFile('salmon_output', '.txt');
         $salmonOutput = $this->model->absoluteJobPath($salmonOutputRelative);
-        $salmonOutputUrl = \Storage::disk('public')->url($salmonOutput);
+        $salmonOutputUrl = Storage::disk('public')->url($salmonOutput);
         switch ($inputType) {
             case self::FASTQ:
                 $command = [
                     'bash',
                     self::scriptPath('salmon_counting.sh'),
                     '-i',
-                    $transcriptomeDir,
+                    $transcriptome->basename(),
                     '-f',
                     $firstInputFile,
                     '-t',
@@ -208,7 +166,7 @@ class LongRnaJobType extends AbstractJob
                     $command[] = '-s';
                     $command[] = $secondInputFile;
                 }
-                $output = AbstractJob::runCommand(
+                $output = self::runCommand(
                     $command,
                     $this->model->getAbsoluteJobDirectory(),
                     null,
@@ -218,19 +176,18 @@ class LongRnaJobType extends AbstractJob
                         4 => 'Second input file does not exist.',
                         5 => 'Output file must be specified.',
                         6 => 'Output directory is not writable.',
-                        7 => 'Indexed trascriptome does not exist.',
+                        7 => 'Indexed transcriptome does not exist.',
                         8 => 'Unable to find output file.',
                     ]
                 );
                 break;
             case self::BAM:
-                // TODO: Call salmon counting on bam
-                $output = AbstractJob::runCommand(
+                $output = self::runCommand(
                     [
                         'bash',
                         self::scriptPath('salmon_counting_bam.sh'),
                         '-r',
-                        $customFASTATranscriptome,
+                        $transcriptome->basename(),
                         '-i',
                         $firstInputFile,
                         '-t',
@@ -253,10 +210,11 @@ class LongRnaJobType extends AbstractJob
             default:
                 throw new ProcessingJobException('Unsupported input type');
         }
+        $this->log($output);
         if (!file_exists($salmonOutput)) {
             throw new ProcessingJobException('Unable to create Salmon output file');
         }
-        $this->log($output);
+        $this->log('Count computation completed.');
 
         return [$salmonOutputRelative, $salmonOutputUrl];
     }
@@ -270,6 +228,7 @@ class LongRnaJobType extends AbstractJob
      */
     public function handle(): void
     {
+        $this->log('Starting analysis.');
         $paired = (bool)$this->model->getParameter('paired', false);
         $inputType = $this->model->getParameter('inputType');
         $convertBam = (bool)$this->model->getParameter('convertBam', false);
@@ -278,18 +237,19 @@ class LongRnaJobType extends AbstractJob
         $trimGaloreEnable = (bool)$this->model->getParameter('trimGalore.enable', $inputType === self::FASTQ);
         $trimGaloreQuality = (int)$this->model->getParameter('trimGalore.quality', 20);
         $trimGaloreLength = (int)$this->model->getParameter('trimGalore.length', 14);
-        $customFASTATranscriptome = $this->model->getParameter('customFASTATranscriptome');
-        $customTranscriptomeName = $this->model->getParameter(
-            'customTranscriptomeName',
-            ($customFASTATranscriptome !== null) ? pathinfo($customFASTATranscriptome, PATHINFO_FILENAME) : null
-        );
+        $transcriptomeName = $this->model->getParameter('transcriptome', env('HUMAN_TRANSCRIPTOME_NAME'));
+        $transcriptome = Reference::whereName($transcriptomeName)->firstOrFail();
         $threads = (int)$this->model->getParameter('threads', 1);
         if ($inputType === self::BAM && $convertBam) {
+            $this->log('Converting BAM to FASTQ.');
             [$firstInputFile, $secondInputFile] = self::convertBamToFastq($this->model, $paired, $firstInputFile);
             $inputType = self::FASTQ;
+            $this->log('BAM converted to FASTQ.');
+
         }
         [$firstTrimmedFastq, $secondTrimmedFastq] = [$firstInputFile, $secondInputFile];
         if ($inputType === self::FASTQ && $trimGaloreEnable) {
+            $this->log('Trimming reads using TrimGalore.');
             [$firstTrimmedFastq, $secondTrimmedFastq] = self::runTrimGalore(
                 $this->model,
                 $paired,
@@ -298,15 +258,15 @@ class LongRnaJobType extends AbstractJob
                 $trimGaloreQuality,
                 $trimGaloreLength
             );
+            $this->log('Trimming completed.');
         }
         [$salmonOutput, $salmonOutputUrl] = $this->runSalmon(
             $paired,
             $firstTrimmedFastq,
             $secondTrimmedFastq,
             $inputType,
-            $threads,
-            $customFASTATranscriptome,
-            $customTranscriptomeName
+            $transcriptome,
+            $threads
         );
         $this->model->setOutput(
             [
@@ -316,6 +276,7 @@ class LongRnaJobType extends AbstractJob
                 ],
             ]
         );
+        $this->log('Analysis completed.');
         $this->model->save();
     }
 
@@ -327,6 +288,6 @@ class LongRnaJobType extends AbstractJob
      */
     public static function description(): string
     {
-        return 'Runs mRNAs and\or lncRNAs (long RNAs reads) analysis from sequencing data';
+        return 'Runs mRNAs and/or lncRNAs (long RNAs reads) analysis from sequencing data';
     }
 }
