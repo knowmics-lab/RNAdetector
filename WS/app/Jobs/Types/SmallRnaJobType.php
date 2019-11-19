@@ -159,32 +159,89 @@ class SmallRnaJobType extends AbstractJob
     ): string {
         $bamOutput = $this->model->getJobTempFileAbsolute('bowtie_output', '.bam');
         // Call TopHat
+        $command = [
+            'bash',
+            self::scriptPath('tophat.bash'),
+            '-a',
+            $annotation->path,
+            '-g',
+            $genome->basename(),
+            '-t',
+            $threads,
+            '-f',
+            $firstInputFile,
+            '-o',
+            $bamOutput,
+        ];
+        if ($paired) {
+            $command[] = '-s';
+            $command[] = $secondInputFile;
+        }
+        $output = self::runCommand(
+            $command,
+            $this->model->getAbsoluteJobDirectory(),
+            null,
+            null,
+            [
+                3 => 'Annotation file does not exist.',
+                4 => 'Input file does not exist.',
+                5 => 'Second input file does not exist.',
+                6 => 'Output file must be specified.',
+                7 => 'Output directory is not writable.',
+                8 => 'Unable to find output bam file.',
+            ]
+        );
         if (!file_exists($bamOutput)) {
             throw new ProcessingJobException('Unable to create TopHat output file');
         }
-
+        $this->log($output);
         return $bamOutput;
     }
 
     /**
      * Runs HTseq-count
      *
-     * @param string                 $htseqInputFile
+     * @param string                 $countingInputFile
      * @param \App\Models\Annotation $annotation
      * @param int                    $threads
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
      */
-    private function runHTSEQ(string $htseqInputFile, Annotation $annotation, int $threads = 1): array
+    private function runHTSEQ(string $countingInputFile, Annotation $annotation, int $threads = 1): array
     {
         $htseqOutputRelative = $this->model->getJobTempFile('htseq_output', '.txt');
         $htseqOutput = $this->model->absoluteJobPath($htseqOutputRelative);
         $htseqOutputUrl = \Storage::disk('public')->url($htseqOutput);
         // Runs HTseq-count
+        $command = [
+            'bash',
+            self::scriptPath('htseqcount.bash'),
+            '-a',
+            $annotation->path,
+            '-b',
+            $countingInputFile,
+            '-t',
+            $threads,
+            '-o',
+            $htseqOutput
+        ];
+        $output = self::runCommand(
+            $command,
+            $this->model->getAbsoluteJobDirectory(),
+            null,
+            null,
+            [
+                3 => 'Annotation file does not exist.',
+                4 => 'Input file does not exist.',
+                5 => 'Output file must be specified.',
+                6 => 'Output directory is not writable.',
+            ]
+        );
         if (!file_exists($htseqOutput)) {
             throw new ProcessingJobException('Unable to create HTseq-count output file');
         }
+        $this->log($output);
 
         return [$htseqOutputRelative, $htseqOutputUrl];
     }
@@ -192,22 +249,48 @@ class SmallRnaJobType extends AbstractJob
     /**
      * Runs FeatureCount
      *
-     * @param string                 $featurecountInputFile
+     * @param string                 $countingInputFile
      * @param \App\Models\Annotation $annotation
      * @param int                    $threads
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
      */
-    private function runFeatureCount(string $featurecountInputFile, Annotation $annotation, int $threads = 1): array
+    private function runFeatureCount(string $countingInputFile, Annotation $annotation, int $threads = 1): array
     {
         $featurecountOutputRelative = $this->model->getJobTempFile('featurecount_output', '.txt');
         $featurecountOutput = $this->model->absoluteJobPath($featurecountOutputRelative);
         $featurecountOutputUrl = \Storage::disk('public')->url($featurecountOutput);
         // Runs FeatureCount
+        $command = [
+            'bash',
+            self::scriptPath('htseqcount.bash'),
+            '-a',
+            $annotation->path,
+            '-b',
+            $countingInputFile,
+            '-t',
+            $threads,
+            '-o',
+            $featurecountOutput
+        ];
+        $output = self::runCommand(
+            $command,
+            $this->model->getAbsoluteJobDirectory(),
+            null,
+            null,
+            [
+                3 => 'Annotation file does not exist.',
+                4 => 'Input file does not exist.',
+                5 => 'Output file must be specified.',
+                6 => 'Output directory is not writable.',
+            ]
+        );
+
         if (!file_exists($featurecountOutput)) {
             throw new ProcessingJobException('Unable to create HTseq-count output file');
         }
+        $this->log($output);
 
         return [$featurecountOutputRelative, $featurecountOutputUrl];
     }
@@ -221,7 +304,75 @@ class SmallRnaJobType extends AbstractJob
      */
     public function handle(): void
     {
+        $this->log('Starting small ncRNAs analysis.');
+        $paired = (bool)$this->model->getParameter('paired', false);
+        $inputType = $this->model->getParameter('inputType');
+        $convertBam = (bool)$this->model->getParameter('convertBam', false);
+        $firstInputFile = $this->model->getParameter('firstInputFile');
+        $secondInputFile = $this->model->getParameter('secondInputFile');
+        $trimGaloreEnable = (bool)$this->model->getParameter('trimGalore.enable', $inputType === self::FASTQ);
+        $trimGaloreQuality = (int)$this->model->getParameter('trimGalore.quality', 20);
+        $trimGaloreLength = (int)$this->model->getParameter('trimGalore.length', 14);
+        $genomeName = $this->model->getParameter('genome', env('HUMAN_GENOME_NAME'));
+        $annotationName = $this->model->getParameter('annotation', env('HUMAN_CIRI_ANNOTATION_NAME'));
+        $threads = (int)$this->model->getParameter('threads', 1);
+        $genome = Reference::whereName($genomeName)->firstOrFail();
+        $annotation = Annotation::whereName($annotationName)->firstOrFail();
+        $countingAlgorithm = $this->model->getParameter('countingAlgorithm', self::HTSEQ_COUNTS);
+        if ($inputType === self::BAM && $convertBam) {
+            $inputType = self::FASTQ;
+            $this->log('Converting BAM to FASTQ.');
+            [$firstInputFile, $secondInputFile, $bashOutput] = self::convertBamToFastq($this->model, $paired, $firstInputFile);
+            $this->log($bashOutput);
+            $this->log('BAM converted to FASTQ.');
+        }
+        [$firstTrimmedFastq, $secondTrimmedFastq] = [$firstInputFile, $secondInputFile];
+        if ($inputType === self::FASTQ && $trimGaloreEnable) {
+            $this->log('Trimming reads using TrimGalore.');
+            [$firstTrimmedFastq, $secondTrimmedFastq] = self::runTrimGalore(
+                $this->model,
+                $paired,
+                $firstInputFile,
+                $secondInputFile,
+                $trimGaloreQuality,
+                $trimGaloreLength
+            );
+            $this->log('Trimming completed.');
+        }
+        $this->log('Aligning reads with TopHat');
+        $countingInputFile = $this->runTophat(
+            $paired,
+            $firstTrimmedFastq,
+            $secondTrimmedFastq,
+            $genome,
+            $annotation,
+            $threads
+        );
+        $this->log('Alignment completed.');
+        if ($countingAlgorithm===self::HTSEQ_COUNTS) {
+            $this->log('Starting reads counting with HTseq-count');
+            [$htseqOutput, $htseqOutputUrl] = $this->runHTSEQ($countingInputFile, $annotation, $threads);
+            $this->log('Reads counting completed');
+            $this->model->setOutput(
+                [
+                    'outputFile' => ['path' => $htseqOutput, 'url'  => $htseqOutputUrl,],
+                ]
+            );
+            $this->log('Analysis completed.');
+            $this->model->save();
 
+        }else{
+            $this->log('Starting reads counting with FeatureCount');
+            [$featurecountOutput, $featurecountOutputUrl] = $this->runFeatureCount($countingInputFile, $annotation, $threads);
+            $this->log('Reads counting completed');
+            $this->model->setOutput(
+                [
+                    'outputFile' => ['path' => $featurecountOutput, 'url'  => $featurecountOutputUrl,],
+                ]
+            );
+            $this->log('Analysis completed.');
+            $this->model->save();
+        }
     }
 
     /**
@@ -231,6 +382,6 @@ class SmallRnaJobType extends AbstractJob
      */
     public static function description(): string
     {
-        return 'A greeting to the user';
+        return 'Runs small ncRNAs analysis from sequencing data';
     }
 }
