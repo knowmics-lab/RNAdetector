@@ -27,7 +27,7 @@ class SmallRnaJobType extends AbstractJob
     private const HTSEQ_COUNTS         = 'htseq';
     private const FEATURECOUNTS_COUNTS = 'feature-counts';
     private const VALID_INPUT_TYPES    = [self::FASTQ, self::BAM];
-    private const VALID_COUNTS_METHOS  = [self::HTSEQ_COUNTS, self::FEATURECOUNTS_COUNTS];
+    private const VALID_COUNTS_METHODS = [self::HTSEQ_COUNTS, self::FEATURECOUNTS_COUNTS];
 
     /**
      * Returns an array containing for each input parameter an help detailing its content and use.
@@ -96,7 +96,7 @@ class SmallRnaJobType extends AbstractJob
             'trimGalore.enable'  => ['filled', 'boolean'],
             'trimGalore.quality' => ['filled', 'integer'],
             'trimGalore.length'  => ['filled', 'integer'],
-            'countingAlgorithm'  => ['filled', Rule::in(self::VALID_COUNTS_METHOS)],
+            'countingAlgorithm'  => ['filled', Rule::in(self::VALID_COUNTS_METHODS)],
             'genome'             => ['filled', 'alpha_dash', Rule::exists('references', 'name')],
             'annotation'         => ['filled', 'alpha_dash', Rule::exists('annotations', 'name')],
             'threads'            => ['filled', 'integer'],
@@ -119,7 +119,7 @@ class SmallRnaJobType extends AbstractJob
         if (!in_array($inputType, self::VALID_INPUT_TYPES, true)) {
             return false;
         }
-        if (!in_array($countingAlgorithm, self::VALID_COUNTS_METHOS, true)) {
+        if (!in_array($countingAlgorithm, self::VALID_COUNTS_METHODS, true)) {
             return false;
         }
         $disk = Storage::disk('public');
@@ -158,7 +158,6 @@ class SmallRnaJobType extends AbstractJob
         int $threads = 1
     ): string {
         $bamOutput = $this->model->getJobTempFileAbsolute('bowtie_output', '.bam');
-        // Call TopHat
         $command = [
             'bash',
             self::scriptPath('tophat.bash'),
@@ -195,6 +194,7 @@ class SmallRnaJobType extends AbstractJob
             throw new ProcessingJobException('Unable to create TopHat output file');
         }
         $this->log($output);
+
         return $bamOutput;
     }
 
@@ -213,21 +213,19 @@ class SmallRnaJobType extends AbstractJob
         $htseqOutputRelative = $this->model->getJobTempFile('htseq_output', '.txt');
         $htseqOutput = $this->model->absoluteJobPath($htseqOutputRelative);
         $htseqOutputUrl = \Storage::disk('public')->url($htseqOutput);
-        // Runs HTseq-count
-        $command = [
-            'bash',
-            self::scriptPath('htseqcount.bash'),
-            '-a',
-            $annotation->path,
-            '-b',
-            $countingInputFile,
-            '-t',
-            $threads,
-            '-o',
-            $htseqOutput
-        ];
         $output = self::runCommand(
-            $command,
+            [
+                'bash',
+                self::scriptPath('htseqcount.bash'),
+                '-a',
+                $annotation->path,
+                '-b',
+                $countingInputFile,
+                '-t',
+                $threads,
+                '-o',
+                $htseqOutput,
+            ],
             $this->model->getAbsoluteJobDirectory(),
             null,
             null,
@@ -261,21 +259,19 @@ class SmallRnaJobType extends AbstractJob
         $featurecountOutputRelative = $this->model->getJobTempFile('featurecount_output', '.txt');
         $featurecountOutput = $this->model->absoluteJobPath($featurecountOutputRelative);
         $featurecountOutputUrl = \Storage::disk('public')->url($featurecountOutput);
-        // Runs FeatureCount
-        $command = [
-            'bash',
-            self::scriptPath('htseqcount.bash'),
-            '-a',
-            $annotation->path,
-            '-b',
-            $countingInputFile,
-            '-t',
-            $threads,
-            '-o',
-            $featurecountOutput
-        ];
         $output = self::runCommand(
-            $command,
+            [
+                'bash',
+                self::scriptPath('htseqcount.bash'),
+                '-a',
+                $annotation->path,
+                '-b',
+                $countingInputFile,
+                '-t',
+                $threads,
+                '-o',
+                $featurecountOutput,
+            ],
             $this->model->getAbsoluteJobDirectory(),
             null,
             null,
@@ -288,7 +284,7 @@ class SmallRnaJobType extends AbstractJob
         );
 
         if (!file_exists($featurecountOutput)) {
-            throw new ProcessingJobException('Unable to create HTseq-count output file');
+            throw new ProcessingJobException('Unable to create FeatureCount output file');
         }
         $this->log($output);
 
@@ -314,15 +310,19 @@ class SmallRnaJobType extends AbstractJob
         $trimGaloreQuality = (int)$this->model->getParameter('trimGalore.quality', 20);
         $trimGaloreLength = (int)$this->model->getParameter('trimGalore.length', 14);
         $genomeName = $this->model->getParameter('genome', env('HUMAN_GENOME_NAME'));
-        $annotationName = $this->model->getParameter('annotation', env('HUMAN_CIRI_ANNOTATION_NAME'));
+        $annotationName = $this->model->getParameter('annotation', env('HUMAN_SNCRNA_ANNOTATION_NAME'));
         $threads = (int)$this->model->getParameter('threads', 1);
+        $countingAlgorithm = $this->model->getParameter('countingAlgorithm', self::HTSEQ_COUNTS);
         $genome = Reference::whereName($genomeName)->firstOrFail();
         $annotation = Annotation::whereName($annotationName)->firstOrFail();
-        $countingAlgorithm = $this->model->getParameter('countingAlgorithm', self::HTSEQ_COUNTS);
         if ($inputType === self::BAM && $convertBam) {
             $inputType = self::FASTQ;
             $this->log('Converting BAM to FASTQ.');
-            [$firstInputFile, $secondInputFile, $bashOutput] = self::convertBamToFastq($this->model, $paired, $firstInputFile);
+            [$firstInputFile, $secondInputFile, $bashOutput] = self::convertBamToFastq(
+                $this->model,
+                $paired,
+                $firstInputFile
+            );
             $this->log($bashOutput);
             $this->log('BAM converted to FASTQ.');
         }
@@ -349,25 +349,29 @@ class SmallRnaJobType extends AbstractJob
             $threads
         );
         $this->log('Alignment completed.');
-        if ($countingAlgorithm===self::HTSEQ_COUNTS) {
+        if ($countingAlgorithm === self::HTSEQ_COUNTS) {
             $this->log('Starting reads counting with HTseq-count');
             [$htseqOutput, $htseqOutputUrl] = $this->runHTSEQ($countingInputFile, $annotation, $threads);
             $this->log('Reads counting completed');
             $this->model->setOutput(
                 [
-                    'outputFile' => ['path' => $htseqOutput, 'url'  => $htseqOutputUrl,],
+                    'outputFile' => ['path' => $htseqOutput, 'url' => $htseqOutputUrl],
                 ]
             );
             $this->log('Analysis completed.');
             $this->model->save();
 
-        }else{
+        } else {
             $this->log('Starting reads counting with FeatureCount');
-            [$featurecountOutput, $featurecountOutputUrl] = $this->runFeatureCount($countingInputFile, $annotation, $threads);
+            [$featurecountOutput, $featurecountOutputUrl] = $this->runFeatureCount(
+                $countingInputFile,
+                $annotation,
+                $threads
+            );
             $this->log('Reads counting completed');
             $this->model->setOutput(
                 [
-                    'outputFile' => ['path' => $featurecountOutput, 'url'  => $featurecountOutputUrl,],
+                    'outputFile' => ['path' => $featurecountOutput, 'url' => $featurecountOutputUrl],
                 ]
             );
             $this->log('Analysis completed.');
