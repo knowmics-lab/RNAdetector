@@ -29,4 +29,5 @@ mkdir -p /rnadetector/ws/storage/app/database/
 touch /rnadetector/ws/storage/app/database/database.sqlite
 mkdir -p /rnadetector/ws/storage/app/annotations/
 mkdir -p /rnadetector/ws/storage/app/references/
-php artisan migrate --seed
+php artisan migrate --seed --force
+php artisan storage:link
