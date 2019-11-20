@@ -22,14 +22,5 @@ class UsersTableSeeder extends Seeder
         ]);
         $model->email_verified_at = Carbon::now();
         $model->save();
-        $model                    = User::create([
-            'name'      => 'test',
-            'email'     => 'test@test',
-            'password'  => Hash::make('password'),
-            'admin'     => false,
-            'api_token' => null,
-        ]);
-        $model->email_verified_at = Carbon::now();
-        $model->save();
     }
 }
