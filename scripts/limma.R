@@ -5,11 +5,6 @@
 # - Path sample info matrix. Es. "D:/Human/proj_CLL_CD74_case_study/reads_quantification/sample_info.txt"
 #
 ####################################################
-if (!requireNamespace("BiocManager", quietly = TRUE))
-  install.packages("BiocManager")
-
-BiocManager::install("limma")
-
 library(limma)
 library(readr)
 
