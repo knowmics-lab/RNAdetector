@@ -12,11 +12,6 @@ mv /rnadetector/tmp/RNAdetector/scripts/ /rnadetector/scripts/
 rm -rf /rnadetector/scripts/base/
 rm /repo.tar.gz
 
-# Install CIRI
-# curl -o CIRIquant_v1.0.tar.gz "https://liquidtelecom.dl.sourceforge.net/project/ciri/CIRIquant/CIRIquant_v1.0.tar.gz"
-# cd /rnadetector/tmp/CIRIquant
-# python setup.py install
-
 # Install trim_galore
 cd /rnadetector/tmp/
 curl -fsSL https://github.com/FelixKrueger/TrimGalore/archive/0.6.5.tar.gz -o trim_galore.tar.gz
@@ -36,8 +31,15 @@ mkdir -p /rnadetector/ws/storage/app/references/
 php artisan migrate --seed --force
 php artisan storage:link
 
-# Download genomes and annotations
+# Process genomes and annotations
+mkdir -p /rnadetector/ws/storage/app/references/Human_hg19_genome
+mv /Human_hg19_genome.fasta /rnadetector/ws/storage/app/references/Human_hg19_genome/reference.fasta
+mv /Human_hg19_circRNAs.gtf /rnadetector/ws/storage/app/annotations/Human_hg19_circRNAs.gtf
+mv /Human_hg19_small_ncRNAs.gtf /rnadetector/ws/storage/app/annotations/Human_hg19_small_ncRNAs.gtf
 
+# Index genomes
+/bin/bash "/rnadetector/scripts/bwa_index.sh"     -f "/rnadetector/ws/storage/app/references/Human_hg19_genome/reference.fasta" -p "/rnadetector/ws/storage/app/references/Human_hg19_genome/reference"
+/bin/bash "/rnadetector/scripts/bowtie2_index.sh" -f "/rnadetector/ws/storage/app/references/Human_hg19_genome/reference.fasta" -p "/rnadetector/ws/storage/app/references/Human_hg19_genome/reference"
 
 # Remove temporary directory
 rm -rf /rnadetector/tmp
@@ -67,6 +69,7 @@ ln -s /dev/stderr /var/log/php7.2-fpm.log
 
 # Set folder permission
 chmod 755 /usr/local/bin/bootstrap.sh
+chmod 755 /usr/local/bin/CIRI.pl
 chmod 755 /rnadetector/scripts/*
 chmod -R 777 /rnadetector/ws/bootstrap/cache
 chmod -R 777 /rnadetector/ws/storage
