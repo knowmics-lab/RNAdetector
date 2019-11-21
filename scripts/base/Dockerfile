@@ -25,7 +25,7 @@ COPY nginx.conf /nginx.conf
 COPY worker.conf /worker.conf
 COPY genkey.sh /genkey.sh
 
-RUN /usr/bin/Rscript /usr/local/bin/installPackages.R
+# RUN /usr/bin/Rscript /usr/local/bin/installPackages.R
 
 RUN /bin/bash /usr/local/bin/setup.sh
 

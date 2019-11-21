@@ -85,12 +85,12 @@ class ReferenceUploadJobType extends AbstractJob
     }
 
     /**
-     * @param string $name
      * @param string $referenceFilename
+     * @param string $referenceDirname
      *
      * @throws \App\Exceptions\ProcessingJobException
      */
-    private function indexBWA(string $name, string $referenceFilename): void
+    private function indexBWA(string $referenceFilename, string $referenceDirname): void
     {
         $this->log('Indexing reference for bwa.');
         $output = self::runCommand(
@@ -100,7 +100,7 @@ class ReferenceUploadJobType extends AbstractJob
                 '-f',
                 $referenceFilename,
                 '-p',
-                dirname($referenceFilename) . '/' . $name,
+                $referenceDirname . '/reference',
             ],
             $this->model->getAbsoluteJobDirectory(),
             null,
@@ -116,12 +116,12 @@ class ReferenceUploadJobType extends AbstractJob
     }
 
     /**
-     * @param string $name
      * @param string $referenceFilename
+     * @param string $referenceDirname
      *
      * @throws \App\Exceptions\ProcessingJobException
      */
-    private function indexTopHat(string $name, string $referenceFilename): void
+    private function indexTopHat(string $referenceFilename, string $referenceDirname): void
     {
         $this->log('Indexing reference for TopHat.');
         $output = self::runCommand(
@@ -131,7 +131,7 @@ class ReferenceUploadJobType extends AbstractJob
                 '-f',
                 $referenceFilename,
                 '-p',
-                dirname($referenceFilename) . '/' . $name,
+                $referenceDirname . '/reference',
             ],
             $this->model->getAbsoluteJobDirectory(),
             null,
@@ -147,12 +147,12 @@ class ReferenceUploadJobType extends AbstractJob
     }
 
     /**
-     * @param string $name
      * @param string $referenceFilename
+     * @param string $referenceDirname
      *
      * @throws \App\Exceptions\ProcessingJobException
      */
-    private function indexSalmon(string $name, string $referenceFilename): void
+    private function indexSalmon(string $referenceFilename, string $referenceDirname): void
     {
         $this->log('Indexing reference for Salmon.');
         $output = self::runCommand(
@@ -162,7 +162,7 @@ class ReferenceUploadJobType extends AbstractJob
                 '-r',
                 $referenceFilename,
                 '-i',
-                dirname($referenceFilename) . '/' . $name,
+                $referenceDirname . '/reference',
             ],
             $this->model->getAbsoluteJobDirectory(),
             null,
@@ -191,7 +191,12 @@ class ReferenceUploadJobType extends AbstractJob
         $file = $this->model->getParameter('fastaFile');
         $index = (array)$this->model->getParameter('index', []);
         $absoluteSourceFilename = $this->model->getAbsoluteJobDirectory() . '/' . $file;
-        $referenceFilename = env('REFERENCES_PATH') . '/' . $name . '.fasta';
+        $referenceDirname = env('REFERENCES_PATH') . '/' . $name;
+        $referenceFilename = $referenceDirname . '/reference.fasta';
+        mkdir($referenceDirname, 0777, true);
+        if (!file_exists($referenceDirname)) {
+            throw new ProcessingJobException('Unable to create reference directory.');
+        }
         rename($absoluteSourceFilename, $referenceFilename);
         if (!file_exists($referenceFilename)) {
             throw new ProcessingJobException('Unable to create source fasta file.');
@@ -200,13 +205,13 @@ class ReferenceUploadJobType extends AbstractJob
         $tophat = (bool)($index['tophat'] ?? false);
         $salmon = (bool)($index['salmon'] ?? false);
         if ($bwa) {
-            $this->indexBWA($name, $referenceFilename);
+            $this->indexBWA($referenceFilename, $referenceDirname);
         }
         if ($tophat) {
-            $this->indexTopHat($name, $referenceFilename);
+            $this->indexTopHat($referenceFilename, $referenceDirname);
         }
         if ($salmon) {
-            $this->indexSalmon($name, $referenceFilename);
+            $this->indexSalmon($referenceFilename, $referenceDirname);
         }
         Reference::create(
             [

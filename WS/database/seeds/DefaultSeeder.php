@@ -16,7 +16,7 @@ class DefaultSeeder extends Seeder
         Reference::create(
             [
                 'name'          => env('HUMAN_GENOME_NAME'),
-                'path'          => env('REFERENCES_PATH') . '/' . env('HUMAN_GENOME_NAME') . '.fasta',
+                'path'          => env('REFERENCES_PATH') . '/' . env('HUMAN_GENOME_NAME') . '/reference.fasta',
                 'available_for' => [
                     'bwa'    => true,
                     'tophat' => true,
@@ -27,7 +27,7 @@ class DefaultSeeder extends Seeder
         Reference::create(
             [
                 'name'          => env('HUMAN_TRANSCRIPTOME_NAME'),
-                'path'          => env('REFERENCES_PATH') . '/' . env('HUMAN_TRANSCRIPTOME_NAME') . '.fasta',
+                'path'          => env('REFERENCES_PATH') . '/' . env('HUMAN_TRANSCRIPTOME_NAME') . '/reference.fasta',
                 'available_for' => [
                     'bwa'    => false,
                     'tophat' => false,

@@ -76,13 +76,23 @@ class Reference extends Model
     }
 
     /**
+     * Returns the base directory for this reference sequence
+     *
+     * @return string
+     */
+    public function basedir(): string
+    {
+        return dirname($this->path) . '/' . $this->name;
+    }
+
+    /**
      * Returns the basename for this reference sequence
      *
      * @return string
      */
     public function basename(): string
     {
-        return dirname($this->path) . '/' . $this->name;
+        return $this->basedir() . '/reference';
     }
 
     /**

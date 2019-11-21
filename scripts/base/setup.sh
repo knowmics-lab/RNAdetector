@@ -24,9 +24,6 @@ tar -zxvf trim_galore.tar.gz
 cp TrimGalore-0.6.5/trim_galore /usr/local/bin/
 chmod 755 /usr/local/bin/
 
-# Remove temporary directory
-rm -rf /rnadetector/tmp
-
 # Install the web service
 cd /rnadetector/ws/
 mv .env.docker .env
@@ -38,6 +35,12 @@ mkdir -p /rnadetector/ws/storage/app/annotations/
 mkdir -p /rnadetector/ws/storage/app/references/
 php artisan migrate --seed --force
 php artisan storage:link
+
+# Download genomes and annotations
+
+
+# Remove temporary directory
+rm -rf /rnadetector/tmp
 
 # Copy configuration files
 rm /etc/nginx/sites-available/default
