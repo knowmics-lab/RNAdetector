@@ -35,6 +35,28 @@ class DefaultSeeder extends Seeder
                 ],
             ]
         )->save();
+        Reference::create(
+            [
+                'name'          => env('HUMAN_TRANSCRIPTOME_MRNA_NAME'),
+                'path'          => env('REFERENCES_PATH') . '/' . env('HUMAN_TRANSCRIPTOME_MRNA_NAME') . '/reference.fasta',
+                'available_for' => [
+                    'bwa'    => false,
+                    'tophat' => false,
+                    'salmon' => true,
+                ],
+            ]
+        )->save();
+        Reference::create(
+            [
+                'name'          => env('HUMAN_TRANSCRIPTOME_LNCRNA_NAME'),
+                'path'          => env('REFERENCES_PATH') . '/' . env('HUMAN_TRANSCRIPTOME_LNCRNA_NAME') . '/reference.fasta',
+                'available_for' => [
+                    'bwa'    => false,
+                    'tophat' => false,
+                    'salmon' => true,
+                ],
+            ]
+        )->save();
         Annotation::create(
             [
                 'name' => env('HUMAN_CIRI_ANNOTATION_NAME'),

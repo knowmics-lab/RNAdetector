@@ -31,16 +31,6 @@ mkdir -p /rnadetector/ws/storage/app/references/
 php artisan migrate --seed --force
 php artisan storage:link
 
-# Process genomes and annotations
-mkdir -p /rnadetector/ws/storage/app/references/Human_hg19_genome
-mv /Human_hg19_genome.fasta /rnadetector/ws/storage/app/references/Human_hg19_genome/reference.fasta
-mv /Human_hg19_circRNAs.gtf /rnadetector/ws/storage/app/annotations/Human_hg19_circRNAs.gtf
-mv /Human_hg19_small_ncRNAs.gtf /rnadetector/ws/storage/app/annotations/Human_hg19_small_ncRNAs.gtf
-
-# Index genomes
-/bin/bash "/rnadetector/scripts/bwa_index.sh"     -f "/rnadetector/ws/storage/app/references/Human_hg19_genome/reference.fasta" -p "/rnadetector/ws/storage/app/references/Human_hg19_genome/reference"
-/bin/bash "/rnadetector/scripts/bowtie2_index.sh" -f "/rnadetector/ws/storage/app/references/Human_hg19_genome/reference.fasta" -p "/rnadetector/ws/storage/app/references/Human_hg19_genome/reference"
-
 # Remove temporary directory
 rm -rf /rnadetector/tmp
 

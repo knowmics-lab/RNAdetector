@@ -17,17 +17,14 @@ RUN DEBIAN_FRONTEND=noninteractive /usr/bin/apt install -y htop nginx php-fpm ph
                                                            libxml2-dev libcurl4-openssl-dev
 RUN systemctl enable nginx && systemctl enable php7.2-fpm && systemctl enable supervisor
 
-COPY bootstrap.sh                /usr/local/bin/
-COPY installPackages.R           /usr/local/bin/
-COPY setup.sh                    /usr/local/bin/
-COPY CIRI.pl                     /usr/local/bin/CIRI.pl
-COPY repo.tar.gz                 /repo.tar.gz
-COPY nginx.conf                  /nginx.conf
-COPY worker.conf                 /worker.conf
-COPY genkey.sh                   /genkey.sh
-COPY Human_hg19_genome.fasta     /Human_hg19_genome.fasta
-COPY Human_hg19_circRNAs.gtf     /Human_hg19_circRNAs.gtf
-COPY Human_hg19_small_ncRNAs.gtf /Human_hg19_small_ncRNAs.gtf
+COPY bootstrap.sh                          /usr/local/bin/
+COPY installPackages.R                     /usr/local/bin/
+COPY setup.sh                              /usr/local/bin/
+COPY CIRI.pl                               /usr/local/bin/CIRI.pl
+COPY repo.tar.gz                           /repo.tar.gz
+COPY nginx.conf                            /nginx.conf
+COPY worker.conf                           /worker.conf
+COPY genkey.sh                             /genkey.sh
 
 RUN /usr/bin/Rscript /usr/local/bin/installPackages.R
 
@@ -36,6 +33,7 @@ RUN /bin/bash /usr/local/bin/setup.sh
 RUN ln -s /usr/local/bin/bootstrap.sh /
 
 EXPOSE 80
+VOLUME [ "/rnadetector/ws/storage/app/references/", "/rnadetector/ws/storage/app/annotations/", "/rnadetector/ws/storage/app/public/" ]
 
 ENTRYPOINT ["/bootstrap.sh"]
 CMD ["/sbin/init"]
