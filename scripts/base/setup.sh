@@ -64,3 +64,4 @@ chmod 755 /rnadetector/scripts/*
 chmod -R 777 /rnadetector/ws/bootstrap/cache
 chmod -R 777 /rnadetector/ws/storage
 chmod 755 /genkey.sh
+chmod 755 /import_reference.sh

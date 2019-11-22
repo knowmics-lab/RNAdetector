@@ -9,7 +9,7 @@ RUN DEBIAN_FRONTEND=noninteractive /usr/bin/apt update && \
     DEBIAN_FRONTEND=noninteractive /usr/bin/apt dist-upgrade -y && \
     DEBIAN_FRONTEND=noninteractive apt-get clean
 
-RUN DEBIAN_FRONTEND=noninteractive /usr/bin/apt install -y htop nginx php-fpm php-json php-sqlite3 \ 
+RUN DEBIAN_FRONTEND=noninteractive /usr/bin/apt install -y nginx php-cli php-fpm php-json php-sqlite3 \ 
                                                            php-intl php-mbstring php-xml supervisor \ 
                                                            git composer python-setuptools python3-setuptools \ 
                                                            python-dev curl tophat bwa samtools python-htseq \ 
@@ -17,20 +17,27 @@ RUN DEBIAN_FRONTEND=noninteractive /usr/bin/apt install -y htop nginx php-fpm ph
                                                            libxml2-dev libcurl4-openssl-dev
 RUN systemctl enable nginx && systemctl enable php7.2-fpm && systemctl enable supervisor
 
-COPY bootstrap.sh                          /usr/local/bin/
-COPY installPackages.R                     /usr/local/bin/
-COPY setup.sh                              /usr/local/bin/
-COPY CIRI.pl                               /usr/local/bin/CIRI.pl
-COPY repo.tar.gz                           /repo.tar.gz
-COPY nginx.conf                            /nginx.conf
-COPY worker.conf                           /worker.conf
-COPY genkey.sh                             /genkey.sh
+COPY bootstrap.sh        /usr/local/bin/
+COPY installPackages.R   /usr/local/bin/
+COPY setup.sh            /usr/local/bin/
+COPY CIRI.pl             /usr/local/bin/CIRI.pl
+COPY repo.tar.gz         /repo.tar.gz
+COPY nginx.conf          /nginx.conf
+COPY worker.conf         /worker.conf
+COPY genkey.sh           /genkey.sh
+COPY import_reference.sh /import_reference.sh
 
 RUN /usr/bin/Rscript /usr/local/bin/installPackages.R
 
 RUN /bin/bash /usr/local/bin/setup.sh
 
 RUN ln -s /usr/local/bin/bootstrap.sh /
+
+# RUN DEBIAN_FRONTEND=noninteractive /usr/bin/apt purge -y git composer python-dev libxml2-dev libcurl4-openssl-dev && \ 
+#     DEBIAN_FRONTEND=noninteractive /usr/bin/apt autoremove --purge -y && \ 
+#     DEBIAN_FRONTEND=noninteractive /usr/bin/apt autoclean && \ 
+#     DEBIAN_FRONTEND=noninteractive /usr/bin/apt clean
+
 
 EXPOSE 80
 VOLUME [ "/rnadetector/ws/storage/app/references/", "/rnadetector/ws/storage/app/annotations/", "/rnadetector/ws/storage/app/public/" ]
