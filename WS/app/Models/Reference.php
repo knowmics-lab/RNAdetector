@@ -82,7 +82,7 @@ class Reference extends Model
      */
     public function basedir(): string
     {
-        return dirname($this->path) . '/' . $this->name;
+        return dirname($this->path);
     }
 
     /**

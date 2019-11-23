@@ -34,10 +34,8 @@ RUN /bin/bash /usr/local/bin/setup.sh
 
 RUN ln -s /usr/local/bin/bootstrap.sh /
 
-# RUN DEBIAN_FRONTEND=noninteractive /usr/bin/apt purge -y git composer python-dev libxml2-dev libcurl4-openssl-dev && \ 
-#     DEBIAN_FRONTEND=noninteractive /usr/bin/apt autoremove --purge -y && \ 
-#     DEBIAN_FRONTEND=noninteractive /usr/bin/apt autoclean && \ 
-#     DEBIAN_FRONTEND=noninteractive /usr/bin/apt clean
+RUN DEBIAN_FRONTEND=noninteractive /usr/bin/apt autoclean && \ 
+    DEBIAN_FRONTEND=noninteractive /usr/bin/apt clean
 
 
 EXPOSE 80

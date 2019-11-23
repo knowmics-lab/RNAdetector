@@ -27,6 +27,8 @@ class Request implements ShouldQueue
      */
     public $deleteWhenMissingModels = true;
 
+    public $timeout = 0;
+
     /**
      * @var \App\Models\Job
      */
@@ -52,6 +54,8 @@ class Request implements ShouldQueue
         $jobProcessor = null;
         try {
             if ($this->model->shouldNotRun()) {  // job is being processed (or has been processed) by another thread.
+                $this->delete();
+
                 return;
             }
             $this->model->log = '';

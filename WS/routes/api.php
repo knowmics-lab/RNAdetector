@@ -4,6 +4,7 @@
  *
  * @author S. Alaimo, Ph.D. <alaimos at gmail dot com>
  */
+
 use Illuminate\Http\Request;
 
 /*
@@ -60,11 +61,15 @@ Route::middleware(
 Route::middleware('auth:api')->get('/job-types', 'Api\\JobTypeController@index')->name('job-types.index');
 Route::middleware('auth:api')->get('/job-types/{type}', 'Api\\JobTypeController@show')->name('job-types.show');
 
-/*Route::middleware('auth:api')->any(
-    '/tus/{any?}',
-    function () {
-        $response = app('tus-server')->serve();
+Route::apiResource('annotations', 'Api\\AnnotationController')->names(
+    [
+        'show' => 'annotation.show',
+    ]
+)->middleware('auth:api')->except(['create', 'store', 'update']);
 
-        return $response->send();
-    }
-)->where('any', '.*');*/
+Route::apiResource('references', 'Api\\ReferenceController')->names(
+    [
+        'show' => 'reference.show',
+    ]
+)->middleware('auth:api')->except(['create', 'store', 'update']);
+

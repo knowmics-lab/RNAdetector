@@ -74,7 +74,7 @@ class ImportReference extends Command
 
             return 3;
         }
-        if (!file_exists($genomePath . 'reference.fasta')) {
+        if (!file_exists($genomePath . 'reference.fa')) {
             $this->error("Invalid reference sequence: fasta file not found.");
 
             return 4;
@@ -86,7 +86,7 @@ class ImportReference extends Command
         Reference::create(
             [
                 'name'          => $name,
-                'path'          => $genomePath . 'reference.fasta',
+                'path'          => $genomePath . 'reference.fa',
                 'available_for' => [
                     'bwa'    => $indexedFor['bwa'] ?? false,
                     'tophat' => $indexedFor['tophat'] ?? false,

@@ -16,7 +16,7 @@ class DefaultSeeder extends Seeder
         Reference::create(
             [
                 'name'          => env('HUMAN_GENOME_NAME'),
-                'path'          => env('REFERENCES_PATH') . '/' . env('HUMAN_GENOME_NAME') . '/reference.fasta',
+                'path'          => env('REFERENCES_PATH') . '/' . env('HUMAN_GENOME_NAME') . '/reference.fa',
                 'available_for' => [
                     'bwa'    => true,
                     'tophat' => true,
@@ -27,7 +27,7 @@ class DefaultSeeder extends Seeder
         Reference::create(
             [
                 'name'          => env('HUMAN_TRANSCRIPTOME_NAME'),
-                'path'          => env('REFERENCES_PATH') . '/' . env('HUMAN_TRANSCRIPTOME_NAME') . '/reference.fasta',
+                'path'          => env('REFERENCES_PATH') . '/' . env('HUMAN_TRANSCRIPTOME_NAME') . '/reference.fa',
                 'available_for' => [
                     'bwa'    => false,
                     'tophat' => false,
@@ -38,7 +38,7 @@ class DefaultSeeder extends Seeder
         Reference::create(
             [
                 'name'          => env('HUMAN_TRANSCRIPTOME_MRNA_NAME'),
-                'path'          => env('REFERENCES_PATH') . '/' . env('HUMAN_TRANSCRIPTOME_MRNA_NAME') . '/reference.fasta',
+                'path'          => env('REFERENCES_PATH') . '/' . env('HUMAN_TRANSCRIPTOME_MRNA_NAME') . '/reference.fa',
                 'available_for' => [
                     'bwa'    => false,
                     'tophat' => false,
@@ -49,7 +49,7 @@ class DefaultSeeder extends Seeder
         Reference::create(
             [
                 'name'          => env('HUMAN_TRANSCRIPTOME_LNCRNA_NAME'),
-                'path'          => env('REFERENCES_PATH') . '/' . env('HUMAN_TRANSCRIPTOME_LNCRNA_NAME') . '/reference.fasta',
+                'path'          => env('REFERENCES_PATH') . '/' . env('HUMAN_TRANSCRIPTOME_LNCRNA_NAME') . '/reference.fa',
                 'available_for' => [
                     'bwa'    => false,
                     'tophat' => false,

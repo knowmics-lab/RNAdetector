@@ -9,7 +9,6 @@ namespace App\Jobs\Types;
 
 
 use App\Exceptions\ProcessingJobException;
-use App\Models\Annotation;
 use App\Models\Reference;
 use Illuminate\Http\Request;
 use Storage;
@@ -192,7 +191,7 @@ class ReferenceUploadJobType extends AbstractJob
         $index = (array)$this->model->getParameter('index', []);
         $absoluteSourceFilename = $this->model->getAbsoluteJobDirectory() . '/' . $file;
         $referenceDirname = env('REFERENCES_PATH') . '/' . $name;
-        $referenceFilename = $referenceDirname . '/reference.fasta';
+        $referenceFilename = $referenceDirname . '/reference.fa';
         mkdir($referenceDirname, 0777, true);
         if (!file_exists($referenceDirname)) {
             throw new ProcessingJobException('Unable to create reference directory.');
