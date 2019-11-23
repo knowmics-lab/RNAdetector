@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 service nginx start
-service php7.2-fpm start
+service php7.3-fpm start
 service supervisor start
 
 if [ ! -d "/rnadetector/ws/storage/app/public/" ]; then

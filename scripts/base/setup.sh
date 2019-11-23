@@ -45,12 +45,12 @@ ln -s /dev/stdout /var/log/nginx/access.log
 if [ -f "/var/log/nginx/error.log" ]; then
     rm /var/log/nginx/error.log
 fi
-ln -s /dev/stderr /var/log/nginx/error.log 
+ln -s /dev/stdout /var/log/nginx/error.log 
 
-if [ -f "/var/log/php7.2-fpm.log" ]; then
-    rm /var/log/php7.2-fpm.log
+if [ -f "/var/log/php7.3-fpm.log" ]; then
+    rm /var/log/php7.3-fpm.log
 fi
-ln -s /dev/stderr /var/log/php7.2-fpm.log
+ln -s /dev/stdout /var/log/php7.3-fpm.log
 
 # Set folder permission
 chmod 755 /usr/local/bin/bootstrap.sh
