@@ -24,11 +24,6 @@ cd /rnadetector/ws/
 mv .env.docker .env
 composer install --optimize-autoloader --no-dev
 php artisan key:generate
-mkdir -p /rnadetector/ws/storage/app/database/
-touch /rnadetector/ws/storage/app/database/database.sqlite
-mkdir -p /rnadetector/ws/storage/app/annotations/
-mkdir -p /rnadetector/ws/storage/app/references/
-php artisan migrate --seed --force
 php artisan storage:link
 
 # Remove temporary directory
