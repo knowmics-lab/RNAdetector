@@ -11,6 +11,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Job as JobResource;
 use App\Http\Resources\JobCollection;
 use App\Http\Resources\UserCollection;
+use App\Jobs\DeleteJobDirectory;
 use App\Jobs\Request as JobRequest;
 use App\Jobs\Types\Factory;
 use App\Models\Job;
@@ -111,6 +112,7 @@ class JobController extends Controller
         );
         $job->setParameters(Arr::dot($validParameters));
         $job->save();
+        $job->getJobDirectory();
 
         return new JobResource($job);
     }
@@ -163,12 +165,12 @@ class JobController extends Controller
         if (!$job->canBeDeleted()) {
             abort(400, 'Unable to delete a queued or running job.');
         }
-        $job->deleteJobDirectory();
-        $job->delete();
+
+        DeleteJobDirectory::dispatch($job);
 
         return response()->json(
             [
-                'message' => 'Job deleted.',
+                'message' => 'Deleting job.',
                 'errors'  => false,
             ]
         );
