@@ -6,7 +6,7 @@
 #   -f FIRST INPUT FASTQ (trimmed FASTQ file)
 # 	-s OPTIONAL SECOND INPUT FASTQ (FOR PAIRED) (trimmed FASTQ file)
 # 	-t NUMBER OF THREADS
-#		-o OUTPUT directory
+#		-o OUTPUT file
 ##############################################################################
 while getopts ":i:f:s:t:o:" opt; do
   case $opt in
@@ -67,18 +67,16 @@ if [ ! -d "$INDEXED_FASTA" ]; then
 fi
 
 #### Counting ####
-SAMPLE_NAME=$(basename "$INPUT_1" ".fastq")
-SUFF="_sa.txt"
-OUTPUT_NAME=$SAMPLE_NAME$SUFF
+OUTPUT_DIR=$(dirname "$OUTPUT")
+TEMP_DIR="$OUTPUT_DIR/TMP"
 
-TEMP_DIR="TMP"
 if [ $PAIRED = "true" ]; then
-  salmon quant -i "$INDEXED_FASTA" -l A -1 "$INPUT_1" -2 "$INPUT_2" --validateMappings -p $THREADS -o "$OUTPUT"/$TEMP_DIR
+  salmon quant -i "$INDEXED_FASTA" -l A -1 "$INPUT_1" -2 "$INPUT_2" --validateMappings -p $THREADS -o "$TEMP_DIR"
 else
-  salmon quant -i "$INDEXED_FASTA" -l A -r "$INPUT_1" --validateMappings -p $THREADS -o "$OUTPUT"/$TEMP_DIR
+  salmon quant -i "$INDEXED_FASTA" -l A -r "$INPUT_1" --validateMappings -p $THREADS -o "$TEMP_DIR"
 fi
 
-OUTPUT_FILE="$OUTPUT/$TEMP_DIR/quant.sf"
+OUTPUT_FILE="$TEMP_DIR/quant.sf"
 
 # Check output file
 if [ ! -f "$OUTPUT_FILE" ]; then
@@ -87,10 +85,10 @@ if [ ! -f "$OUTPUT_FILE" ]; then
 fi
 
 # Move output file from tmp directory to output directory
-sudo chmod -R 777 "$OUTPUT"/$TEMP_DIR
-mv "$OUTPUT_FILE" "$OUTPUT"/"$OUTPUT_NAME"
+mv "$OUTPUT_FILE" "$OUTPUT"
+chmod 777 "$OUTPUT"
 
 # Removing items of tmp directory
-if [ -d "$OUTPUT"/"$TEMP_DIR" ]; then
-  rm -rf "$OUTPUT"/"$TEMP_DIR"
+if [ -d "$TEMP_DIR" ]; then
+  rm -rf "$TEMP_DIR"
 fi

@@ -41,3 +41,4 @@ fi
 
 #### Conversione BAM to SAM ####
 samtools view -h "$INPUT" > "$OUTPUT"
+chmod 777 "$OUTPUT"

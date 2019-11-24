@@ -75,14 +75,11 @@ if [ -z $SPANNING ]; then
 fi
 
 #### circRNA identification ####
-SAMPLE_NAME=$(basename $INPUT_SAM_FILE ".sam")
-SUFF="_ci.txt"
-OUTPUT_NAME=$SAMPLE_NAME$SUFF
 
 if [ $PAIRED = "true" ]; then
-  perl /usr/local/bin/CIRI.pl -I $INPUT_SAM_FILE -A $GTF_FILE -F $FASTA_FILE -M $SPANNING -o $OUTPUT/$OUTPUT_NAME -P
+  perl /usr/local/bin/CIRI.pl -I $INPUT_SAM_FILE -A $GTF_FILE -F $FASTA_FILE -M $SPANNING -o $OUTPUT -P
 else
-  perl /usr/local/bin/CIRI.pl -I $INPUT_SAM_FILE -A $GTF_FILE -F $FASTA_FILE -M $SPANNING -o $OUTPUT/$OUTPUT_NAME -S
+  perl /usr/local/bin/CIRI.pl -I $INPUT_SAM_FILE -A $GTF_FILE -F $FASTA_FILE -M $SPANNING -o $OUTPUT -S
 fi
 
 # Check SAM file

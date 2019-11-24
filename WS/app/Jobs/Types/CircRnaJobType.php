@@ -213,9 +213,9 @@ class CircRnaJobType extends AbstractJob
         Annotation $annotation,
         int $spanningDistance = 500000
     ): array {
-        $ciriOutputRelative = $this->model->getJobTempFile('ciri_output', '.txt');
+        $ciriOutputRelative = $this->model->getJobTempFile('ciri_output', '_ci.txt');
         $ciriOutput = $this->model->absoluteJobPath($ciriOutputRelative);
-        $ciriOutputUrl = \Storage::disk('public')->url($ciriOutput);
+        $ciriOutputUrl = \Storage::disk('public')->url($ciriOutputRelative);
         $output = AbstractJob::runCommand(
             [
                 'bash',

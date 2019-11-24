@@ -19,6 +19,13 @@ tar -zxvf trim_galore.tar.gz
 cp TrimGalore-0.6.5/trim_galore /usr/local/bin/
 chmod 755 /usr/local/bin/
 
+# Install latest version of salmon
+cd /rnadetector/tmp
+curl -fsSL https://github.com/COMBINE-lab/salmon/releases/download/v1.0.0/salmon-1.0.0_linux_x86_64.tar.gz -o salmon.tar.gz
+tar -zxvf salmon.tar.gz
+mv salmon-latest_linux_x86_64/ /opt/salmon/
+ln -s /opt/salmon/bin/salmon /usr/bin/salmon
+
 # Install the web service
 cd /rnadetector/ws/
 mv .env.docker .env

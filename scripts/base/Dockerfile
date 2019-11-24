@@ -14,7 +14,7 @@ RUN DEBIAN_FRONTEND=noninteractive /usr/bin/apt install -y nginx php7.3-cli php7
                                                            php7.3-intl php7.3-mbstring php7.3-xml supervisor \ 
                                                            git composer python-setuptools python3-setuptools \ 
                                                            python-dev curl tophat bwa samtools python-htseq \ 
-                                                           subread cutadapt fastqc salmon r-base-dev \ 
+                                                           subread cutadapt fastqc r-base-dev \ 
                                                            libxml2-dev libcurl4-openssl-dev
 RUN systemctl enable nginx && systemctl enable php7.3-fpm && systemctl enable supervisor
 

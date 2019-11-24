@@ -210,9 +210,9 @@ class SmallRnaJobType extends AbstractJob
      */
     private function runHTSEQ(string $countingInputFile, Annotation $annotation, int $threads = 1): array
     {
-        $htseqOutputRelative = $this->model->getJobTempFile('htseq_output', '.txt');
+        $htseqOutputRelative = $this->model->getJobTempFile('htseq_output', '_ht.txt');
         $htseqOutput = $this->model->absoluteJobPath($htseqOutputRelative);
-        $htseqOutputUrl = \Storage::disk('public')->url($htseqOutput);
+        $htseqOutputUrl = \Storage::disk('public')->url($htseqOutputRelative);
         $output = self::runCommand(
             [
                 'bash',
@@ -256,9 +256,9 @@ class SmallRnaJobType extends AbstractJob
      */
     private function runFeatureCount(string $countingInputFile, Annotation $annotation, int $threads = 1): array
     {
-        $featurecountOutputRelative = $this->model->getJobTempFile('featurecount_output', '.txt');
+        $featurecountOutputRelative = $this->model->getJobTempFile('featurecount_output', '_fc.txt');
         $featurecountOutput = $this->model->absoluteJobPath($featurecountOutputRelative);
-        $featurecountOutputUrl = \Storage::disk('public')->url($featurecountOutput);
+        $featurecountOutputUrl = \Storage::disk('public')->url($featurecountOutputRelative);
         $output = self::runCommand(
             [
                 'bash',

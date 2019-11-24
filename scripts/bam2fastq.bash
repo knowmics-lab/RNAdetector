@@ -55,6 +55,8 @@ fi
 #### Conversion from BAM to FASTQ ####
 if [ $PAIRED = "true" ]; then
   samtools fastq "$INPUT" -1 "$OUTPUT" -2 "$OUTPUT_2"
+  chmod 777 "$OUTPUT_2"
 else
   samtools fastq "$INPUT" >"$OUTPUT"
 fi
+chmod 777 "$OUTPUT"

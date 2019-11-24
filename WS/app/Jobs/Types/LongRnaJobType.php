@@ -145,9 +145,9 @@ class LongRnaJobType extends AbstractJob
             throw new ProcessingJobException('The specified reference sequence is not indexed for salmon analysis.');
         }
         $this->log('Computing counts using Salmon.');
-        $salmonOutputRelative = $this->model->getJobTempFile('salmon_output', '.txt');
+        $salmonOutputRelative = $this->model->getJobTempFile('salmon_output', '_sa.txt');
         $salmonOutput = $this->model->absoluteJobPath($salmonOutputRelative);
-        $salmonOutputUrl = Storage::disk('public')->url($salmonOutput);
+        $salmonOutputUrl = Storage::disk('public')->url($salmonOutputRelative);
         switch ($inputType) {
             case self::FASTQ:
                 $command = [

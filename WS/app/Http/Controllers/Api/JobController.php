@@ -204,6 +204,7 @@ class JobController extends Controller
         if (!$job->canBeModified()) {
             abort(400, 'Unable to upload a file for a job that is already submitted.');
         }
+        set_time_limit(0);
         /** @var \TusPhp\Tus\Server $server */
         $server = app('tus-server');
         $server->setApiPath(route('jobs.upload', $job, false))

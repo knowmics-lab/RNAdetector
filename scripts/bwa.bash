@@ -70,22 +70,14 @@ if [ ! -w "$(dirname "$OUTPUT")" ]; then
 fi
 
 #### Alignment ####
-SAM_NAME=$(mktemp --suffix=".sam")
 if [ $PAIRED = "true" ]; then
-  bwa mem -t $THREADS "$REF_GENOME" "$INPUT_1" "$INPUT_2" >"$SAM_NAME"
+  bwa mem -t $THREADS "$REF_GENOME" "$INPUT_1" "$INPUT_2" >"$OUTPUT"
 else
-  bwa mem -t $THREADS "$REF_GENOME" "$INPUT_1" >"$SAM_NAME"
+  bwa mem -t $THREADS "$REF_GENOME" "$INPUT_1" >"$OUTPUT"
 fi
 
 #Check SAM file
-if [ ! -f "$SAM_NAME" ]; then
+if [ ! -f "$OUTPUT" ]; then
   echo "Unable to find bwa output file!" >&2
   exit 8
-fi
-
-# Move SAM file from tmp directory to output directory
-mv "$SAM_NAME" "$OUTPUT"
-
-if [ -f "$SAM_NAME" ]; then
-  rm "$SAM_NAME"
 fi
