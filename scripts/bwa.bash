@@ -53,7 +53,7 @@ else
 fi
 
 # Check number of threads and set 1 as default value
-if [ -z $THREADS ]; then
+if [ -z "$THREADS" ]; then
   THREADS=1
 fi
 
@@ -71,9 +71,9 @@ fi
 
 #### Alignment ####
 if [ $PAIRED = "true" ]; then
-  bwa mem -t $THREADS "$REF_GENOME" "$INPUT_1" "$INPUT_2" >"$OUTPUT"
+  bwa mem -t "$THREADS" "$REF_GENOME" "$INPUT_1" "$INPUT_2" >"$OUTPUT"
 else
-  bwa mem -t $THREADS "$REF_GENOME" "$INPUT_1" >"$OUTPUT"
+  bwa mem -t "$THREADS" "$REF_GENOME" "$INPUT_1" >"$OUTPUT"
 fi
 
 #Check SAM file
@@ -81,3 +81,5 @@ if [ ! -f "$OUTPUT" ]; then
   echo "Unable to find bwa output file!" >&2
   exit 8
 fi
+
+chmod 777 "$OUTPUT"

@@ -44,7 +44,7 @@ else
 fi
 
 # Check number of threads and set 1 as default value
-if [ -z $THREADS ]; then
+if [ -z "$THREADS" ]; then
   THREADS=1
 fi
 

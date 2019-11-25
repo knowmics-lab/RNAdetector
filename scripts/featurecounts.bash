@@ -32,7 +32,7 @@ if [ -z "$INPUT_BAM" ] || [ ! -f "$INPUT_BAM" ]; then
 fi
 
 # Check number of threads and set 1 as default value
-if [ -z $THREADS ]; then
+if [ -z "$THREADS" ]; then
     THREADS=1
 fi
 
@@ -50,3 +50,10 @@ fi
 
 #### Counting ####
 featureCounts -T $THREADS -a "$GTF_FILE" -o "$OUTPUT" "$INPUT_BAM"
+
+if [ ! -f "$OUTPUT" ]; then
+  echo "Unable to find output file!" >&2
+  exit 7
+fi
+
+chmod 777 "$OUTPUT"

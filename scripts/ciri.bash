@@ -30,21 +30,21 @@ done
 
 #### Check parameters ####
 # Check GTF annotation files
-if [ -z $GTF_FILE ] || [ ! -f $GTF_FILE ]; then
+if [ -z "$GTF_FILE" ] || [ ! -f "$GTF_FILE" ]; then
   echo "Annotation file does not exist!"
   exit 3
 fi
 
 # Check input files
-if [ -z $INPUT_SAM_FILE ] || [ ! -f $INPUT_SAM_FILE ]; then
+if [ -z "$INPUT_SAM_FILE" ] || [ ! -f "$INPUT_SAM_FILE" ]; then
   echo "Input file does not exist!" >&2
   exit 4
 fi
 
 # Control sequencing strategy "single end" o "paired end"
-if [ $STRATEGY = "single" ]; then
+if [ "$STRATEGY" = "single" ]; then
   PAIRED=false
-elif [ $STRATEGY = "paired" ]; then
+elif [ "$STRATEGY" = "paired" ]; then
   PAIRED=true
 else
   echo "error with select the sequencing strategy" >&2
@@ -52,38 +52,40 @@ else
 fi
 
 # Check output
-if [ -z $OUTPUT ]; then
+if [ -z "$OUTPUT" ]; then
   echo "Output file must be specified!" >&2
   exit 6
 fi
 
 # Check if output directory is writable
-if [ ! -w $(dirname $OUTPUT) ]; then
+if [ ! -w "$(dirname "$OUTPUT")" ]; then
   echo "Output directory is not writable!" >&2
   exit 7
 fi
 
 # Check fasta file
-if [ -z $FASTA_FILE ] || [ ! -f $FASTA_FILE ]; then
+if [ -z "$FASTA_FILE" ] || [ ! -f "$FASTA_FILE" ]; then
   echo "FASTA file does not exist!"
   exit 8
 fi
 
 # Check max spanning distance (default: 500,000)
-if [ -z $SPANNING ]; then
+if [ -z "$SPANNING" ]; then
   SPANNING=500000
 fi
 
 #### circRNA identification ####
 
 if [ $PAIRED = "true" ]; then
-  perl /usr/local/bin/CIRI.pl -I $INPUT_SAM_FILE -A $GTF_FILE -F $FASTA_FILE -M $SPANNING -o $OUTPUT -P
+  perl /usr/local/bin/CIRI.pl -I "$INPUT_SAM_FILE" -A "$GTF_FILE" -F "$FASTA_FILE" -M "$SPANNING" -o "$OUTPUT" -P
 else
-  perl /usr/local/bin/CIRI.pl -I $INPUT_SAM_FILE -A $GTF_FILE -F $FASTA_FILE -M $SPANNING -o $OUTPUT -S
+  perl /usr/local/bin/CIRI.pl -I "$INPUT_SAM_FILE" -A "$GTF_FILE" -F "$FASTA_FILE" -M "$SPANNING" -o "$OUTPUT" -S
 fi
 
 # Check SAM file
-if [ ! -f $OUTPUT ]; then
+if [ ! -f "$OUTPUT" ]; then
   echo "Unable to find CIRI output file!" >&2
   exit 9
 fi
+
+chmod 777 "$OUTPUT"
