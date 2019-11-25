@@ -18,11 +18,11 @@ while getopts ":a:g:t:f:s:o:" opt; do
   s) INPUT_2=$OPTARG ;;
   o) OUTPUT=$OPTARG ;;
   \?)
-    echo "Invalid option: -$OPTARG" >&2
+    echo "Invalid option: -$OPTARG"
     exit 1
     ;;
   :)
-    echo "Option -$OPTARG requires an argument." >&2
+    echo "Option -$OPTARG requires an argument."
     exit 2
     ;;
   esac
@@ -38,7 +38,7 @@ fi
 
 # Check input files
 if [ -z "$INPUT_1" ] || [ ! -f "$INPUT_1" ]; then
-  echo "Input file does not exist!" >&2
+  echo "Input file does not exist!"
   exit 4
 fi
 
@@ -46,7 +46,7 @@ fi
 if [ -z "$INPUT_2" ]; then
   PAIRED=false
 elif [ ! -f "$INPUT_2" ]; then
-  echo "Second input file does not exist!" >&2
+  echo "Second input file does not exist!"
   exit 5
 else
   PAIRED=true
@@ -59,26 +59,40 @@ fi
 
 # Check output
 if [ -z "$OUTPUT" ]; then
-  echo "Output file must be specified!" >&2
+  echo "Output file must be specified!"
   exit 6
 fi
 
 # Check if output directory is writable
 if [ ! -w "$(dirname "$OUTPUT")" ]; then
-  echo "Output directory is not writable!" >&2
+  echo "Output directory is not writable!"
   exit 7
 fi
 
 #### Alignment ####
 if [ $PAIRED = "true" ]; then
-  bwa mem -t "$THREADS" "$REF_GENOME" "$INPUT_1" "$INPUT_2" >"$OUTPUT"
+  if ! fastq_pair "$INPUT_1" "$INPUT_2"; then
+    echo "Unable to determine unpaired reads"
+    exit 9
+  fi
+  if [ ! -f "$INPUT_1.paired.fq" ]; then
+    echo "Unable to find paired reads of first input file!"
+    exit 10
+  fi
+  if [ ! -f "$INPUT_2.paired.fq" ]; then
+    echo "Unable to find paired reads of second input file!"
+    exit 11
+  fi
+  rm "$INPUT_1.single.fq"
+  rm "$INPUT_2.single.fq"
+  bwa mem -t "$THREADS" "$REF_GENOME" "$INPUT_1.paired.fq" "$INPUT_2.paired.fq" >"$OUTPUT"
 else
   bwa mem -t "$THREADS" "$REF_GENOME" "$INPUT_1" >"$OUTPUT"
 fi
 
 #Check SAM file
 if [ ! -f "$OUTPUT" ]; then
-  echo "Unable to find bwa output file!" >&2
+  echo "Unable to find bwa output file!"
   exit 8
 fi
 

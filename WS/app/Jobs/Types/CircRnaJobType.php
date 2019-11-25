@@ -300,7 +300,8 @@ class CircRnaJobType extends AbstractJob
                     $firstInputFile,
                     $secondInputFile,
                     $trimGaloreQuality,
-                    $trimGaloreLength
+                    $trimGaloreLength,
+                    true
                 );
                 $this->log($bashOutput);
                 $this->log('Trimming completed');

@@ -16,11 +16,11 @@ while getopts ":i:f:s:t:o:" opt; do
   t) THREADS=$OPTARG ;;
   o) OUTPUT=$OPTARG ;;
   \?)
-    echo "Invalid option: -$OPTARG" >&2
+    echo "Invalid option: -$OPTARG"
     exit 1
     ;;
   :)
-    echo "Option -$OPTARG requires an argument." >&2
+    echo "Option -$OPTARG requires an argument."
     exit 2
     ;;
   esac
@@ -29,7 +29,7 @@ done
 #### Check parameters ####
 # Check input files
 if [ -z "$INPUT_1" ] || [ ! -f "$INPUT_1" ]; then
-  echo "Input file does not exist!" >&2
+  echo "Input file does not exist!"
   exit 3
 fi
 
@@ -37,7 +37,7 @@ fi
 if [ -z "$INPUT_2" ]; then
   PAIRED=false
 elif [ ! -f "$INPUT_2" ]; then
-  echo "Second input file does not exist!" >&2
+  echo "Second input file does not exist!"
   exit 4
 else
   PAIRED=true
@@ -50,13 +50,13 @@ fi
 
 # Check output
 if [ -z "$OUTPUT" ]; then
-  echo "Output file must be specified!" >&2
+  echo "Output file must be specified!"
   exit 5
 fi
 
 # Check if output directory is writable
 if [ ! -w "$(dirname "$OUTPUT")" ]; then
-  echo "Output directory is not writable!" >&2
+  echo "Output directory is not writable!"
   exit 6
 fi
 
@@ -80,7 +80,7 @@ OUTPUT_FILE="$TEMP_DIR/quant.sf"
 
 # Check output file
 if [ ! -f "$OUTPUT_FILE" ]; then
-  echo "Unable to find output file!" >&2
+  echo "Unable to find output file!"
   exit 8
 fi
 

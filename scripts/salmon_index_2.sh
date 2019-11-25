@@ -9,8 +9,8 @@ while getopts ":r:i:" opt; do
 	case $opt in
 		r ) FASTA=$OPTARG ;;
 		i ) INDEXED_FASTA=$OPTARG ;;
-		\?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
-		: ) echo "Option -$OPTARG requires an argument." >&2; exit 2;;
+		\?) echo "Invalid option: -$OPTARG"; exit 1 ;;
+		: ) echo "Option -$OPTARG requires an argument."; exit 2;;
 	esac
 done
 

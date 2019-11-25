@@ -14,11 +14,11 @@ while getopts ":r:i:t:o:" opt; do
         t) THREADS=$OPTARG ;;
         o) OUTPUT=$OPTARG ;;
         \?)
-            echo "Invalid option: -$OPTARG" >&2
+            echo "Invalid option: -$OPTARG"
             exit 1
         ;;
         :)
-            echo "Option -$OPTARG requires an argument." >&2
+            echo "Option -$OPTARG requires an argument."
             exit 2
         ;;
     esac
@@ -27,13 +27,13 @@ done
 #### Check parameters ####
 # Check input files
 if [ -z "$INPUT_BAM" ] || [ ! -f "$INPUT_BAM" ]; then
-    echo "Input file does not exist!" >&2
+    echo "Input file does not exist!"
     exit 3
 fi
 
 # Check check fasta transcriptome
 if [ -z "$FASTA_TRANSCRIPTS" ] || [ ! -f "$FASTA_TRANSCRIPTS" ]; then
-    echo "FASTA transcriptome file does not exist!" >&2
+    echo "FASTA transcriptome file does not exist!"
     exit 4
 fi
 
@@ -44,13 +44,13 @@ fi
 
 # Check output
 if [ -z "$OUTPUT" ]; then
-    echo "Output directory must be specified!" >&2
+    echo "Output directory must be specified!"
     exit 5
 fi
 
 # Check if output directory is writable
 if [ ! -w "$(dirname "$OUTPUT")" ]; then
-    echo "Output directory is not writable!" >&2
+    echo "Output directory is not writable!"
     exit 6
 fi
 
@@ -64,7 +64,7 @@ OUTPUT_FILE="$TEMP_DIR/quant.sf"
 
 # Check output file
 if [ ! -f "$OUTPUT_FILE" ]; then
-    echo "Unable to find output file!" >&2
+    echo "Unable to find output file!"
     exit 7
 fi
 

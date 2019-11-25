@@ -18,11 +18,11 @@ while getopts ":a:i:s:o:f:m:" opt; do
   f) FASTA_FILE=$OPTARG ;;
   m) SPANNING=$OPTARG ;;
   \?)
-    echo "Invalid option: -$OPTARG" >&2
+    echo "Invalid option: -$OPTARG"
     exit 1
     ;;
   :)
-    echo "Option -$OPTARG requires an argument." >&2
+    echo "Option -$OPTARG requires an argument."
     exit 2
     ;;
   esac
@@ -37,7 +37,7 @@ fi
 
 # Check input files
 if [ -z "$INPUT_SAM_FILE" ] || [ ! -f "$INPUT_SAM_FILE" ]; then
-  echo "Input file does not exist!" >&2
+  echo "Input file does not exist!"
   exit 4
 fi
 
@@ -47,19 +47,19 @@ if [ "$STRATEGY" = "single" ]; then
 elif [ "$STRATEGY" = "paired" ]; then
   PAIRED=true
 else
-  echo "error with select the sequencing strategy" >&2
+  echo "error with select the sequencing strategy"
   exit 5
 fi
 
 # Check output
 if [ -z "$OUTPUT" ]; then
-  echo "Output file must be specified!" >&2
+  echo "Output file must be specified!"
   exit 6
 fi
 
 # Check if output directory is writable
 if [ ! -w "$(dirname "$OUTPUT")" ]; then
-  echo "Output directory is not writable!" >&2
+  echo "Output directory is not writable!"
   exit 7
 fi
 
@@ -84,7 +84,7 @@ fi
 
 # Check SAM file
 if [ ! -f "$OUTPUT" ]; then
-  echo "Unable to find CIRI output file!" >&2
+  echo "Unable to find CIRI output file!"
   exit 9
 fi
 

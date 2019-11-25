@@ -17,8 +17,8 @@ while getopts ":a:g:t:f:s:o:" opt; do
 		f ) INPUT_1=$OPTARG ;;
 		s ) INPUT_2=$OPTARG ;;
 		o ) OUTPUT=$OPTARG ;;
-		\?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
-		: ) echo "Option -$OPTARG requires an argument." >&2; exit 2;;
+		\?) echo "Invalid option: -$OPTARG"; exit 1 ;;
+		: ) echo "Option -$OPTARG requires an argument."; exit 2;;
 	esac
 done
 
@@ -32,7 +32,7 @@ fi
 
 # Check input files
 if [ -z "$INPUT_1" ] || [ ! -f "$INPUT_1" ]; then
-	echo "Input file does not exist!" >&2
+	echo "Input file does not exist!"
 	exit 4
 fi
 
@@ -40,7 +40,7 @@ fi
 if [ -z "$INPUT_2" ]; then
 	PAIRED=false
 elif [ ! -f "$INPUT_2" ]; then
-	echo "Second input file does not exist!" >&2
+	echo "Second input file does not exist!"
 	exit 5
 else
     PAIRED=true
@@ -53,13 +53,13 @@ fi
 
 # Check output
 if [ -z "$OUTPUT" ]; then
-	echo "Output file must be specified!" >&2
+	echo "Output file must be specified!"
 	exit 6
 fi
 
 # Check if output directory is writable
 if [ ! -w "$(dirname "$OUTPUT")" ]; then
-	echo "Output directory is not writable!" >&2
+	echo "Output directory is not writable!"
 	exit 7
 fi
 
@@ -75,7 +75,7 @@ BAM="$TEMP_DIR/accepted_hits.bam"
 
 # Check BAM file
 if [ ! -f "$BAM" ]; then
-	echo "Unable to find output bam file!" >&2
+	echo "Unable to find output bam file!"
 	exit 8
 fi
 
@@ -84,6 +84,6 @@ mv "$BAM" "$OUTPUT"
 chmod 777 "$OUTPUT"
 
 # Removing items of tmp directory
-if [ -d $TEMP_DIR ]; then
-	rm -rf $TEMP_DIR
+if [ -d "$TEMP_DIR" ]; then
+	rm -rf "$TEMP_DIR"
 fi

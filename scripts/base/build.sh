@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-CURR=$(pwd)
 git clone https://github.com/alessandrolaferlita/RNAdetector.git
 tar -zcvf repo.tar.gz --owner=0 --group=0 ./RNAdetector
 rm -rf ./RNAdetector

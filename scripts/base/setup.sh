@@ -5,7 +5,7 @@ mkdir /rnadetector/
 
 # Create and fill temporary directory
 mkdir /rnadetector/tmp/
-cd /rnadetector/tmp/
+cd /rnadetector/tmp/ || exit 100
 tar -zxvf /repo.tar.gz
 mv /rnadetector/tmp/RNAdetector/WS/ /rnadetector/ws/
 mv /rnadetector/tmp/RNAdetector/scripts/ /rnadetector/scripts/
@@ -13,21 +13,27 @@ rm -rf /rnadetector/scripts/base/
 rm /repo.tar.gz
 
 # Install trim_galore
-cd /rnadetector/tmp/
+cd /rnadetector/tmp/ || exit 100
 curl -fsSL https://github.com/FelixKrueger/TrimGalore/archive/0.6.5.tar.gz -o trim_galore.tar.gz
 tar -zxvf trim_galore.tar.gz
 cp TrimGalore-0.6.5/trim_galore /usr/local/bin/
 chmod 755 /usr/local/bin/
 
 # Install latest version of salmon
-cd /rnadetector/tmp
+cd /rnadetector/tmp || exit 100
 curl -fsSL https://github.com/COMBINE-lab/salmon/releases/download/v1.0.0/salmon-1.0.0_linux_x86_64.tar.gz -o salmon.tar.gz
 tar -zxvf salmon.tar.gz
 mv salmon-latest_linux_x86_64/ /opt/salmon/
 ln -s /opt/salmon/bin/salmon /usr/bin/salmon
 
+# Install latest version of fastq-pair
+cd /rnadetector/tmp || exit 100
+git clone https://github.com/linsalrob/fastq-pair.git
+cd fastq-pair/ || exit 100
+mkdir build && cd build && cmake .. && make && make install
+
 # Install the web service
-cd /rnadetector/ws/
+cd /rnadetector/ws/ || exit 100
 mv .env.docker .env
 composer install --optimize-autoloader --no-dev
 php artisan key:generate

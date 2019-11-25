@@ -13,8 +13,8 @@ while getopts ":a:b:t:o:" opt; do
         b ) INPUT_BAM=$OPTARG ;;
         t ) THREADS=$OPTARG ;;
         o ) OUTPUT=$OPTARG ;;
-        \?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
-        : ) echo "Option -$OPTARG requires an argument." >&2; exit 2;;
+        \?) echo "Invalid option: -$OPTARG"; exit 1 ;;
+        : ) echo "Option -$OPTARG requires an argument."; exit 2;;
     esac
 done
 
@@ -27,7 +27,7 @@ fi
 
 # Check input files
 if [ -z "$INPUT_BAM" ] || [ ! -f "$INPUT_BAM" ]; then
-    echo "Input file does not exist!" >&2
+    echo "Input file does not exist!"
     exit 4
 fi
 
@@ -38,13 +38,13 @@ fi
 
 # Check output
 if [ -z "$OUTPUT" ]; then
-    echo "Output file must be specified!" >&2
+    echo "Output file must be specified!"
     exit 5
 fi
 
 # Check if output directory is writable
 if [ ! -w "$(dirname "$OUTPUT")" ]; then
-    echo "Output directory is not writable!" >&2
+    echo "Output directory is not writable!"
     exit 6
 fi
 
@@ -52,7 +52,7 @@ fi
 featureCounts -T $THREADS -a "$GTF_FILE" -o "$OUTPUT" "$INPUT_BAM"
 
 if [ ! -f "$OUTPUT" ]; then
-  echo "Unable to find output file!" >&2
+  echo "Unable to find output file!"
   exit 7
 fi
 
