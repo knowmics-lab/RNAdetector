@@ -256,7 +256,9 @@ class LongRnaJobType extends AbstractJob
                 $firstInputFile,
                 $secondInputFile,
                 $trimGaloreQuality,
-                $trimGaloreLength
+                $trimGaloreLength,
+                false,
+                $threads
             );
             $this->log('Trimming completed.');
         }

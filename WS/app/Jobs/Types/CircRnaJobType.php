@@ -41,9 +41,10 @@ class CircRnaJobType extends AbstractJob
             'inputType'            => 'Required, type of the input file (fastq, bam, sam)',
             'convertBam'           => 'If inputType is bam converts input in another format: fastq or sam.',
             'trimGalore'           => [
-                'enable'  => 'A boolean value to indicate whether trim galore should run (This parameter works only for fastq files)',
-                'quality' => 'Minimal PHREAD quality for trimming (Default 20)',
-                'length'  => 'Minimal reads length (Default 14)',
+                'enable'   => 'A boolean value to indicate whether trim galore should run (This parameter works only for fastq files)',
+                'quality'  => 'Minimal PHREAD quality for trimming (Default 20)',
+                'length'   => 'Minimal reads length (Default 40)',
+                'hardTrim' => 'A boolean value to indicate if reads should be trimmed to the same size (Default true)',
             ],
             'genome'               => 'An optional name for a reference genome (Default human hg19)',
             'annotation'           => 'An optional name for a genome annotation (Default human hg19)',
@@ -93,6 +94,7 @@ class CircRnaJobType extends AbstractJob
             'trimGalore.enable'    => ['filled', 'boolean'],
             'trimGalore.quality'   => ['filled', 'integer'],
             'trimGalore.length'    => ['filled', 'integer', 'min:40'],
+            'trimGalore.hardTrim'  => ['filled', 'boolean'],
             'genome'               => ['filled', 'alpha_dash', Rule::exists('references', 'name')],
             'annotation'           => ['filled', 'alpha_dash', Rule::exists('annotations', 'name')],
             'threads'              => ['filled', 'integer'],
@@ -271,7 +273,8 @@ class CircRnaJobType extends AbstractJob
         $secondInputFile = $this->model->getParameter('secondInputFile');
         $trimGaloreEnable = (bool)$this->model->getParameter('trimGalore.enable', $inputType === self::FASTQ);
         $trimGaloreQuality = (int)$this->model->getParameter('trimGalore.quality', 20);
-        $trimGaloreLength = (int)$this->model->getParameter('trimGalore.length', 14);
+        $trimGaloreLength = (int)$this->model->getParameter('trimGalore.length', 40);
+        $trimGaloreHardTrim = (bool)$this->model->getParameter('trimGalore.hardTrim', true);
         $genomeName = $this->model->getParameter('genome', env('HUMAN_GENOME_NAME'));
         $annotationName = $this->model->getParameter('annotation', env('HUMAN_CIRI_ANNOTATION_NAME'));
         $threads = (int)$this->model->getParameter('threads', 1);
@@ -301,7 +304,7 @@ class CircRnaJobType extends AbstractJob
                     $secondInputFile,
                     $trimGaloreQuality,
                     $trimGaloreLength,
-                    true,
+                    $trimGaloreHardTrim,
                     $threads
                 );
                 $this->log($bashOutput);
