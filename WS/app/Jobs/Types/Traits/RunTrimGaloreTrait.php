@@ -20,6 +20,7 @@ trait RunTrimGaloreTrait
      * @param int             $quality
      * @param int             $length
      * @param bool            $hardTrim
+     * @param int             $threads
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
@@ -31,7 +32,8 @@ trait RunTrimGaloreTrait
         ?string $secondInputFile = null,
         int $quality = 20,
         int $length = 14,
-        bool $hardTrim = false
+        bool $hardTrim = false,
+        int $threads = 1
     ): array {
         $outputDirectory = $model->getJobTempFileAbsolute('trim_galore_');
         $command = [
@@ -45,6 +47,8 @@ trait RunTrimGaloreTrait
             $outputDirectory,
             '-f',
             $firstInputFile,
+            '-t',
+            $threads,
         ];
         if ($paired) {
             $command[] = '-s';

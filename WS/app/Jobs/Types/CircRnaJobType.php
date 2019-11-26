@@ -48,7 +48,7 @@ class CircRnaJobType extends AbstractJob
             'genome'               => 'An optional name for a reference genome (Default human hg19)',
             'annotation'           => 'An optional name for a genome annotation (Default human hg19)',
             'threads'              => 'Number of threads for this analysis (Default 1)',
-            'ciriSpanningDistance' => 'The maximum spanning distance used in CIRI (Default 500000)',
+            'ciriSpanningDistance' => 'The maximum spanning distance used in CIRI (Default 200000)',
         ];
     }
 
@@ -92,7 +92,7 @@ class CircRnaJobType extends AbstractJob
             'trimGalore'           => ['filled', 'array'],
             'trimGalore.enable'    => ['filled', 'boolean'],
             'trimGalore.quality'   => ['filled', 'integer'],
-            'trimGalore.length'    => ['filled', 'integer'],
+            'trimGalore.length'    => ['filled', 'integer', 'min:40'],
             'genome'               => ['filled', 'alpha_dash', Rule::exists('references', 'name')],
             'annotation'           => ['filled', 'alpha_dash', Rule::exists('annotations', 'name')],
             'threads'              => ['filled', 'integer'],
@@ -197,21 +197,21 @@ class CircRnaJobType extends AbstractJob
     /**
      * Runs CIRI analysis
      *
-     * @param bool                   $paired
      * @param string                 $ciriInputFile
      * @param \App\Models\Reference  $genome
      * @param \App\Models\Annotation $annotation
      * @param int                    $spanningDistance
+     * @param int                    $threads
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
      */
     private function runCIRI(
-        bool $paired,
         string $ciriInputFile,
         Reference $genome,
         Annotation $annotation,
-        int $spanningDistance = 500000
+        int $spanningDistance = 200000,
+        int $threads = 1
     ): array {
         $ciriOutputRelative = $this->model->getJobTempFile('ciri_output', '_ci.txt');
         $ciriOutput = $this->model->absoluteJobPath($ciriOutputRelative);
@@ -224,8 +224,8 @@ class CircRnaJobType extends AbstractJob
                 $annotation->path,
                 '-f',
                 $genome->path,
-                '-s',
-                ($paired) ? 'paired' : 'single',
+                '-t',
+                $threads,
                 '-m',
                 $spanningDistance,
                 '-i',
@@ -239,7 +239,7 @@ class CircRnaJobType extends AbstractJob
             [
                 3 => 'Annotation file does not exist.',
                 4 => 'Input file does not exist.',
-                5 => 'Sequencing strategy not valid.',
+                5 => 'CIRI returned non-zero exit code.',
                 6 => 'Output file must be specified.',
                 7 => 'Output directory is not writable.',
                 8 => 'FASTA file does not exist.',
@@ -275,7 +275,7 @@ class CircRnaJobType extends AbstractJob
         $genomeName = $this->model->getParameter('genome', env('HUMAN_GENOME_NAME'));
         $annotationName = $this->model->getParameter('annotation', env('HUMAN_CIRI_ANNOTATION_NAME'));
         $threads = (int)$this->model->getParameter('threads', 1);
-        $ciriSpanningDistance = (int)$this->model->getParameter('ciriSpanningDistance', 500000);
+        $ciriSpanningDistance = (int)$this->model->getParameter('ciriSpanningDistance', 200000);
         $genome = Reference::whereName($genomeName)->firstOrFail();
         $annotation = Annotation::whereName($annotationName)->firstOrFail();
         $ciriInputFile = null;
@@ -301,7 +301,8 @@ class CircRnaJobType extends AbstractJob
                     $secondInputFile,
                     $trimGaloreQuality,
                     $trimGaloreLength,
-                    true
+                    true,
+                    $threads
                 );
                 $this->log($bashOutput);
                 $this->log('Trimming completed');
@@ -347,11 +348,11 @@ class CircRnaJobType extends AbstractJob
         }
         $this->log('Computing counts of CircRNA using CIRI.');
         [$ciriOutput, $ciriOutputUrl] = $this->runCIRI(
-            $paired,
             $ciriInputFile,
             $genome,
             $annotation,
-            $ciriSpanningDistance
+            $ciriSpanningDistance,
+            $threads
         );
         $this->log('CircRNA Analysis completed!');
         $this->model->setOutput(
