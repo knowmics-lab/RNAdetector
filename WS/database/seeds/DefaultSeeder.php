@@ -57,6 +57,17 @@ class DefaultSeeder extends Seeder
                 ],
             ]
         )->save();
+        Reference::create(
+            [
+                'name'          => env('HUMAN_TRANSCRIPTOME_SNCRNA_NAME'),
+                'path'          => env('REFERENCES_PATH') . '/' . env('HUMAN_TRANSCRIPTOME_SNCRNA_NAME') . '/reference.fa',
+                'available_for' => [
+                    'bwa'    => false,
+                    'tophat' => false,
+                    'salmon' => true,
+                ],
+            ]
+        )->save();
         Annotation::create(
             [
                 'name' => env('HUMAN_CIRI_ANNOTATION_NAME'),

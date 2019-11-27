@@ -26,8 +26,9 @@ class SmallRnaJobType extends AbstractJob
     private const BAM                  = 'BAM';
     private const HTSEQ_COUNTS         = 'htseq';
     private const FEATURECOUNTS_COUNTS = 'feature-counts';
+    private const SALMON               = 'salmon';
     private const VALID_INPUT_TYPES    = [self::FASTQ, self::BAM];
-    private const VALID_COUNTS_METHODS = [self::HTSEQ_COUNTS, self::FEATURECOUNTS_COUNTS];
+    private const VALID_COUNTS_METHODS = [self::HTSEQ_COUNTS, self::FEATURECOUNTS_COUNTS, self::SALMON];
 
     /**
      * Returns an array containing for each input parameter an help detailing its content and use.
