@@ -7,10 +7,16 @@
 ##############################################################################
 while getopts ":r:i:" opt; do
 	case $opt in
-		r ) FASTA=$OPTARG ;;
-		i ) INDEXED_FASTA=$OPTARG ;;
-		\?) echo "Invalid option: -$OPTARG"; exit 1 ;;
-		: ) echo "Option -$OPTARG requires an argument."; exit 2;;
+	r) FASTA=$OPTARG ;;
+	i) INDEXED_FASTA=$OPTARG ;;
+	\?)
+		echo "Invalid option: -$OPTARG"
+		exit 1
+		;;
+	:)
+		echo "Option -$OPTARG requires an argument."
+		exit 2
+		;;
 	esac
 done
 
@@ -22,7 +28,10 @@ if [ -z "$FASTA" ] || [ ! -f "$FASTA" ]; then
 fi
 
 #### Indexed transcriptome ####
-salmon index -t "$FASTA" -i "$INDEXED_FASTA" -k 31
+if ! salmon index -t "$FASTA" -i "$INDEXED_FASTA" -k 31; then
+    echo "An error occurred during salmon index execution!"
+    exit 5
+fi
 
 if [ ! -d "$INDEXED_FASTA" ]; then
 	echo "Indexed trascriptome does not exist!"

@@ -9,12 +9,18 @@
 ##############################################################################
 while getopts ":a:b:t:o:" opt; do
     case $opt in
-        a ) GTF_FILE=$OPTARG ;;
-        b ) INPUT_BAM=$OPTARG ;;
-        t ) THREADS=$OPTARG ;;
-        o ) OUTPUT=$OPTARG ;;
-        \?) echo "Invalid option: -$OPTARG"; exit 1 ;;
-        : ) echo "Option -$OPTARG requires an argument."; exit 2;;
+    a) GTF_FILE=$OPTARG ;;
+    b) INPUT_BAM=$OPTARG ;;
+    t) THREADS=$OPTARG ;;
+    o) OUTPUT=$OPTARG ;;
+    \?)
+        echo "Invalid option: -$OPTARG"
+        exit 1
+        ;;
+    :)
+        echo "Option -$OPTARG requires an argument."
+        exit 2
+        ;;
     esac
 done
 
@@ -49,11 +55,14 @@ if [ ! -w "$(dirname "$OUTPUT")" ]; then
 fi
 
 #### Counting ####
-htseq-count -f bam -m union --nonunique all -s no "$INPUT_BAM" "$GTF_FILE" > "$OUTPUT"
+if ! htseq-count -f bam -m union --nonunique all -s no "$INPUT_BAM" "$GTF_FILE" >"$OUTPUT"; then
+    echo "Error running htseq-count!"
+    exit 8
+fi
 
 if [ ! -f "$OUTPUT" ]; then
-  echo "Unable to find output file!"
-  exit 7
+    echo "Unable to find output file!"
+    exit 7
 fi
 
 chmod 777 "$OUTPUT"

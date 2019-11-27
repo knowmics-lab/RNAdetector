@@ -47,8 +47,9 @@ class SmallRnaJobType extends AbstractJob
                 'quality' => 'Minimal PHREAD quality for trimming (Default 20)',
                 'length'  => 'Minimal reads length (Default 14)',
             ],
-            'countingAlgorithm' => 'The counting algorithm htseq or feature-counts (Default htseq)',
+            'countingAlgorithm' => 'The counting algorithm htseq, feature-counts, or salmon (Default htseq)',
             'genome'            => 'An optional name for a reference genome (Default human hg19)',
+            'transcriptome'     => 'An optional name for transcriptome if counting algorithm is salmon (Default human hg19)',
             'annotation'        => 'An optional name for a genome annotation (Default human hg19)',
             'threads'           => 'Number of threads for this analysis (Default 1)',
         ];

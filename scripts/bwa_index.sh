@@ -8,11 +8,17 @@
 ##############################################################################
 while getopts ":f:p:a:" opt; do
 	case $opt in
-		f ) FASTA_FILE=$OPTARG ;;
-    p ) PREFIX_OUTPUT=$OPTARG;;
-    a ) ALGORITHM=$OPTARG;;
-		\?) echo "Invalid option: -$OPTARG"; exit 1 ;;
-		: ) echo "Option -$OPTARG requires an argument."; exit 2;;
+	f) FASTA_FILE=$OPTARG ;;
+	p) PREFIX_OUTPUT=$OPTARG ;;
+	a) ALGORITHM=$OPTARG ;;
+	\?)
+		echo "Invalid option: -$OPTARG"
+		exit 1
+		;;
+	:)
+		echo "Option -$OPTARG requires an argument."
+		exit 2
+		;;
 	esac
 done
 
@@ -26,11 +32,11 @@ fi
 
 # Check algorithm for genome indexing
 if [ -z "$ALGORITHM" ]; then
-  ALGORITHM="is"
+	ALGORITHM="is"
 fi
 
 # Check output
-if [ -z  "$PREFIX_OUTPUT" ]; then
+if [ -z "$PREFIX_OUTPUT" ]; then
 	echo "Output prefix must be specified!"
 	exit 4
 fi
@@ -41,6 +47,8 @@ if [ ! -w "$(dirname "$PREFIX_OUTPUT")" ]; then
 	exit 5
 fi
 
-
 #### Genome indexing ####
-bwa index -p "$PREFIX_OUTPUT" -a "$ALGORITHM" "$FASTA_FILE"
+if ! bwa index -p "$PREFIX_OUTPUT" -a "$ALGORITHM" "$FASTA_FILE"; then
+	echo "An error occurred during bwa index execution!"
+	exit 6
+fi

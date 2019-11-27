@@ -26,6 +26,9 @@ tar -zxvf salmon.tar.gz
 mv salmon-latest_linux_x86_64/ /opt/salmon/
 ln -s /opt/salmon/bin/salmon /usr/bin/salmon
 
+# Install latest version of htseq-count
+pip install HTSeq
+
 # Install latest version of fastq-pair
 cd /rnadetector/tmp || exit 100
 git clone https://github.com/linsalrob/fastq-pair.git

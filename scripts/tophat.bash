@@ -11,14 +11,20 @@
 ##############################################################################
 while getopts ":a:g:t:f:s:o:" opt; do
 	case $opt in
-		a ) GTF_FILE=$OPTARG ;;
-		g ) REF_GENOME=$OPTARG ;;
-		t ) THREADS=$OPTARG ;;
-		f ) INPUT_1=$OPTARG ;;
-		s ) INPUT_2=$OPTARG ;;
-		o ) OUTPUT=$OPTARG ;;
-		\?) echo "Invalid option: -$OPTARG"; exit 1 ;;
-		: ) echo "Option -$OPTARG requires an argument."; exit 2;;
+	a) GTF_FILE=$OPTARG ;;
+	g) REF_GENOME=$OPTARG ;;
+	t) THREADS=$OPTARG ;;
+	f) INPUT_1=$OPTARG ;;
+	s) INPUT_2=$OPTARG ;;
+	o) OUTPUT=$OPTARG ;;
+	\?)
+		echo "Invalid option: -$OPTARG"
+		exit 1
+		;;
+	:)
+		echo "Option -$OPTARG requires an argument."
+		exit 2
+		;;
 	esac
 done
 
@@ -43,7 +49,7 @@ elif [ ! -f "$INPUT_2" ]; then
 	echo "Second input file does not exist!"
 	exit 5
 else
-    PAIRED=true
+	PAIRED=true
 fi
 
 # Check number of threads and set 1 as default value
@@ -66,9 +72,15 @@ fi
 #### Alignment ####
 TEMP_DIR=$(mktemp -d)
 if [ $PAIRED = "true" ]; then
-	tophat2 -G "$GTF_FILE" -o "$TEMP_DIR" -p "$THREADS" "$REF_GENOME" "$INPUT_1" "$INPUT_2"
+	if ! tophat2 -G "$GTF_FILE" -o "$TEMP_DIR" -p "$THREADS" "$REF_GENOME" "$INPUT_1" "$INPUT_2"; then
+		echo "An error occurred during tophat2 execution!"
+		exit 7
+	fi
 else
-	tophat2 -G "$GTF_FILE" -o "$TEMP_DIR" -p "$THREADS" "$REF_GENOME" "$INPUT_1"
+	if ! tophat2 -G "$GTF_FILE" -o "$TEMP_DIR" -p "$THREADS" "$REF_GENOME" "$INPUT_1"; then
+		echo "An error occurred during tophat2 execution!"
+		exit 7
+	fi
 fi
 
 BAM="$TEMP_DIR/accepted_hits.bam"

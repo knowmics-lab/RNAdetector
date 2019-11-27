@@ -7,10 +7,16 @@
 ##############################################################################
 while getopts ":f:p:" opt; do
 	case $opt in
-		f ) FASTA_FILE=$OPTARG ;;
-    p ) PREFIX_OUTPUT=$OPTARG;;
-		\?) echo "Invalid option: -$OPTARG"; exit 1 ;;
-		: ) echo "Option -$OPTARG requires an argument."; exit 2;;
+	f) FASTA_FILE=$OPTARG ;;
+	p) PREFIX_OUTPUT=$OPTARG ;;
+	\?)
+		echo "Invalid option: -$OPTARG"
+		exit 1
+		;;
+	:)
+		echo "Option -$OPTARG requires an argument."
+		exit 2
+		;;
 	esac
 done
 
@@ -23,7 +29,7 @@ if [ -z "$FASTA_FILE" ] || [ ! -f "$FASTA_FILE" ]; then
 fi
 
 # Check output
-if [ -z  "$PREFIX_OUTPUT" ]; then
+if [ -z "$PREFIX_OUTPUT" ]; then
 	echo "Output prefix must be specified!"
 	exit 4
 fi
@@ -35,4 +41,7 @@ if [ ! -w "$(dirname "$PREFIX_OUTPUT")" ]; then
 fi
 
 #### Genome indexing ####
-bowtie2-build  "$FASTA_FILE" "$PREFIX_OUTPUT"
+if ! bowtie2-build "$FASTA_FILE" "$PREFIX_OUTPUT"; then
+	echo "An error occurred during bowtie2-build execution!"
+	exit 6
+fi

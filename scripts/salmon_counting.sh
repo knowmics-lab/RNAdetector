@@ -71,9 +71,15 @@ OUTPUT_DIR=$(dirname "$OUTPUT")
 TEMP_DIR="$OUTPUT_DIR/TMP"
 
 if [ $PAIRED = "true" ]; then
-  salmon quant -i "$INDEXED_FASTA" -l A -1 "$INPUT_1" -2 "$INPUT_2" --validateMappings -p $THREADS -o "$TEMP_DIR"
+  if ! salmon quant -i "$INDEXED_FASTA" -l A -1 "$INPUT_1" -2 "$INPUT_2" --validateMappings -p $THREADS -o "$TEMP_DIR"; then
+    echo "An error occurred during salmon quant execution!"
+    exit 9
+  fi
 else
-  salmon quant -i "$INDEXED_FASTA" -l A -r "$INPUT_1" --validateMappings -p $THREADS -o "$TEMP_DIR"
+  if ! salmon quant -i "$INDEXED_FASTA" -l A -r "$INPUT_1" --validateMappings -p $THREADS -o "$TEMP_DIR"; then
+    echo "An error occurred during salmon quant execution!"
+    exit 9
+  fi
 fi
 
 OUTPUT_FILE="$TEMP_DIR/quant.sf"

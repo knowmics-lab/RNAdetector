@@ -61,7 +61,7 @@ if [ -z "$THREADS" ]; then
   THREADS=1
 fi
 
-if (( THREADS >= 8 )); then
+if ((THREADS >= 8)); then
   echo "Setting number of threads to 7 since a number greater than 8 can reduce performance!"
   THREADS=7
 fi
@@ -83,7 +83,10 @@ INPUT_1_NAME=$(basename -- "$INPUT_1")
 INPUT_1_EXTENSION="${INPUT_1_NAME##*.}"
 INPUT_1_BASENAME=$(basename "$INPUT_1_NAME" ".$INPUT_1_EXTENSION")
 if [ $PAIRED = "true" ]; then
-  trim_galore -j $THREADS -q $QUALITY --paired -o "$OUTPUT" --dont_gzip --phred33 --length $LENGTH --no_report_file "$INPUT_1" "$INPUT_2"
+  if ! trim_galore -j $THREADS -q $QUALITY --paired -o "$OUTPUT" --dont_gzip --phred33 --length $LENGTH --no_report_file "$INPUT_1" "$INPUT_2"; then
+    echo "An error occurred during trim_galore execution!"
+    exit 10
+  fi
   if [ $HARD_TRIM = "true" ]; then
     INPUT_2_NAME=$(basename -- "$INPUT_2")
     INPUT_2_EXTENSION="${INPUT_2_NAME##*.}"
@@ -108,7 +111,10 @@ if [ $PAIRED = "true" ]; then
     mv "$OUT_FILE" "$OUTPUT/${INPUT_2_BASENAME}_val_2.fq"
   fi
 else
-  trim_galore -j $THREADS -q $QUALITY -o "$OUTPUT" --dont_gzip --phred33 --length $LENGTH --no_report_file "$INPUT_1"
+  if ! trim_galore -j $THREADS -q $QUALITY -o "$OUTPUT" --dont_gzip --phred33 --length $LENGTH --no_report_file "$INPUT_1"; then
+    echo "An error occurred during trim_galore execution!"
+    exit 10
+  fi
   if [ $HARD_TRIM = "true" ]; then
     if ! trim_galore -j $THREADS -o "$OUTPUT" --dont_gzip --hardtrim5 $LENGTH --no_report_file "$OUTPUT/${INPUT_1_BASENAME}_trimmed.fq"; then
       echo "Failed to run trim_galore"

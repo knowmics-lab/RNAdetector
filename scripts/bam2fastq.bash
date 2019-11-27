@@ -54,9 +54,15 @@ fi
 
 #### Conversion from BAM to FASTQ ####
 if [ $PAIRED = "true" ]; then
-  samtools fastq "$INPUT" -1 "$OUTPUT" -2 "$OUTPUT_2"
+  if ! samtools fastq "$INPUT" -1 "$OUTPUT" -2 "$OUTPUT_2"; then
+    echo "An error occurred during samtools execution!"
+    exit 7
+  fi
   chmod 777 "$OUTPUT_2"
 else
-  samtools fastq "$INPUT" >"$OUTPUT"
+  if ! samtools fastq "$INPUT" >"$OUTPUT"; then
+    echo "An error occurred during samtools execution!"
+    exit 7
+  fi
 fi
 chmod 777 "$OUTPUT"

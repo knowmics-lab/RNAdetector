@@ -49,7 +49,10 @@ if [ ! -w "$(dirname "$OUTPUT")" ]; then
 fi
 
 #### Counting ####
-featureCounts -T $THREADS -a "$GTF_FILE" -o "$OUTPUT" "$INPUT_BAM"
+if ! featureCounts -T $THREADS -a "$GTF_FILE" -o "$OUTPUT" "$INPUT_BAM"; then
+    echo "An error occurred during featureCounts execution!"
+    exit 8
+fi
 
 if [ ! -f "$OUTPUT" ]; then
   echo "Unable to find output file!"

@@ -9,17 +9,17 @@
 ##############################################################################
 while getopts ":r:i:t:o:" opt; do
     case $opt in
-        r) FASTA_TRANSCRIPTS=$OPTARG ;;
-        i) INPUT_BAM=$OPTARG ;;
-        t) THREADS=$OPTARG ;;
-        o) OUTPUT=$OPTARG ;;
-        \?)
-            echo "Invalid option: -$OPTARG"
-            exit 1
+    r) FASTA_TRANSCRIPTS=$OPTARG ;;
+    i) INPUT_BAM=$OPTARG ;;
+    t) THREADS=$OPTARG ;;
+    o) OUTPUT=$OPTARG ;;
+    \?)
+        echo "Invalid option: -$OPTARG"
+        exit 1
         ;;
-        :)
-            echo "Option -$OPTARG requires an argument."
-            exit 2
+    :)
+        echo "Option -$OPTARG requires an argument."
+        exit 2
         ;;
     esac
 done
@@ -58,7 +58,10 @@ fi
 OUTPUT_DIR=$(dirname "$OUTPUT")
 TEMP_DIR="$OUTPUT_DIR/TMP"
 
-salmon quant -t "$FASTA_TRANSCRIPTS" -l A -a "$INPUT_BAM" -p "$THREADS" -o "$TEMP_DIR"
+if ! salmon quant -t "$FASTA_TRANSCRIPTS" -l A -a "$INPUT_BAM" -p "$THREADS" -o "$TEMP_DIR"; then
+    echo "An error occurred during salmon quant execution!"
+    exit 8
+fi
 
 OUTPUT_FILE="$TEMP_DIR/quant.sf"
 

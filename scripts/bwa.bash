@@ -85,9 +85,15 @@ if [ $PAIRED = "true" ]; then
   fi
   rm "$INPUT_1.single.fq"
   rm "$INPUT_2.single.fq"
-  bwa mem -t "$THREADS" "$REF_GENOME" "$INPUT_1.paired.fq" "$INPUT_2.paired.fq" >"$OUTPUT"
+  if ! bwa mem -t "$THREADS" "$REF_GENOME" "$INPUT_1.paired.fq" "$INPUT_2.paired.fq" >"$OUTPUT"; then
+    echo "An error occurred during bwa mem execution!"
+    exit 12
+  fi
 else
-  bwa mem -t "$THREADS" "$REF_GENOME" "$INPUT_1" >"$OUTPUT"
+  if ! bwa mem -t "$THREADS" "$REF_GENOME" "$INPUT_1" >"$OUTPUT"; then
+    echo "An error occurred during bwa mem execution!"
+    exit 12
+  fi
 fi
 
 #Check SAM file

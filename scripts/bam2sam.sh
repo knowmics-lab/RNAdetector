@@ -40,5 +40,8 @@ if [ ! -w "$(dirname "$OUTPUT")" ]; then
 fi
 
 #### Conversione BAM to SAM ####
-samtools view -h "$INPUT" > "$OUTPUT"
+if ! samtools view -h "$INPUT" >"$OUTPUT"; then
+  echo "An error occurred during samtools execution!"
+  exit 6
+fi
 chmod 777 "$OUTPUT"
