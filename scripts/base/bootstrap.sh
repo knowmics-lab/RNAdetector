@@ -25,7 +25,7 @@ if [ ! -f "/rnadetector/ws/storage/app/references/indexed" ]; then
     /bin/bash "/rnadetector/scripts/salmon_index_2.sh" -r "/rnadetector/ws/storage/app/references/Human_hg19_transcriptome/reference.fa" -i "/rnadetector/ws/storage/app/references/Human_hg19_transcriptome/reference"
     /bin/bash "/rnadetector/scripts/salmon_index_2.sh" -r "/rnadetector/ws/storage/app/references/Human_hg19_mRNA_transcriptome/reference.fa" -i "/rnadetector/ws/storage/app/references/Human_hg19_mRNA_transcriptome/reference"
     /bin/bash "/rnadetector/scripts/salmon_index_2.sh" -r "/rnadetector/ws/storage/app/references/Human_hg19_lncRNA_transcriptome/reference.fa" -i "/rnadetector/ws/storage/app/references/Human_hg19_lncRNA_transcriptome/reference"
-    /bin/bash "/rnadetector/scripts/salmon_index_2.sh" -r "/rnadetector/ws/storage/app/references/Human_hg19_sncRNA_transcriptome/reference.fa" -i "/rnadetector/ws/storage/app/references/Human_hg19_sncRNA_transcriptome/reference"
+    salmon index -t "/rnadetector/ws/storage/app/references/Human_hg19_sncRNA_transcriptome/reference.fa" -i "/rnadetector/ws/storage/app/references/Human_hg19_sncRNA_transcriptome/reference" -k 11 --keepDuplicates
     touch /rnadetector/ws/storage/app/references/indexed
 else
     echo "Genome are already indexed...skipping!"
@@ -33,8 +33,8 @@ fi
 
 chmod -R 777 "/rnadetector/ws/storage/"
 
-service nginx start
-service php7.3-fpm start
-service supervisor start
+/etc/init.d/nginx start
+/etc/init.d/php7.3-fpm start
+/etc/init.d/supervisor start
 
 exec "$@"
