@@ -50,7 +50,7 @@ class SmallRnaJobType extends AbstractJob
             ],
             'countingAlgorithm' => 'The counting algorithm htseq, feature-counts, or salmon (Default htseq)',
             'genome'            => 'An optional name for a reference genome (Default human hg19)',
-            'transcriptome'     => 'An optional name for transcriptome if counting algorithm is salmon (Default human hg19)',
+            'transcriptome'     => 'An optional name for a transcriptome if counting algorithm is salmon (Default human hg19)',
             'annotation'        => 'An optional name for a genome annotation (Default human hg19)',
             'threads'           => 'Number of threads for this analysis (Default 1)',
         ];
@@ -78,16 +78,15 @@ class SmallRnaJobType extends AbstractJob
      */
     public static function validationSpec(Request $request): array
     {
+        $parameters = (array)$request->get('parameters', []);
+
         return [
             'paired'             => ['filled', 'boolean'],
             'firstInputFile'     => ['required', 'string'],
             'secondInputFile'    => [
                 Rule::requiredIf(
-                    static function () use ($request) {
-                        return $request->get('parameters.inputType') === self::FASTQ && ((bool)$request->get(
-                                'parameters.paired',
-                                false
-                            )) === true;
+                    static function () use ($parameters) {
+                        return $parameters['inputType'] === self::FASTQ && ((bool)($parameters['paired'] ?? false)) === true;
                     }
                 ),
                 'string',
@@ -100,6 +99,15 @@ class SmallRnaJobType extends AbstractJob
             'trimGalore.length'  => ['filled', 'integer'],
             'countingAlgorithm'  => ['filled', Rule::in(self::VALID_COUNTS_METHODS)],
             'genome'             => ['filled', 'alpha_dash', Rule::exists('references', 'name')],
+            'transcriptome'      => [
+                Rule::requiredIf(
+                    static function () use ($parameters) {
+                        return ($parameters['countingAlgorithm'] ?? self::HTSEQ_COUNTS) === self::SALMON;
+                    }
+                ),
+                'alpha_dash',
+                Rule::exists('references', 'name'),
+            ],
             'annotation'         => ['filled', 'alpha_dash', Rule::exists('annotations', 'name')],
             'threads'            => ['filled', 'integer'],
         ];
@@ -129,9 +137,7 @@ class SmallRnaJobType extends AbstractJob
         if (!$disk->exists($dir . $firstInputFile)) {
             return false;
         }
-        if ($paired && $inputType === self::FASTQ && (empty($secondInputFile) || !$disk->exists(
-                    $dir . $secondInputFile
-                ))) {
+        if ($paired && $inputType === self::FASTQ && (empty($secondInputFile) || !$disk->exists($dir . $secondInputFile))) {
             return false;
         }
 
@@ -159,7 +165,7 @@ class SmallRnaJobType extends AbstractJob
         Annotation $annotation,
         int $threads = 1
     ): string {
-        $bamOutput = $this->model->getJobTempFileAbsolute('bowtie_output', '.bam');
+        $bamOutput = $this->model->getJobTempFileAbsolute('tophat_output', '.bam');
         $command = [
             'bash',
             self::scriptPath('tophat.bash'),
@@ -294,6 +300,58 @@ class SmallRnaJobType extends AbstractJob
     }
 
     /**
+     * Run salmon for SmallRNA counting
+     *
+     * @param string                $countingInputFile
+     * @param \App\Models\Reference $transcriptome
+     * @param int                   $threads
+     *
+     * @return array
+     * @throws \App\Exceptions\ProcessingJobException
+     */
+    private function runSalmonCount(string $countingInputFile, Reference $transcriptome, int $threads = 1): array
+    {
+        if (!$transcriptome->isAvailableFor('salmon')) {
+            throw new ProcessingJobException('The specified reference sequence is not indexed for salmon analysis.');
+        }
+        $salmonOutputRelative = $this->model->getJobTempFile('salmon_output', '_sa.txt');
+        $salmonOutput = $this->model->absoluteJobPath($salmonOutputRelative);
+        $salmonOutputUrl = \Storage::disk('public')->url($salmonOutputRelative);
+        $output = self::runCommand(
+            [
+                'bash',
+                self::scriptPath('salmon_counting_bam.sh'),
+                '-r',
+                $transcriptome->basename(),
+                '-i',
+                $countingInputFile,
+                '-t',
+                $threads,
+                '-o',
+                $salmonOutput,
+            ],
+            $this->model->getAbsoluteJobDirectory(),
+            null,
+            null,
+            [
+                3 => 'Input file does not exist.',
+                4 => 'FASTA transcriptome file does not exist.',
+                5 => 'Output directory must be specified.',
+                6 => 'Output directory is not writable.',
+                7 => 'Unable to find output file.',
+            ]
+        );
+        $this->log($output);
+        if (!file_exists($salmonOutput)) {
+            throw new ProcessingJobException('Unable to create Salmon output file');
+        }
+        $this->log('Count computation completed.');
+
+        return [$salmonOutputRelative, $salmonOutputUrl];
+    }
+
+
+    /**
      * Handles all the computation for this job.
      * This function should throw a ProcessingJobException if something went wrong during the computation.
      * If no exceptions are thrown the job is considered as successfully completed.
@@ -353,34 +411,34 @@ class SmallRnaJobType extends AbstractJob
             $threads
         );
         $this->log('Alignment completed.');
-        if ($countingAlgorithm === self::HTSEQ_COUNTS) {
-            $this->log('Starting reads counting with HTseq-count');
-            [$htseqOutput, $htseqOutputUrl] = $this->runHTSEQ($countingInputFile, $annotation, $threads);
-            $this->log('Reads counting completed');
-            $this->model->setOutput(
-                [
-                    'outputFile' => ['path' => $htseqOutput, 'url' => $htseqOutputUrl],
-                ]
-            );
-            $this->log('Analysis completed.');
-            $this->model->save();
-
-        } else {
-            $this->log('Starting reads counting with FeatureCount');
-            [$featurecountOutput, $featurecountOutputUrl] = $this->runFeatureCount(
-                $countingInputFile,
-                $annotation,
-                $threads
-            );
-            $this->log('Reads counting completed');
-            $this->model->setOutput(
-                [
-                    'outputFile' => ['path' => $featurecountOutput, 'url' => $featurecountOutputUrl],
-                ]
-            );
-            $this->log('Analysis completed.');
-            $this->model->save();
+        switch ($countingAlgorithm) {
+            case self::HTSEQ_COUNTS:
+                $this->log('Starting reads counting with HTseq-count');
+                [$outputFile, $outputUrl] = $this->runHTSEQ($countingInputFile, $annotation, $threads);
+                $this->log('Reads counting completed');
+                break;
+            case self::FEATURECOUNTS_COUNTS:
+                $this->log('Starting reads counting with FeatureCount');
+                [$outputFile, $outputUrl] = $this->runFeatureCount($countingInputFile, $annotation, $threads);
+                $this->log('Reads counting completed');
+                break;
+            case self::SALMON:
+                $transcriptomeName = $this->model->getParameter('transcriptome', env('HUMAN_TRANSCRIPTOME_SNCRNA_NAME'));
+                $transcriptome = Reference::whereName($transcriptomeName)->firstOrFail();
+                $this->log('Starting reads counting with Salmon');
+                [$outputFile, $outputUrl] = $this->runFeatureCount($countingInputFile, $annotation, $threads);
+                $this->log('Reads counting completed');
+                break;
+            default:
+                throw new ProcessingJobException("Invalid counting algorithm");
         }
+        $this->model->setOutput(
+            [
+                'outputFile' => ['path' => $outputFile, 'url' => $outputUrl],
+            ]
+        );
+        $this->log('Analysis completed.');
+        $this->model->save();
     }
 
     /**
