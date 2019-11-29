@@ -3,6 +3,7 @@
  * RNADetector Web Service
  *
  * @author A. La Ferlita, Ph.D. Student <alessandrolf90 at hotmail dot it>
+ * @author S. Alaimo, Ph.D. <alaimos at gmail dot com>
  */
 
 namespace App\Jobs\Types;
@@ -10,6 +11,8 @@ namespace App\Jobs\Types;
 
 use App\Exceptions\ProcessingJobException;
 use App\Jobs\Types\Traits\ConvertsBamToFastqTrait;
+use App\Jobs\Types\Traits\ConvertsSamToBamTrait;
+use App\Jobs\Types\Traits\HasCommonParameters;
 use App\Jobs\Types\Traits\RunTrimGaloreTrait;
 use App\Models\Annotation;
 use App\Models\Reference;
@@ -20,14 +23,11 @@ use Storage;
 
 class SmallRnaJobType extends AbstractJob
 {
-    use ConvertsBamToFastqTrait, RunTrimGaloreTrait;
+    use HasCommonParameters, ConvertsBamToFastqTrait, ConvertsSamToBamTrait, RunTrimGaloreTrait;
 
-    private const FASTQ                = 'fastq';
-    private const BAM                  = 'BAM';
     private const HTSEQ_COUNTS         = 'htseq';
     private const FEATURECOUNTS_COUNTS = 'feature-counts';
     private const SALMON               = 'salmon';
-    private const VALID_INPUT_TYPES    = [self::FASTQ, self::BAM];
     private const VALID_COUNTS_METHODS = [self::HTSEQ_COUNTS, self::FEATURECOUNTS_COUNTS, self::SALMON];
 
     /**
@@ -37,23 +37,16 @@ class SmallRnaJobType extends AbstractJob
      */
     public static function parametersSpec(): array
     {
-        return [
-            'paired'            => 'A boolean value to indicate whether sequencing strategy is paired-ended or not (Default false)',
-            'firstInputFile'    => 'Required, input file for the analysis',
-            'secondInputFile'   => 'Required if paired is true and inputType is fastq. The second reads file',
-            'inputType'         => 'Required, type of the input file (fastq, bam)',
-            'convertBam'        => 'If inputType is bam converts input in another format: fastq.',
-            'trimGalore'        => [
-                'enable'  => 'A boolean value to indicate whether trim galore should run (This parameter works only for fastq files)',
-                'quality' => 'Minimal PHREAD quality for trimming (Default 20)',
-                'length'  => 'Minimal reads length (Default 14)',
-            ],
-            'countingAlgorithm' => 'The counting algorithm htseq, feature-counts, or salmon (Default htseq)',
-            'genome'            => 'An optional name for a reference genome (Default human hg19)',
-            'transcriptome'     => 'An optional name for a transcriptome if counting algorithm is salmon (Default human hg19)',
-            'annotation'        => 'An optional name for a genome annotation (Default human hg19)',
-            'threads'           => 'Number of threads for this analysis (Default 1)',
-        ];
+        return array_merge(
+            self::commonParametersSpec(),
+            [
+                'countingAlgorithm' => 'The counting algorithm htseq, feature-counts, or salmon (Default htseq)',
+                'genome'            => 'An optional name for a reference genome (Default human hg19)',
+                'transcriptome'     => 'An optional name for a transcriptome if counting algorithm is salmon (Default human hg19)',
+                'annotation'        => 'An optional name for a genome annotation (Default human hg19)',
+                'threads'           => 'Number of threads for this analysis (Default 1)',
+            ]
+        );
 
     }
 
@@ -80,37 +73,24 @@ class SmallRnaJobType extends AbstractJob
     {
         $parameters = (array)$request->get('parameters', []);
 
-        return [
-            'paired'             => ['filled', 'boolean'],
-            'firstInputFile'     => ['required', 'string'],
-            'secondInputFile'    => [
-                Rule::requiredIf(
-                    static function () use ($parameters) {
-                        return $parameters['inputType'] === self::FASTQ && ((bool)($parameters['paired'] ?? false)) === true;
-                    }
-                ),
-                'string',
-            ],
-            'inputType'          => ['required', Rule::in(self::VALID_INPUT_TYPES)],
-            'convertBam'         => ['filled', 'boolean'],
-            'trimGalore'         => ['filled', 'array'],
-            'trimGalore.enable'  => ['filled', 'boolean'],
-            'trimGalore.quality' => ['filled', 'integer'],
-            'trimGalore.length'  => ['filled', 'integer'],
-            'countingAlgorithm'  => ['filled', Rule::in(self::VALID_COUNTS_METHODS)],
-            'genome'             => ['filled', 'alpha_dash', Rule::exists('references', 'name')],
-            'transcriptome'      => [
-                Rule::requiredIf(
-                    static function () use ($parameters) {
-                        return ($parameters['countingAlgorithm'] ?? self::HTSEQ_COUNTS) === self::SALMON;
-                    }
-                ),
-                'alpha_dash',
-                Rule::exists('references', 'name'),
-            ],
-            'annotation'         => ['filled', 'alpha_dash', Rule::exists('annotations', 'name')],
-            'threads'            => ['filled', 'integer'],
-        ];
+        return array_merge(
+            self::commonParametersValidation($request),
+            [
+                'countingAlgorithm' => ['filled', Rule::in(self::VALID_COUNTS_METHODS)],
+                'genome'            => ['filled', 'alpha_dash', Rule::exists('references', 'name')],
+                'transcriptome'     => [
+                    Rule::requiredIf(
+                        static function () use ($parameters) {
+                            return ($parameters['countingAlgorithm'] ?? self::HTSEQ_COUNTS) === self::SALMON;
+                        }
+                    ),
+                    'alpha_dash',
+                    Rule::exists('references', 'name'),
+                ],
+                'annotation'        => ['filled', 'alpha_dash', Rule::exists('annotations', 'name')],
+                'threads'           => ['filled', 'integer'],
+            ]
+        );
     }
 
     /**
@@ -121,23 +101,11 @@ class SmallRnaJobType extends AbstractJob
      */
     public function isInputValid(): bool
     {
-        $paired = (bool)$this->model->getParameter('paired', false);
-        $inputType = $this->model->getParameter('inputType');
-        $firstInputFile = $this->model->getParameter('firstInputFile');
-        $secondInputFile = $this->model->getParameter('secondInputFile');
+        if (!$this->validateCommonParameters($this->model, self::VALID_INPUT_TYPES, self::FASTQ)) {
+            return false;
+        }
         $countingAlgorithm = $this->model->getParameter('countingAlgorithm', self::HTSEQ_COUNTS);
-        if (!in_array($inputType, self::VALID_INPUT_TYPES, true)) {
-            return false;
-        }
         if (!in_array($countingAlgorithm, self::VALID_COUNTS_METHODS, true)) {
-            return false;
-        }
-        $disk = Storage::disk('public');
-        $dir = $this->model->getJobDirectory() . '/';
-        if (!$disk->exists($dir . $firstInputFile)) {
-            return false;
-        }
-        if ($paired && $inputType === self::FASTQ && (empty($secondInputFile) || !$disk->exists($dir . $secondInputFile))) {
             return false;
         }
 
@@ -302,43 +270,56 @@ class SmallRnaJobType extends AbstractJob
     /**
      * Run salmon for SmallRNA counting
      *
-     * @param string                $countingInputFile
+     * @param bool                  $paired
+     * @param string                $topHatInputFile
      * @param \App\Models\Reference $transcriptome
      * @param int                   $threads
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
      */
-    private function runSalmonCount(string $countingInputFile, Reference $transcriptome, int $threads = 1): array
+    private function runSalmonCount(bool $paired, string $topHatInputFile, Reference $transcriptome, int $threads = 1): array
     {
         if (!$transcriptome->isAvailableFor('salmon')) {
             throw new ProcessingJobException('The specified reference sequence is not indexed for salmon analysis.');
         }
+        $this->log('Converting TopHat output to FastQ');
+        [$firstTempFastQ, $secondTempFastQ, $output] = self::convertBamToFastq($this->model, $paired, $topHatInputFile);
+        $this->log($output);
+        $this->log('TopHat output converted to FastQ');
+        $this->log('Running salmon');
         $salmonOutputRelative = $this->model->getJobTempFile('salmon_output', '_sa.txt');
         $salmonOutput = $this->model->absoluteJobPath($salmonOutputRelative);
         $salmonOutputUrl = \Storage::disk('public')->url($salmonOutputRelative);
+        $command = [
+            'bash',
+            self::scriptPath('salmon_counting.sh'),
+            '-i',
+            $transcriptome->basename(),
+            '-t',
+            $threads,
+            '-o',
+            $salmonOutput,
+            '-f',
+            $firstTempFastQ,
+        ];
+        if ($paired) {
+            $command[] = '-s';
+            $command[] = $secondTempFastQ;
+        }
         $output = self::runCommand(
-            [
-                'bash',
-                self::scriptPath('salmon_counting_bam.sh'),
-                '-r',
-                $transcriptome->basename(),
-                '-i',
-                $countingInputFile,
-                '-t',
-                $threads,
-                '-o',
-                $salmonOutput,
-            ],
+            $command,
             $this->model->getAbsoluteJobDirectory(),
             null,
             null,
             [
                 3 => 'Input file does not exist.',
-                4 => 'FASTA transcriptome file does not exist.',
-                5 => 'Output directory must be specified.',
+                4 => 'Second input file does not exist.',
+                5 => 'Output file must be specified.',
                 6 => 'Output directory is not writable.',
-                7 => 'Unable to find output file.',
+                7 => 'Indexed trascriptome does not exist.',
+                8 => 'Unable to find output file.',
+                9 => 'An error occurred during salmon quant execution.',
             ]
         );
         $this->log($output);
@@ -346,10 +327,15 @@ class SmallRnaJobType extends AbstractJob
             throw new ProcessingJobException('Unable to create Salmon output file');
         }
         $this->log('Count computation completed.');
+        if (file_exists($firstTempFastQ)) {
+            @unlink($firstTempFastQ);
+        }
+        if (file_exists($secondTempFastQ)) {
+            @unlink($secondTempFastQ);
+        }
 
         return [$salmonOutputRelative, $salmonOutputUrl];
     }
-
 
     /**
      * Handles all the computation for this job.
@@ -375,6 +361,13 @@ class SmallRnaJobType extends AbstractJob
         $countingAlgorithm = $this->model->getParameter('countingAlgorithm', self::HTSEQ_COUNTS);
         $genome = Reference::whereName($genomeName)->firstOrFail();
         $annotation = Annotation::whereName($annotationName)->firstOrFail();
+        if ($inputType === self::SAM) {
+            $inputType = self::BAM;
+            $this->log('Converting SAM to BAM.');
+            [$firstInputFile, $bashOutput] = self::convertSamToBam($this->model, $firstInputFile);
+            $this->log($bashOutput);
+            $this->log('SAM converted to BAM.');
+        }
         if ($inputType === self::BAM && $convertBam) {
             $inputType = self::FASTQ;
             $this->log('Converting BAM to FASTQ.');
@@ -426,7 +419,7 @@ class SmallRnaJobType extends AbstractJob
                 $transcriptomeName = $this->model->getParameter('transcriptome', env('HUMAN_TRANSCRIPTOME_SNCRNA_NAME'));
                 $transcriptome = Reference::whereName($transcriptomeName)->firstOrFail();
                 $this->log('Starting reads counting with Salmon');
-                [$outputFile, $outputUrl] = $this->runSalmonCount($countingInputFile, $transcriptome, $threads);
+                [$outputFile, $outputUrl] = $this->runSalmonCount($paired, $countingInputFile, $transcriptome, $threads);
                 $this->log('Reads counting completed');
                 break;
             default:

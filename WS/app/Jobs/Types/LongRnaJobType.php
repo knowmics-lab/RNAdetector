@@ -3,6 +3,7 @@
  * RNADetector Web Service
  *
  * @author A. La Ferlita, Ph.D. Student <alessandrolf90 at hotmail dot it>
+ * @author S. Alaimo, Ph.D. <alaimos at gmail dot com>
  */
 
 namespace App\Jobs\Types;
@@ -10,6 +11,8 @@ namespace App\Jobs\Types;
 
 use App\Exceptions\ProcessingJobException;
 use App\Jobs\Types\Traits\ConvertsBamToFastqTrait;
+use App\Jobs\Types\Traits\ConvertsSamToBamTrait;
+use App\Jobs\Types\Traits\HasCommonParameters;
 use App\Jobs\Types\Traits\RunTrimGaloreTrait;
 use App\Models\Reference;
 use Illuminate\Http\Request;
@@ -18,11 +21,7 @@ use Storage;
 
 class LongRnaJobType extends AbstractJob
 {
-    use ConvertsBamToFastqTrait, RunTrimGaloreTrait;
-
-    private const FASTQ             = 'fastq';
-    private const BAM               = 'BAM';
-    private const VALID_INPUT_TYPES = [self::FASTQ, self::BAM];
+    use HasCommonParameters, ConvertsBamToFastqTrait, ConvertsSamToBamTrait, RunTrimGaloreTrait;
 
     /**
      * Returns an array containing for each input parameter an help detailing its content and use.
@@ -31,20 +30,13 @@ class LongRnaJobType extends AbstractJob
      */
     public static function parametersSpec(): array
     {
-        return [
-            'paired'          => 'A boolean value to indicate whether sequencing strategy is paired-ended or not (Default false)',
-            'firstInputFile'  => 'Required, input file for the analysis. FASTQ or BAM',
-            'secondInputFile' => 'Required if paired is true and inputType is fastq. The second reads file',
-            'inputType'       => 'Required, type of the input file (fastq, bam)',
-            'convertBam'      => 'If inputType is bam converts input in another format: fastq.',
-            'trimGalore'      => [
-                'enable'  => 'A boolean value to indicate whether trim galore should run (This parameter works only for fastq files)',
-                'quality' => 'Minimal PHREAD quality for trimming (Default 20)',
-                'length'  => 'Minimal reads length (Default 14)',
-            ],
-            'transcriptome'   => 'An optional transcriptome to employ for annotation (Not needed for human hg19 mRNAs and lncRNAs)',
-            'threads'         => 'Number of threads for this analysis (Default 1)',
-        ];
+        return array_merge(
+            self::commonParametersSpec(),
+            [
+                'transcriptome' => 'An optional transcriptome to employ for annotation (Not needed for human hg19 mRNAs and lncRNAs)',
+                'threads'       => 'Number of threads for this analysis (Default 1)',
+            ]
+        );
     }
 
     /**
@@ -68,29 +60,13 @@ class LongRnaJobType extends AbstractJob
      */
     public static function validationSpec(Request $request): array
     {
-        return [
-            'paired'             => ['filled', 'boolean'],
-            'firstInputFile'     => ['required', 'string'],
-            'secondInputFile'    => [
-                Rule::requiredIf(
-                    static function () use ($request) {
-                        return $request->get('parameters.inputType') === self::FASTQ && ((bool)$request->get(
-                                'parameters.paired',
-                                false
-                            )) === true;
-                    }
-                ),
-                'string',
-            ],
-            'inputType'          => ['required', Rule::in(self::VALID_INPUT_TYPES)],
-            'convertBam'         => ['filled', 'boolean'],
-            'trimGalore'         => ['filled', 'array'],
-            'trimGalore.enable'  => ['filled', 'boolean'],
-            'trimGalore.quality' => ['filled', 'integer'],
-            'trimGalore.length'  => ['filled', 'integer'],
-            'transcriptome'      => ['filled', 'alpha_dash', Rule::exists('references', 'name')],
-            'threads'            => ['filled', 'integer'],
-        ];
+        return array_merge(
+            self::commonParametersValidation($request),
+            [
+                'transcriptome' => ['filled', 'alpha_dash', Rule::exists('references', 'name')],
+                'threads'       => ['filled', 'integer'],
+            ]
+        );
     }
 
     /**
@@ -101,25 +77,7 @@ class LongRnaJobType extends AbstractJob
      */
     public function isInputValid(): bool
     {
-        $paired = (bool)$this->model->getParameter('paired', false);
-        $inputType = $this->model->getParameter('inputType');
-        $firstInputFile = $this->model->getParameter('firstInputFile');
-        $secondInputFile = $this->model->getParameter('secondInputFile');
-        if (!in_array($inputType, self::VALID_INPUT_TYPES, true)) {
-            return false;
-        }
-        $disk = Storage::disk('public');
-        $dir = $this->model->getJobDirectory() . '/';
-        if (!$disk->exists($dir . $firstInputFile)) {
-            return false;
-        }
-        if ($paired && $inputType === self::FASTQ && (empty($secondInputFile) || !$disk->exists(
-                    $dir . $secondInputFile
-                ))) {
-            return false;
-        }
-
-        return true;
+        return $this->validateCommonParameters($this->model, self::VALID_INPUT_TYPES, self::FASTQ);
     }
 
     /**
@@ -187,7 +145,7 @@ class LongRnaJobType extends AbstractJob
                         'bash',
                         self::scriptPath('salmon_counting_bam.sh'),
                         '-r',
-                        $transcriptome->basename(),
+                        $transcriptome->path,
                         '-i',
                         $firstInputFile,
                         '-t',
@@ -240,6 +198,13 @@ class LongRnaJobType extends AbstractJob
         $transcriptomeName = $this->model->getParameter('transcriptome', env('HUMAN_TRANSCRIPTOME_NAME'));
         $transcriptome = Reference::whereName($transcriptomeName)->firstOrFail();
         $threads = (int)$this->model->getParameter('threads', 1);
+        if ($inputType === self::SAM) {
+            $inputType = self::BAM;
+            $this->log('Converting SAM to BAM.');
+            [$firstInputFile, $bashOutput] = self::convertSamToBam($this->model, $firstInputFile);
+            $this->log($bashOutput);
+            $this->log('SAM converted to BAM.');
+        }
         if ($inputType === self::BAM && $convertBam) {
             $this->log('Converting BAM to FASTQ.');
             [$firstInputFile, $secondInputFile] = self::convertBamToFastq($this->model, $paired, $firstInputFile);

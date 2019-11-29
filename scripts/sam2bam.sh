@@ -2,12 +2,12 @@
 
 ##############################################################################
 # Options:
-# 	-s INPUT SAM
+# 	-i INPUT SAM
 # 	-o OUTPUT BAM FILE
 ##############################################################################
-while getopts ":s:o:" opt; do
+while getopts ":i:o:" opt; do
   case $opt in
-  s) INPUT=$OPTARG ;;
+  i) INPUT=$OPTARG ;;
   o) OUTPUT=$OPTARG ;;
   \?)
     echo "Invalid option: -$OPTARG"
@@ -40,7 +40,7 @@ if [ ! -w "$(dirname "$OUTPUT")" ]; then
 fi
 
 #### Conversion SAM to BAM ####
-if ! samtools view -S -b "$INPUT" > "$OUTPUT"; then
+if ! samtools view -S -b "$INPUT" >"$OUTPUT"; then
   echo "An error occurred during samtools execution"
   exit 6
 fi

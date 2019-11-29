@@ -18,6 +18,11 @@ use Symfony\Component\Process\Exception\ProcessFailedException;
 abstract class AbstractJob
 {
 
+    protected const FASTQ             = 'fastq';
+    protected const BAM               = 'BAM';
+    protected const SAM               = 'SAM';
+    protected const VALID_INPUT_TYPES = [self::FASTQ, self::BAM, self::SAM];
+
     /**
      * @var \App\Models\Job
      */

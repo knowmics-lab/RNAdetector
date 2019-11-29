@@ -10,6 +10,7 @@ namespace App\Jobs\Types;
 
 use App\Exceptions\ProcessingJobException;
 use App\Jobs\Types\Traits\ConvertsBamToFastqTrait;
+use App\Jobs\Types\Traits\HasCommonParameters;
 use App\Jobs\Types\Traits\RunTrimGaloreTrait;
 use App\Models\Annotation;
 use App\Models\Reference;
@@ -20,12 +21,7 @@ use Storage;
 class CircRnaJobType extends AbstractJob
 {
 
-    use ConvertsBamToFastqTrait, RunTrimGaloreTrait;
-
-    private const FASTQ             = 'fastq';
-    private const BAM               = 'BAM';
-    private const SAM               = 'SAM';
-    private const VALID_INPUT_TYPES = [self::FASTQ, self::BAM, self::SAM];
+    use HasCommonParameters, ConvertsBamToFastqTrait, RunTrimGaloreTrait;
 
     /**
      * Returns an array containing for each input parameter an help detailing its content and use.
@@ -34,23 +30,21 @@ class CircRnaJobType extends AbstractJob
      */
     public static function parametersSpec(): array
     {
-        return [
-            'paired'               => 'A boolean value to indicate whether sequencing strategy is paired-ended or not (Default false)',
-            'firstInputFile'       => 'Required, input file for the analysis',
-            'secondInputFile'      => 'Required if paired is true and inputType is fastq. The second reads file',
-            'inputType'            => 'Required, type of the input file (fastq, bam, sam)',
-            'convertBam'           => 'If inputType is bam converts input in another format: fastq or sam.',
-            'trimGalore'           => [
-                'enable'   => 'A boolean value to indicate whether trim galore should run (This parameter works only for fastq files)',
-                'quality'  => 'Minimal PHREAD quality for trimming (Default 20)',
-                'length'   => 'Minimal reads length (Default 40)',
-                'hardTrim' => 'A boolean value to indicate if reads should be trimmed to the same size (Default true)',
-            ],
-            'genome'               => 'An optional name for a reference genome (Default human hg19)',
-            'annotation'           => 'An optional name for a genome annotation (Default human hg19)',
-            'threads'              => 'Number of threads for this analysis (Default 1)',
-            'ciriSpanningDistance' => 'The maximum spanning distance used in CIRI (Default 200000)',
-        ];
+        return array_merge(
+            self::commonParametersSpec(),
+            [
+                'trimGalore'           => [
+                    'enable'   => 'A boolean value to indicate whether trim galore should run (This parameter works only for fastq files)',
+                    'quality'  => 'Minimal PHREAD quality for trimming (Default 20)',
+                    'length'   => 'Minimal reads length (Default 40)',
+                    'hardTrim' => 'A boolean value to indicate if reads should be trimmed to the same size (Default true)',
+                ],
+                'genome'               => 'An optional name for a reference genome (Default human hg19)',
+                'annotation'           => 'An optional name for a genome annotation (Default human hg19)',
+                'threads'              => 'Number of threads for this analysis (Default 1)',
+                'ciriSpanningDistance' => 'The maximum spanning distance used in CIRI (Default 200000)',
+            ]
+        );
     }
 
     /**
@@ -74,32 +68,17 @@ class CircRnaJobType extends AbstractJob
      */
     public static function validationSpec(Request $request): array
     {
-        return [
-            'paired'               => ['filled', 'boolean'],
-            'firstInputFile'       => ['required', 'string'],
-            'secondInputFile'      => [
-                Rule::requiredIf(
-                    static function () use ($request) {
-                        return $request->get('parameters.inputType') === self::FASTQ && ((bool)$request->get(
-                                'parameters.paired',
-                                false
-                            )) === true;
-                    }
-                ),
-                'string',
-            ],
-            'inputType'            => ['required', Rule::in(self::VALID_INPUT_TYPES)],
-            'convertBam'           => ['filled', 'boolean'],
-            'trimGalore'           => ['filled', 'array'],
-            'trimGalore.enable'    => ['filled', 'boolean'],
-            'trimGalore.quality'   => ['filled', 'integer'],
-            'trimGalore.length'    => ['filled', 'integer', 'min:40'],
-            'trimGalore.hardTrim'  => ['filled', 'boolean'],
-            'genome'               => ['filled', 'alpha_dash', Rule::exists('references', 'name')],
-            'annotation'           => ['filled', 'alpha_dash', Rule::exists('annotations', 'name')],
-            'threads'              => ['filled', 'integer'],
-            'ciriSpanningDistance' => ['filled', 'integer'],
-        ];
+        return array_merge(
+            self::commonParametersValidation($request),
+            [
+                'trimGalore.length'    => ['filled', 'integer', 'min:40'],
+                'trimGalore.hardTrim'  => ['filled', 'boolean'],
+                'genome'               => ['filled', 'alpha_dash', Rule::exists('references', 'name')],
+                'annotation'           => ['filled', 'alpha_dash', Rule::exists('annotations', 'name')],
+                'threads'              => ['filled', 'integer'],
+                'ciriSpanningDistance' => ['filled', 'integer'],
+            ]
+        );
     }
 
     /**
@@ -110,25 +89,7 @@ class CircRnaJobType extends AbstractJob
      */
     public function isInputValid(): bool
     {
-        $paired = (bool)$this->model->getParameter('paired', false);
-        $inputType = $this->model->getParameter('inputType');
-        $firstInputFile = $this->model->getParameter('firstInputFile');
-        $secondInputFile = $this->model->getParameter('secondInputFile');
-        if (!in_array($inputType, self::VALID_INPUT_TYPES, true)) {
-            return false;
-        }
-        $disk = Storage::disk('public');
-        $dir = $this->model->getJobDirectory() . '/';
-        if (!$disk->exists($dir . $firstInputFile)) {
-            return false;
-        }
-        if ($paired && $inputType === self::FASTQ && (empty($secondInputFile) || !$disk->exists(
-                    $dir . $secondInputFile
-                ))) {
-            return false;
-        }
-
-        return true;
+        return $this->validateCommonParameters($this->model, self::VALID_INPUT_TYPES, self::FASTQ);
     }
 
     /**
