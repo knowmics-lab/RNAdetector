@@ -426,7 +426,7 @@ class SmallRnaJobType extends AbstractJob
                 $transcriptomeName = $this->model->getParameter('transcriptome', env('HUMAN_TRANSCRIPTOME_SNCRNA_NAME'));
                 $transcriptome = Reference::whereName($transcriptomeName)->firstOrFail();
                 $this->log('Starting reads counting with Salmon');
-                [$outputFile, $outputUrl] = $this->runFeatureCount($countingInputFile, $annotation, $threads);
+                [$outputFile, $outputUrl] = $this->runSalmonCount($countingInputFile, $transcriptome, $threads);
                 $this->log('Reads counting completed');
                 break;
             default:
