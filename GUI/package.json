@@ -188,6 +188,7 @@
     "@babel/preset-flow": "^7.7.4",
     "@babel/preset-react": "^7.7.4",
     "@babel/register": "^7.7.4",
+    "@types/react": "^16.9.13",
     "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "^10.0.3",
     "babel-jest": "^24.9.0",
@@ -221,6 +222,7 @@
     "eslint-plugin-prettier": "^3.1.1",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-react": "^7.16.0",
+    "eslint-plugin-react-hooks": "^2.3.0",
     "eslint-plugin-testcafe": "^0.2.1",
     "fbjs-scripts": "^1.2.0",
     "file-loader": "^4.2.0",
@@ -262,6 +264,8 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.11.2",
     "@hot-loader/react-dom": "^16.11.0",
+    "@material-ui/core": "^4.7.1",
+    "@material-ui/icons": "^4.5.1",
     "connected-react-router": "^6.6.1",
     "core-js": "^3.4.5",
     "devtron": "^1.4.0",
@@ -269,7 +273,6 @@
     "electron-log": "^3.0.9",
     "electron-updater": "^4.2.0",
     "history": "^4.10.1",
-    "office-ui-fabric-react": "^7.67.0",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "react-hot-loader": "^4.12.18",
@@ -278,7 +281,8 @@
     "react-router-dom": "^5.1.2",
     "redux": "^4.0.4",
     "redux-thunk": "^2.3.0",
-    "source-map-support": "^0.5.16"
+    "source-map-support": "^0.5.16",
+    "typeface-roboto": "^0.0.75"
   },
   "devEngines": {
     "node": ">=7.x",
