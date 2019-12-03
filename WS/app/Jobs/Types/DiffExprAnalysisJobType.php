@@ -37,9 +37,10 @@ class DiffExprAnalysisJobType extends AbstractJob
     {
         return array_merge(
             [
-                'DEA_tool'          => 'Differentially expressed analysis tools: DESeq, edgeR, LIMMA',
-                'formatted_input'   => 'Directory with formatted input files',
-                'sample_info'       => 'File with samples information',
+                'formatted_input'         => 'Directory with formatted input files',
+                'sample_info'             => 'File with samples information',
+                'DiffExprAnalysisEnable'  => 'Boolean if users want to perform differential expression analysis or not',
+                'DEA_tool'                => 'Differentially expressed analysis tools: DESeq, edgeR, LIMMA',
             ]
         );
 
@@ -53,7 +54,7 @@ class DiffExprAnalysisJobType extends AbstractJob
     public static function outputSpec(): array
     {
         return [
-            'outputFile' => 'Differentially expressed genes',
+            'outputFile' => 'Normalized read counts or differentially expressed genes',
         ];
     }
 
@@ -70,9 +71,10 @@ class DiffExprAnalysisJobType extends AbstractJob
 
         return array_merge(
             [
-                'DEA_tool'          => ['filled', Rule::in(self::VALID_DEA_METHODS)],
-                'formatted_input'   => ['filled', 'alpha_dash'],
-                'sample_info'       => ['filled', 'alpha_dash'],
+                'formatted_input'         => ['filled', 'alpha_dash'],
+                'sample_info'             => ['filled', 'alpha_dash'],
+                'DiffExprAnalysisEnable'  => ['filled', 'boolean'],
+                'DEA_tool'                => ['filled', Rule::in(self::VALID_DEA_METHODS)],
             ]
         );
     }
@@ -87,12 +89,39 @@ class DiffExprAnalysisJobType extends AbstractJob
     {
         $formatted_input = $this->model->getParameter('formatted_input');
         $sample_info =$this->model->getParameter('sample_info');
+        $DiffExprAnalysisEnable = $this->model->getParameter('DiffExprAnalysisEnable', false);
         $DEA_tool = $this->model->getParameter('DEA_tool', self::LIMMA);
         if (!in_array($DEA_tool, self::VALID_DEA_METHODS, true)) {
             return false;
         }
-
         return true;
+    }
+
+    private function runNormalization (string $formatted_input): array
+    {
+        $normalizationOutputRelative = $this->model->getJobTempFile('normalized_output', '.txt');
+        $normalizationOutput = $this->model->absoluteJobPath($normalizationOutputRelative);
+        $normalizationOutputUrl = \Storage::disk('public')->url($normalizationOutputRelative);
+        $output = self::runCommand(
+            [
+                'Rscript',
+                self::scriptPath('normalization.R'),
+                'path_input',
+                $formatted_input,
+            ],
+            $this->model->getAbsoluteJobDirectory(),
+            null,
+            null,
+            [
+                // exit codes
+            ]
+        );
+        if (!file_exists($normalizationOutput)) {
+            throw new ProcessingJobException('Unable to create normalization output file');
+        }
+        $this->log($output);
+
+        return [$normalizationOutputRelative, $normalizationOutputUrl];
     }
 
     /**
@@ -120,7 +149,9 @@ class DiffExprAnalysisJobType extends AbstractJob
             $this->model->getAbsoluteJobDirectory(),
             null,
             null,
-            []
+            [
+                // exit codes
+            ]
         );
         if (!file_exists($deseqOutput)) {
             throw new ProcessingJobException('Unable to create DESeq2 output file');
@@ -156,7 +187,9 @@ class DiffExprAnalysisJobType extends AbstractJob
             $this->model->getAbsoluteJobDirectory(),
             null,
             null,
-            []
+            [
+                // exit codes
+            ]
         );
         if (!file_exists($edgerOutput)) {
             throw new ProcessingJobException('Unable to create edgeR output file');
@@ -183,7 +216,9 @@ class DiffExprAnalysisJobType extends AbstractJob
             $this->model->getAbsoluteJobDirectory(),
             null,
             null,
-            []
+            [
+                // exit codes
+            ]
         );
         if (!file_exists($limmaOutput)) {
             throw new ProcessingJobException('Unable to create LIMMA output file');
@@ -202,7 +237,43 @@ class DiffExprAnalysisJobType extends AbstractJob
      */
     public function handle(): void
     {
-
+        $this->log('Starting diffential expression analysis.');
+        $formatted_input = $this->model->getParameter('formatted_input');
+        $sample_info = $this->model->getParameter('sample_info');
+        $DiffExprAnalysisEnable = (bool)$this->model->getParameter('DiffExprAnalysisEnable', false);
+        $DEA_tool = $this->model->getParameter('DEA_tool', self::LIMMA);
+        if ($DiffExprAnalysisEnable){
+            switch ($DEA_tool){
+                case self::DESEQ:
+                    $this->log('Starting differential expression analysis with DESeq 2');
+                    [$outputFile, $outputUrl] = $this->runDeseq($formatted_input, $sample_info);
+                    $this->log('Differential expression analysis completed');
+                    break;
+                case self::EDGER:
+                    $this->log('Starting differential expression analysis with edgeR');
+                    [$outputFile, $outputUrl] = $this->runEdger($formatted_input, $sample_info);
+                    $this->log('Differential expression analysis completed');
+                    break;
+                case self::LIMMA:
+                    $this->log('Starting differential expression analysis with LIMMA');
+                    [$outputFile, $outputUrl] = $this->runLimma($formatted_input, $sample_info);
+                    $this->log('Differential expression analysis completed');
+                    break;
+                default:
+                    throw new ProcessingJobException("Invalid differential expression analysis tool");
+            }
+        } else {
+            $this->log('Starting normalization of raw reads counts');
+            [$outputFile, $outputUrl] = $this->runNormalization($formatted_input);
+            $this->log('Normalization completed');
+        }
+        $this->model->setOutput(
+            [
+                'outputFile' => ['path' => $outputFile, 'url' => $outputUrl],
+            ]
+        );
+        $this->log('Analysis completed.');
+        $this->model->save();
     }
 
     /**
