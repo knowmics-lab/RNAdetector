@@ -10,7 +10,7 @@ import Typography from '@material-ui/core/Typography';
 import Divider from '@material-ui/core/Divider';
 import DrawerContent from '../components/Layout/DrawerContent';
 
-const drawerWidth = 240;
+const drawerWidth = 260;
 
 const styles = theme => ({
   root: {

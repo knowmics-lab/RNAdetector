@@ -1,5 +1,7 @@
 // @flow
 import * as React from 'react';
+import ReactDOM from 'react-dom';
+import { withStyles } from '@material-ui/core/styles';
 import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -11,14 +13,16 @@ import MailIcon from '@material-ui/icons/Mail';
 import { NavLink as RouterLink } from 'react-router-dom';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
+import Collapse from '@material-ui/core/Collapse';
 
 type ListItemLinkProps = {
   icon?: ?JSX.Element,
   primary: string,
-  to: string
+  to: string,
+  className?: ?string
 };
 
-const ListItemLink = ({ icon, primary, to }: ListItemLinkProps) => {
+const ListItemLink = ({ icon, primary, to, className }: ListItemLinkProps) => {
   const renderLink = React.useMemo(
     () =>
       React.forwardRef((itemProps, ref) => (
@@ -34,17 +38,18 @@ const ListItemLink = ({ icon, primary, to }: ListItemLinkProps) => {
   );
 
   return (
-    <li>
-      <ListItem button component={renderLink}>
+    <div>
+      <ListItem button component={renderLink} className={className}>
         {icon ? <ListItemIcon>{icon}</ListItemIcon> : null}
         <ListItemText primary={primary} />
       </ListItem>
-    </li>
+    </div>
   );
 };
 
 ListItemLink.defaultProps = {
-  icon: null
+  icon: null,
+  className: null
 };
 
 type ListItemExpandableProps = {
@@ -60,15 +65,14 @@ const ListItemExpandable = ({
   isOpen,
   handleClick
 }: ListItemExpandableProps) => {
-  console.log(isOpen);
   return (
-    <li>
+    <div>
       <ListItem button onClick={handleClick}>
         {icon ? <ListItemIcon>{icon}</ListItemIcon> : null}
-        <ListItemText primary={isOpen ? 'OPEN' : 'CLOSED'} />
+        <ListItemText primary={primary} />
         {isOpen ? <ExpandLess /> : <ExpandMore />}
       </ListItem>
-    </li>
+    </div>
   );
 };
 
@@ -76,7 +80,28 @@ ListItemExpandable.defaultProps = {
   icon: null
 };
 
-export default class DrawerContent extends React.Component<*, *> {
+const style = theme => ({
+  root: {
+    width: '100%',
+    backgroundColor: theme.palette.background.paper
+  },
+  nested: {
+    paddingLeft: theme.spacing(4)
+  }
+});
+
+type DrawerContentProps = {
+  classes: *
+};
+
+type DrawerContentState = {
+  analysisOpen: boolean
+};
+
+class DrawerContent extends React.Component<
+  DrawerContentProps,
+  DrawerContentState
+> {
   constructor(props: *) {
     super(props);
 
@@ -86,36 +111,42 @@ export default class DrawerContent extends React.Component<*, *> {
   }
 
   handleAnalysisOpen = () => {
-    // eslint-disable-next-line react/destructuring-assignment
-    this.state.analysisOpen = !this.state.analysisOpen;
+    this.setState(prevState => ({ analysisOpen: !prevState.analysisOpen }));
   };
 
   render() {
+    const { classes } = this.props;
     const { analysisOpen } = this.state;
-    console.log('RENDERING');
     return (
       <>
-        <List>
+        <List component="nav" className={classes.root}>
           <ListItemExpandable
             primary="Analysis"
             isOpen={analysisOpen}
             handleClick={this.handleAnalysisOpen}
           />
-          <ListItemLink
-            icon={<GestureIcon />}
-            primary="SmallRNA Analysis"
-            to="/pippo"
-          />
-          <ListItemLink
-            icon={<GestureIcon />}
-            primary="LongRNA Analysis"
-            to="/pluto"
-          />
-          <ListItemLink
-            icon={<GestureIcon />}
-            primary="CircRNA Analysis"
-            to="/paperino"
-          />
+          <Collapse in={analysisOpen} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              <ListItemLink
+                icon={<GestureIcon />}
+                primary="SmallRNA Analysis"
+                to="/pippo"
+                className={classes.nested}
+              />
+              <ListItemLink
+                icon={<GestureIcon />}
+                primary="LongRNA Analysis"
+                to="/pluto"
+                className={classes.nested}
+              />
+              <ListItemLink
+                icon={<GestureIcon />}
+                primary="CircRNA Analysis"
+                to="/paperino"
+                className={classes.nested}
+              />
+            </List>
+          </Collapse>
         </List>
         <Divider />
         <List>
@@ -132,3 +163,5 @@ export default class DrawerContent extends React.Component<*, *> {
     );
   }
 }
+
+export default withStyles(style)(DrawerContent);
