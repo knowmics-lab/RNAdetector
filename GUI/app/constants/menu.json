@@ -1,0 +1,40 @@
+{
+  "items": [
+    {
+      "icon": "far fa-play-circle",
+      "text": "Run Analysis",
+      "collapsible": true,
+      "key": "runAnalysis",
+      "items": [
+        {
+          "icon": "fas fa-dna",
+          "text": "SmallRNA Analysis",
+          "collapsible": false,
+          "key": "smallRNAAnalysis",
+          "to": "/analysis/smallRNA"
+        },
+        {
+          "icon": "fas fa-dna",
+          "text": "LongRNA Analysis",
+          "collapsible": false,
+          "key": "longRNAAnalysis",
+          "to": "/analysis/longRNA"
+        },
+        {
+          "icon": "far fa-circle",
+          "text": "CircRNA Analysis",
+          "collapsible": false,
+          "key": "circRNAAnalysis",
+          "to": "/analysis/circRNA"
+        }
+      ]
+    },
+    {
+      "icon": "far fa-hourglass",
+      "text": "Jobs",
+      "collapsible": false,
+      "key": "jobs",
+      "to": "/jobs"
+    }
+  ]
+}
