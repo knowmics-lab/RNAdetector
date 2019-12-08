@@ -15,13 +15,14 @@ RUN DEBIAN_FRONTEND=noninteractive /usr/bin/apt install -y nginx php7.3-cli php7
                                                            git composer python-setuptools python3-setuptools \ 
                                                            python-dev curl tophat bwa samtools python-pip \ 
                                                            subread cutadapt fastqc r-base-dev cmake \ 
-                                                           libxml2-dev libcurl4-openssl-dev
+                                                           libxml2-dev libcurl4-openssl-dev hisat2 stringtie
 RUN systemctl enable nginx && systemctl enable php7.3-fpm && systemctl enable supervisor
 
 COPY bootstrap.sh        /usr/local/bin/
 COPY installPackages.R   /usr/local/bin/
 COPY setup.sh            /usr/local/bin/
-COPY CIRI.pl             /usr/local/bin/CIRI.pl
+COPY CIRI1.pl            /usr/local/bin/CIRI1.pl
+COPY CIRI2.pl            /usr/local/bin/CIRI2.pl
 COPY repo.tar.gz         /repo.tar.gz
 COPY nginx.conf          /nginx.conf
 COPY worker.conf         /worker.conf

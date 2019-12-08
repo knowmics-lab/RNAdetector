@@ -26,6 +26,12 @@ tar -zxvf salmon.tar.gz
 mv salmon-latest_linux_x86_64/ /opt/salmon/
 ln -s /opt/salmon/bin/salmon /usr/bin/salmon
 
+# Install bbmap for re-pair utility
+curl -fsSL https://sourceforge.net/projects/bbmap/files/latest/download -o bbmap.tar.gz
+tar -zxvf bbmap.tar.gz --directory=/opt/
+chmod 755 /opt/bbmap/*
+rm bbmap.tar.gz
+
 # Install latest version of htseq-count
 pip install HTSeq
 
@@ -49,7 +55,7 @@ rm -rf /rnadetector/tmp
 rm /etc/nginx/sites-available/default
 mv /nginx.conf /etc/nginx/sites-available/default
 mv /worker.conf /etc/supervisor/conf.d/worker.conf
-sed -i 's/post_max_size \= .M/post_max_size \= 100G/g'             /etc/php/*/fpm/php.ini
+sed -i 's/post_max_size \= .M/post_max_size \= 100G/g' /etc/php/*/fpm/php.ini
 sed -i 's/upload_max_filesize \= .M/upload_max_filesize \= 100G/g' /etc/php/*/fpm/php.ini
 
 # Redirect NGINX and PHP log to docker stdout and stderr
@@ -61,7 +67,7 @@ ln -s /dev/stdout /var/log/nginx/access.log
 if [ -f "/var/log/nginx/error.log" ]; then
     rm /var/log/nginx/error.log
 fi
-ln -s /dev/stdout /var/log/nginx/error.log 
+ln -s /dev/stdout /var/log/nginx/error.log
 
 if [ -f "/var/log/php7.3-fpm.log" ]; then
     rm /var/log/php7.3-fpm.log
@@ -70,7 +76,8 @@ ln -s /dev/stdout /var/log/php7.3-fpm.log
 
 # Set folder permission
 chmod 755 /usr/local/bin/bootstrap.sh
-chmod 755 /usr/local/bin/CIRI.pl
+chmod 755 /usr/local/bin/CIRI1.pl
+chmod 755 /usr/local/bin/CIRI2.pl
 chmod 755 /rnadetector/scripts/*
 chmod -R 777 /rnadetector/ws/bootstrap/cache
 chmod -R 777 /rnadetector/ws/storage

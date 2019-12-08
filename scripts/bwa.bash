@@ -1,6 +1,6 @@
 #!/bin/bash
 
-##############################################################################
+##########################################################################################
 # Options:
 # 	-a FILE GTF
 # 	-g BWA INDEXED REFERENCE GENOME FOLDER WITH PREFIX
@@ -8,8 +8,10 @@
 # 	-f FIRST INPUT FASTQ (trimmed FASTQ file)
 # 	-s OPTIONAL SECOND INPUT FASTQ (FOR PAIRED) (trimmed FASTQ file)
 # 	-o OUTPUT SAM FILE
-##############################################################################
-while getopts ":a:g:t:f:s:o:" opt; do
+# FLAGS: -p to use fastq_pair instead of bbmap re-pair utility (for paired reads only)
+#########################################################################################
+REPAIR=true
+while getopts "pa:g:t:f:s:o:" opt; do
   case $opt in
   a) GTF_FILE=$OPTARG ;;
   g) REF_GENOME=$OPTARG ;;
@@ -17,6 +19,7 @@ while getopts ":a:g:t:f:s:o:" opt; do
   f) INPUT_1=$OPTARG ;;
   s) INPUT_2=$OPTARG ;;
   o) OUTPUT=$OPTARG ;;
+  p) REPAIR=false ;;
   \?)
     echo "Invalid option: -$OPTARG"
     exit 1
@@ -71,9 +74,22 @@ fi
 
 #### Alignment ####
 if [ $PAIRED = "true" ]; then
-  if ! fastq_pair "$INPUT_1" "$INPUT_2"; then
-    echo "Unable to determine unpaired reads"
-    exit 9
+  if [ "$REPAIR" = true ]; then
+    if ! bash /opt/bbmap/repair.sh in1="$INPUT_1" in2="$INPUT_2" out1="$INPUT_1.paired.fq" out2="$INPUT_2.paired.fq"; then
+      echo "Unable to remove singleton reads using bbmap repair"
+      exit 9
+    fi
+  else
+    if ! fastq_pair "$INPUT_1" "$INPUT_2"; then
+      echo "Unable to remove singleton reads using fastq_pair"
+      exit 9
+    fi
+    if [ -f "$INPUT_1.single.fq" ]; then
+      rm "$INPUT_1.single.fq"
+    fi
+    if [ -f "$INPUT_2.single.fq" ]; then
+      rm "$INPUT_2.single.fq"
+    fi
   fi
   if [ ! -f "$INPUT_1.paired.fq" ]; then
     echo "Unable to find paired reads of first input file!"
@@ -83,14 +99,12 @@ if [ $PAIRED = "true" ]; then
     echo "Unable to find paired reads of second input file!"
     exit 11
   fi
-  rm "$INPUT_1.single.fq"
-  rm "$INPUT_2.single.fq"
-  if ! bwa mem -t "$THREADS" "$REF_GENOME" "$INPUT_1.paired.fq" "$INPUT_2.paired.fq" >"$OUTPUT"; then
+  if ! bwa mem -T 19 -t "$THREADS" "$REF_GENOME" "$INPUT_1.paired.fq" "$INPUT_2.paired.fq" >"$OUTPUT" 2>"$OUTPUT.log"; then
     echo "An error occurred during bwa mem execution!"
     exit 12
   fi
 else
-  if ! bwa mem -t "$THREADS" "$REF_GENOME" "$INPUT_1" >"$OUTPUT"; then
+  if ! bwa mem -T 19 -t "$THREADS" "$REF_GENOME" "$INPUT_1" >"$OUTPUT" 2>"$OUTPUT.log"; then
     echo "An error occurred during bwa mem execution!"
     exit 12
   fi

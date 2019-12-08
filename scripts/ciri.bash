@@ -8,9 +8,14 @@
 #   -o output (required)
 #   -f FASTA reference genome.
 #   -m max spanning distance (default: 200,000)
+# FLAGS: -p for paired sequencing -1 to use CIRI1 instead of CIRI2
 ##############################################################################
-while getopts ":a:i:t:o:f:m:" opt; do
+PAIRED=false
+VERSION=v2
+while getopts "p1a:i:t:o:f:m:" opt; do
   case $opt in
+  p) PAIRED=true ;;
+  1) VERSION=v1 ;;
   a) GTF_FILE=$OPTARG ;;
   i) INPUT_SAM_FILE=$OPTARG ;;
   t) THREADS=$OPTARG ;;
@@ -71,9 +76,24 @@ fi
 
 #### circRNA identification ####
 
-if ! perl /usr/local/bin/CIRI.pl -I "$INPUT_SAM_FILE" -A "$GTF_FILE" -F "$FASTA_FILE" -S "$SPANNING" -O "$OUTPUT" -T $THREADS; then
-  echo "CIRI returned non zero exit code!"
-  exit 5
+if [ "$VERSION" = "v1" ]; then
+  if [ "$PAIRED" = "true" ]; then
+    if ! perl /usr/local/bin/CIRI1.pl -P -I "$INPUT_SAM_FILE" -A "$GTF_FILE" -F "$FASTA_FILE" -M "$SPANNING" -O "$OUTPUT"; then
+      echo "CIRI returned non zero exit code!"
+      exit 5
+    fi
+  else
+    if ! perl /usr/local/bin/CIRI1.pl -S -I "$INPUT_SAM_FILE" -A "$GTF_FILE" -F "$FASTA_FILE" -M "$SPANNING" -O "$OUTPUT"; then
+      echo "CIRI returned non zero exit code!"
+      exit 5
+    fi
+
+  fi
+else
+  if ! perl /usr/local/bin/CIRI2.pl -I "$INPUT_SAM_FILE" -A "$GTF_FILE" -F "$FASTA_FILE" -S "$SPANNING" -O "$OUTPUT" -T $THREADS; then
+    echo "CIRI returned non zero exit code!"
+    exit 5
+  fi
 fi
 
 # Check SAM file

@@ -42,7 +42,9 @@ class CircRnaJobType extends AbstractJob
                 'genome'               => 'An optional name for a reference genome (Default human hg19)',
                 'annotation'           => 'An optional name for a genome annotation (Default human hg19)',
                 'threads'              => 'Number of threads for this analysis (Default 1)',
+                'useFastqPair'         => 'A boolean value to indicate whether to use fastq_pair or bbmap repair (Default false=bbmap repair)',
                 'ciriSpanningDistance' => 'The maximum spanning distance used in CIRI (Default 200000)',
+                'ciriUseVersion1'      => 'A boolean value to indicate whether to use CIRI 1 or CIRI 2 (Default false)',
             ]
         );
     }
@@ -101,6 +103,7 @@ class CircRnaJobType extends AbstractJob
      * @param \App\Models\Reference  $genome
      * @param \App\Models\Annotation $annotation
      * @param int                    $threads
+     * @param bool                   $useFastqPair
      *
      * @return string
      * @throws \App\Exceptions\ProcessingJobException
@@ -111,7 +114,8 @@ class CircRnaJobType extends AbstractJob
         ?string $secondInputFile,
         Reference $genome,
         Annotation $annotation,
-        int $threads = 1
+        int $threads = 1,
+        bool $useFastqPair = false
     ): string {
         if (!$genome->isAvailableFor('bwa')) {
             throw new ProcessingJobException('The specified genome is not indexed for BWA analysis.');
@@ -134,6 +138,9 @@ class CircRnaJobType extends AbstractJob
         if ($paired) {
             $command[] = '-s';
             $command[] = $secondInputFile;
+            if ($useFastqPair) {
+                $command[] = '-p';
+            }
         }
         $output = self::runCommand(
             $command,
@@ -165,6 +172,8 @@ class CircRnaJobType extends AbstractJob
      * @param \App\Models\Annotation $annotation
      * @param int                    $spanningDistance
      * @param int                    $threads
+     * @param bool                   $paired
+     * @param bool                   $useCiri1
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
@@ -174,28 +183,37 @@ class CircRnaJobType extends AbstractJob
         Reference $genome,
         Annotation $annotation,
         int $spanningDistance = 200000,
-        int $threads = 1
+        int $threads = 1,
+        bool $paired = false,
+        bool $useCiri1 = false
     ): array {
         $ciriOutputRelative = $this->model->getJobTempFile('ciri_output', '_ci.txt');
         $ciriOutput = $this->model->absoluteJobPath($ciriOutputRelative);
         $ciriOutputUrl = \Storage::disk('public')->url($ciriOutputRelative);
+        $command = [
+            'bash',
+            self::scriptPath('ciri.bash'),
+            '-a',
+            $annotation->path,
+            '-f',
+            $genome->path,
+            '-t',
+            $threads,
+            '-m',
+            $spanningDistance,
+            '-i',
+            $ciriInputFile,
+            '-o',
+            $ciriOutput,
+        ];
+        if ($paired) {
+            $command[] = '-p';
+        }
+        if ($useCiri1) {
+            $command[] = '-1';
+        }
         $output = AbstractJob::runCommand(
-            [
-                'bash',
-                self::scriptPath('ciri.bash'),
-                '-a',
-                $annotation->path,
-                '-f',
-                $genome->path,
-                '-t',
-                $threads,
-                '-m',
-                $spanningDistance,
-                '-i',
-                $ciriInputFile,
-                '-o',
-                $ciriOutput,
-            ],
+            $command,
             $this->model->getAbsoluteJobDirectory(),
             null,
             null,
@@ -240,6 +258,8 @@ class CircRnaJobType extends AbstractJob
         $annotationName = $this->model->getParameter('annotation', env('HUMAN_CIRI_ANNOTATION_NAME'));
         $threads = (int)$this->model->getParameter('threads', 1);
         $ciriSpanningDistance = (int)$this->model->getParameter('ciriSpanningDistance', 200000);
+        $useFastqPair = (bool)$this->model->getParameter('useFastqPair', false);
+        $useCiri1 = (bool)$this->model->getParameter('ciriUseVersion1', false);
         $genome = Reference::whereName($genomeName)->firstOrFail();
         $annotation = Annotation::whereName($annotationName)->firstOrFail();
         $ciriInputFile = null;
@@ -278,7 +298,8 @@ class CircRnaJobType extends AbstractJob
                 $secondTrimmedFastq,
                 $genome,
                 $annotation,
-                $threads
+                $threads,
+                $useFastqPair
             );
             $this->log('Alignment completed.');
         } elseif ($inputType === self::BAM) {
@@ -316,7 +337,9 @@ class CircRnaJobType extends AbstractJob
             $genome,
             $annotation,
             $ciriSpanningDistance,
-            $threads
+            $threads,
+            $paired,
+            $useCiri1
         );
         $this->log('CircRNA Analysis completed!');
         $this->model->setOutput(
