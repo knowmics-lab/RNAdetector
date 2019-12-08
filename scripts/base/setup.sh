@@ -32,6 +32,14 @@ tar -zxvf bbmap.tar.gz --directory=/opt/
 chmod 755 /opt/bbmap/*
 rm bbmap.tar.gz
 
+# Install stringtie
+curl -fsSL http://ccb.jhu.edu/software/stringtie/dl/stringtie-2.0.5.Linux_x86_64.tar.gz -o stringtie.tar.gz
+tar -xzvf stringtie.tar.gz
+cp stringtie-2.0.5.Linux_x86_64/stringtie /usr/local/bin/stringtie
+cp stringtie-2.0.5.Linux_x86_64/prepDE.py /usr/local/bin/prepDE.py
+rm -rf stringtie-2.0.5.Linux_x86_64/
+rm stringtie.tar.gz
+
 # Install latest version of htseq-count
 pip install HTSeq
 
