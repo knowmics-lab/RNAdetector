@@ -4,27 +4,27 @@
       "icon": "far fa-play-circle",
       "text": "Run Analysis",
       "collapsible": true,
-      "key": "runAnalysis",
+      "key": "main-menu-runAnalysis",
       "items": [
         {
           "icon": "fas fa-dna",
           "text": "SmallRNA Analysis",
           "collapsible": false,
-          "key": "smallRNAAnalysis",
+          "key": "main-menu-smallRNAAnalysis",
           "to": "/analysis/smallRNA"
         },
         {
           "icon": "fas fa-dna",
           "text": "LongRNA Analysis",
           "collapsible": false,
-          "key": "longRNAAnalysis",
+          "key": "main-menu-longRNAAnalysis",
           "to": "/analysis/longRNA"
         },
         {
           "icon": "far fa-circle",
           "text": "CircRNA Analysis",
           "collapsible": false,
-          "key": "circRNAAnalysis",
+          "key": "main-menu-circRNAAnalysis",
           "to": "/analysis/circRNA"
         }
       ]
@@ -33,8 +33,29 @@
       "icon": "far fa-hourglass",
       "text": "Jobs",
       "collapsible": false,
-      "key": "jobs",
+      "key": "main-menu-jobs",
       "to": "/jobs"
+    },
+    {
+      "icon": "far fa-file-alt",
+      "text": "Reference Sequences",
+      "collapsible": false,
+      "key": "main-menu-ref-seq",
+      "to": "/references"
+    },
+    {
+      "icon": "fas fa-table",
+      "text": "GTF Annotations",
+      "collapsible": false,
+      "key": "main-menu-gtf-annotations",
+      "to": "/annotations"
+    },
+    {
+      "icon": "fas fa-cog",
+      "text": "Settings",
+      "collapsible": false,
+      "key": "main-menu-settings",
+      "to": "/settings"
     }
   ]
 }

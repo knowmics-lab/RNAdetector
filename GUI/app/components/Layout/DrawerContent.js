@@ -164,12 +164,11 @@ class DrawerContent extends React.Component<
     const { classes } = this.props;
     if (collapsible) {
       return (
-        <React.Fragment>
+        <React.Fragment key={key}>
           <ListItemExpandable
             icon={<Icon className={icon} />}
             primary={text}
             isOpen={this.getCollapsibleState(key)}
-            key={key}
             handleClick={this.getCollapsibleHandler(key)}
             className={nested ? classes.nested : null}
           />

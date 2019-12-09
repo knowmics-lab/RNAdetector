@@ -270,7 +270,10 @@
     "devtron": "^1.4.0",
     "electron-debug": "^3.0.1",
     "electron-log": "^3.0.9",
+    "electron-store": "^5.1.0",
     "electron-updater": "^4.2.0",
+    "electron-util": "^0.13.0",
+    "formik": "^2.0.6",
     "history": "^4.10.1",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
@@ -281,7 +284,8 @@
     "redux": "^4.0.4",
     "redux-thunk": "^2.3.0",
     "source-map-support": "^0.5.16",
-    "typeface-roboto": "^0.0.75"
+    "typeface-roboto": "^0.0.75",
+    "yup": "^0.27.0"
   },
   "devEngines": {
     "node": ">=7.x",
