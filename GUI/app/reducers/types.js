@@ -4,11 +4,19 @@ export type counterStateType = {
   +counter: number
 };
 
-export type Action = {
-  +type: string
+export type settingsStateType = {
+  +settings: {
+    +webserviceUrl: string,
+    +jobsPath: string
+  }
 };
 
-export type GetState = () => counterStateType;
+export type Action = {
+  +type: string,
+  data?: {}
+};
+
+export type GetState = () => counterStateType & settingsStateType;
 
 export type Dispatch = ReduxDispatch<Action>;
 

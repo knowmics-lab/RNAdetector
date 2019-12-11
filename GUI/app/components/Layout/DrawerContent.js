@@ -195,44 +195,7 @@ class DrawerContent extends React.Component<
   };
 
   render() {
-    const { classes } = this.props;
-    const analysisOpen = this.getCollapsibleState('test');
     return this.renderMenuItems(menuItems);
-    return (
-      <>
-        <List component="nav" className={classes.root}>
-          <ListItemExpandable
-            icon={<Icon className="far fa-play-circle" />}
-            primary="Run Analysis"
-            isOpen={analysisOpen}
-            handleClick={this.getCollapsibleHandler('test')}
-          />
-          <Collapse in={analysisOpen} timeout="auto" unmountOnExit>
-            <List component="div" disablePadding>
-              <ListItemLink
-                icon={<Icon className="fas fa-dna" />}
-                primary="SmallRNA Analysis"
-                to="/pippo"
-                className={classes.nested}
-              />
-              <ListItemLink
-                icon={<Icon className="fas fa-dna" />}
-                primary="LongRNA Analysis"
-                to="/pluto"
-                className={classes.nested}
-              />
-              <ListItemLink
-                icon={<Icon className="far fa-circle" />}
-                primary="CircRNA Analysis"
-                to="/paperino"
-                className={classes.nested}
-              />
-            </List>
-          </Collapse>
-          <ListItemLink icon={<WorkIcon />} primary="Jobs" to="/jobs" />
-        </List>
-      </>
-    );
   }
 }
 

@@ -1,0 +1,9 @@
+{
+  "webserviceUrl": {
+    "type": "string",
+    "format": "url"
+  },
+  "jobsPath": {
+    "type": "string"
+  }
+}
