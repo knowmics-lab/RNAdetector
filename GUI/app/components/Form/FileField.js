@@ -1,9 +1,16 @@
 // @flow
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { useField } from 'formik';
+import { useField, useFormikContext } from 'formik';
 import { makeStyles } from '@material-ui/core/styles';
-import { TextField as MaterialTextField } from '@material-ui/core';
+import { TextField as MaterialTextField, Icon } from '@material-ui/core';
+import { remote } from 'electron';
+import IconButton from '@material-ui/core/IconButton';
+import Input from '@material-ui/core/Input';
+import InputLabel from '@material-ui/core/InputLabel';
+import InputAdornment from '@material-ui/core/InputAdornment';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import FormControl from '@material-ui/core/FormControl';
 
 const useStyles = makeStyles(theme => ({
   formControl: {
@@ -15,46 +22,49 @@ const useStyles = makeStyles(theme => ({
 type TextFieldProps = {
   label: string,
   name: string,
-  type?: string,
-  placeholder?: string,
-  readOnly?: boolean,
-  required?: boolean,
-  multiline?: boolean
+  required?: boolean
 };
 
-TextField.defaultProps = {
-  type: 'text',
-  placeholder: '',
-  required: false,
-  readOnly: false,
-  multiline: false
+FileField.defaultProps = {
+  required: false
 };
 
-export default function TextField({
+export default function FileField({
   label,
-  placeholder,
   required,
   ...props
 }: TextFieldProps) {
   const classes = useStyles();
+  const { setFieldValue } = useFormikContext();
   const [{ name, onBlur, onChange, value }, { error, touched }] = useField(
     props
   );
   return (
-    <MaterialTextField
-      fullWidth
+    <FormControl
       className={classes.formControl}
-      label={label}
-      required={required}
+      fullWidth
       error={!!(touched && error)}
-      placeholder={placeholder}
-      name={name}
-      onBlur={onBlur}
-      onChange={onChange}
-      value={value}
-      helperText={touched && error ? error : null}
-      // eslint-disable-next-line react/jsx-props-no-spreading
-      {...(props || {})}
-    />
+      required={required}
+    >
+      <InputLabel>{label}</InputLabel>
+      <Input
+        name={name}
+        type="text"
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
+        endAdornment={
+          <InputAdornment position="end">
+            <IconButton
+            // onClick={handleClickShowPassword}
+            // onMouseDown={handleMouseDownPassword}
+            >
+              <Icon className="fas fa-ellipsis-h" />
+            </IconButton>
+          </InputAdornment>
+        }
+      />
+      {touched && error ? <FormHelperText>{error}</FormHelperText> : null}
+    </FormControl>
   );
 }

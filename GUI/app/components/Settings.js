@@ -5,9 +5,10 @@ import { Link } from 'react-router-dom';
 import { Typography, Paper, Box } from '@material-ui/core';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
+import type { settingsStateType } from '../reducers/types';
 import TextField from './Form/TextField';
 import SelectField from './Form/SelectField';
-import type { settingsStateType } from '../reducers/types';
+import FileField from './Form/FileField';
 
 type Props = {
   settings: settingsStateType,
@@ -47,7 +48,12 @@ class Settings extends Component<Props> {
             {({ errors, touched, isValidating }) => (
               <Form>
                 <TextField
-                  label="Webservice URL"
+                  label="Web Service URL"
+                  name="webserviceUrl"
+                  required
+                />
+                <FileField
+                  label="Web Service URL"
                   name="webserviceUrl"
                   required
                 />
