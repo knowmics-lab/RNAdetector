@@ -1,10 +1,11 @@
 // @flow
 import React from 'react';
 import ReactDOM from 'react-dom';
+import has from 'lodash/has';
 import { useField, useFormikContext } from 'formik';
 import { makeStyles } from '@material-ui/core/styles';
-import { TextField as MaterialTextField, Icon } from '@material-ui/core';
 import { remote } from 'electron';
+import Icon from '@material-ui/core/Icon';
 import IconButton from '@material-ui/core/IconButton';
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -19,19 +20,38 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-type TextFieldProps = {
+export type FileFilter = {
+  name: string,
+  extensions: string[]
+};
+
+export type DialogOptions = {
+  title?: string,
+  buttonLabel?: string,
+  filters?: FileFilter[],
+  message?: string,
+  properties?: Array<'openFile' | 'openDirectory' | 'multiSelections'>
+};
+
+export type TextFieldProps = {
   label: string,
   name: string,
-  required?: boolean
+  required?: boolean,
+  dialogOptions?: DialogOptions,
+  separator?: string
 };
 
 FileField.defaultProps = {
-  required: false
+  required: false,
+  dialogOptions: {},
+  separator: ', '
 };
 
 export default function FileField({
   label,
   required,
+  dialogOptions,
+  separator,
   ...props
 }: TextFieldProps) {
   const classes = useStyles();
@@ -39,6 +59,29 @@ export default function FileField({
   const [{ name, onBlur, onChange, value }, { error, touched }] = useField(
     props
   );
+  let multiple = false;
+  if (has(dialogOptions, 'properties')) {
+    if (dialogOptions.properties.includes('multiSelections')) {
+      multiple = true;
+    }
+  }
+  const handleClick = async () => {
+    const { canceled, filePaths } = await remote.dialog.showOpenDialog(
+      remote.getCurrentWindow(),
+      dialogOptions
+    );
+    if (!canceled) {
+      if (filePaths) {
+        setFieldValue(
+          name,
+          multiple ? filePaths.join(separator) : filePaths.shift()
+        );
+      }
+    }
+  };
+  const handleMouseDown = event => {
+    event.preventDefault();
+  };
   return (
     <FormControl
       className={classes.formControl}
@@ -55,10 +98,7 @@ export default function FileField({
         onBlur={onBlur}
         endAdornment={
           <InputAdornment position="end">
-            <IconButton
-            // onClick={handleClickShowPassword}
-            // onMouseDown={handleMouseDownPassword}
-            >
+            <IconButton onClick={handleClick} onMouseDown={handleMouseDown}>
               <Icon className="fas fa-ellipsis-h" />
             </IconButton>
           </InputAdornment>
