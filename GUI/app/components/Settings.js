@@ -7,22 +7,17 @@ import {
   Box,
   FormGroup,
   Button,
-  Grid,
-  Icon
+  Grid
 } from '@material-ui/core';
 import { green } from '@material-ui/core/colors';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import Collapse from '@material-ui/core/Collapse';
-import Snackbar from '@material-ui/core/Snackbar';
-import SnackbarContent from '@material-ui/core/SnackbarContent';
-import CloseIcon from '@material-ui/icons/Close';
-import IconButton from '@material-ui/core/IconButton';
-import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import type { settingsStateType } from '../reducers/types';
 import TextField from './Form/TextField';
 import FileField from './Form/FileField';
 import SwitchField from './Form/SwitchField';
+import Snackbar from './UI/Snackbar';
 
 type Props = {
   settings: settingsStateType,
@@ -62,7 +57,7 @@ const style = theme => ({
 });
 
 type SettingsState = {
-  successOpen: boolean
+  isSuccessOpen: boolean
 };
 
 class Settings extends Component<Props, SettingsState> {
@@ -72,23 +67,19 @@ class Settings extends Component<Props, SettingsState> {
     super(props, context);
 
     this.state = {
-      successOpen: false
+      isSuccessOpen: false
     };
   }
 
   handleOpen = () => {
     this.setState({
-      successOpen: true
+      isSuccessOpen: true
     });
   };
 
-  handleClose = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-
+  setSuccessClosed = () => {
     this.setState({
-      successOpen: false
+      isSuccessOpen: false
     });
   };
 
@@ -103,7 +94,7 @@ class Settings extends Component<Props, SettingsState> {
   };
 
   render() {
-    const { successOpen } = this.state;
+    const { isSuccessOpen } = this.state;
     const { classes, settings } = this.props;
     const validationSchema = Yup.object().shape({
       webserviceUrl: Yup.string().required(),
@@ -158,34 +149,11 @@ class Settings extends Component<Props, SettingsState> {
           </Formik>
         </Paper>
         <Snackbar
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right'
-          }}
-          open={successOpen}
-          autoHideDuration={3000}
-          onClose={this.handleClose}
-        >
-          <SnackbarContent
-            className={classes.success}
-            message={
-              <span className={classes.message}>
-                <CheckCircleIcon />
-                Settings saved!
-              </span>
-            }
-            action={[
-              <IconButton
-                key="close"
-                aria-label="close"
-                color="inherit"
-                onClick={this.handleClose}
-              >
-                <CloseIcon className={classes.icon} />
-              </IconButton>
-            ]}
-          />
-        </Snackbar>
+          message="Settings saved!"
+          isOpen={isSuccessOpen}
+          setClosed={this.setSuccessClosed}
+          variant="success"
+        />
       </Box>
     );
   }
