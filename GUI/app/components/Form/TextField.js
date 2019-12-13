@@ -1,6 +1,5 @@
 // @flow
 import React from 'react';
-import ReactDOM from 'react-dom';
 import { useField } from 'formik';
 import { makeStyles } from '@material-ui/core/styles';
 import { TextField as MaterialTextField } from '@material-ui/core';
@@ -53,8 +52,6 @@ export default function TextField({
       onChange={onChange}
       value={value}
       helperText={touched && error ? error : null}
-      // eslint-disable-next-line react/jsx-props-no-spreading
-      {...(props || {})}
     />
   );
 }

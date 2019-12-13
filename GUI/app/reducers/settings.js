@@ -7,6 +7,7 @@ import configSchema from '../constants/config-schema.json';
 const configStore = new Store({ configSchema });
 
 const initConfigState = (): settingsStateType => ({
+  local: configStore.get('local', true),
   webserviceUrl: configStore.get('webserviceUrl', 'https://localhost:9898/'),
   jobsPath: configStore.get('jobsPath', '')
 });

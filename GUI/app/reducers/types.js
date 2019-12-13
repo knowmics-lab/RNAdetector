@@ -6,6 +6,7 @@ export type counterStateType = {
 
 export type settingsStateType = {
   +settings: {
+    +local: boolean,
     +webserviceUrl: string,
     +jobsPath: string
   }

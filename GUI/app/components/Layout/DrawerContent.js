@@ -1,15 +1,12 @@
 /* eslint-disable react/jsx-fragments */
 // @flow
 import * as React from 'react';
-import ReactDOM from 'react-dom';
 import { withStyles } from '@material-ui/core/styles';
-import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import Icon from '@material-ui/core/Icon';
-import WorkIcon from '@material-ui/icons/Work';
 import { NavLink as RouterLink } from 'react-router-dom';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
@@ -102,6 +99,15 @@ type DrawerContentState = {
   collapsibleState: {}
 };
 
+export type MenuItem = {
+  icon: string,
+  text: string,
+  collapsible: boolean,
+  key: string,
+  items?: MenuItem[],
+  to?: string
+};
+
 class DrawerContent extends React.Component<
   DrawerContentProps,
   DrawerContentState
@@ -139,7 +145,7 @@ class DrawerContent extends React.Component<
     };
   };
 
-  renderMenuItems = (items: mixed[], nested: boolean = false) => {
+  renderMenuItems = (items: MenuItem[], nested: boolean = false) => {
     const { classes } = this.props;
     const itemsElements = items.map(item => this.renderMenuItem(item, nested));
     if (nested) {
@@ -158,8 +164,8 @@ class DrawerContent extends React.Component<
   };
 
   renderMenuItem = (
-    { icon, text, collapsible, key, items, to },
-    nested = false
+    { icon, text, collapsible, key, items, to }: MenuItem,
+    nested: boolean = false
   ) => {
     const { classes } = this.props;
     if (collapsible) {

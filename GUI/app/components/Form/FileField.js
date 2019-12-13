@@ -1,6 +1,5 @@
 // @flow
 import React from 'react';
-import ReactDOM from 'react-dom';
 import has from 'lodash/has';
 import { useField, useFormikContext } from 'formik';
 import { makeStyles } from '@material-ui/core/styles';
@@ -33,7 +32,7 @@ export type DialogOptions = {
   properties?: Array<'openFile' | 'openDirectory' | 'multiSelections'>
 };
 
-export type TextFieldProps = {
+export type FileFieldProps = {
   label: string,
   name: string,
   required?: boolean,
@@ -53,7 +52,7 @@ export default function FileField({
   dialogOptions,
   separator,
   ...props
-}: TextFieldProps) {
+}: FileFieldProps) {
   const classes = useStyles();
   const { setFieldValue } = useFormikContext();
   const [{ name, onBlur, onChange, value }, { error, touched }] = useField(
