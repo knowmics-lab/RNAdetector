@@ -72,6 +72,7 @@ class Settings extends Component<Props> {
       webserviceUrl: values.webserviceUrl,
       local: values.local,
       jobsPath: values.jobsPath,
+      dockerExecutablePath: values.dockerExecutablePath,
       containerName: values.containerName,
       apiKey: values.apiKey
     });
@@ -124,13 +125,18 @@ class Settings extends Component<Props> {
                 />
                 <Collapse in={values.local}>
                   <FileField
-                    label="Local docker storage path"
+                    label="Local container storage path"
                     name="jobsPath"
                     dialogOptions={{ properties: ['openDirectory'] }}
                   />
                   <TextField
-                    label="Docker container name"
+                    label="Local container name"
                     name="containerName"
+                  />
+                  <FileField
+                    label="Local docker executable"
+                    name="dockerExecutablePath"
+                    dialogOptions={{ properties: ['openFile'] }}
                   />
                 </Collapse>
                 <TextField label="API key" name="apiKey" />
@@ -162,7 +168,7 @@ class Settings extends Component<Props> {
           message={`An error occurred: ${errorMessage}!`}
           isOpen={isErrorOpen}
           setClosed={this.handleClose}
-          variant="success"
+          variant="error"
         />
       </Box>
     );

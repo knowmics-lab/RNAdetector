@@ -8,8 +8,11 @@
     "default": "http://localhost:9898/"
   },
   "jobsPath": {
+    "type": "string"
+  },
+  "dockerExecutablePath": {
     "type": "string",
-    "default": ""
+    "default": "docker"
   },
   "containerName": {
     "type": "string",

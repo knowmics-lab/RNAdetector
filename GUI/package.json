@@ -1,8 +1,8 @@
 {
-  "name": "electron-react-boilerplate",
-  "productName": "ElectronReact",
-  "version": "0.18.0",
-  "description": "Electron application boilerplate based on React, React Router, Webpack, React Hot Loader for rapid application development",
+  "name": "rna-detector",
+  "productName": "RNAdetector",
+  "version": "0.0.1",
+  "description": "A pipeline for the analysis of RNA-seq data",
   "scripts": {
     "build": "concurrently \"yarn build-main\" \"yarn build-renderer\"",
     "build-dll": "cross-env NODE_ENV=development webpack --config ./configs/webpack.config.renderer.dev.dll.babel.js --colors",
@@ -56,8 +56,8 @@
     ]
   },
   "build": {
-    "productName": "ElectronReact",
-    "appId": "org.develar.ElectronReact",
+    "productName": "RNAdetector",
+    "appId": "com.alaimos.RNAdetector",
     "files": [
       "dist/",
       "node_modules/",
@@ -274,6 +274,7 @@
     "electron-updater": "^4.2.0",
     "electron-util": "^0.13.0",
     "formik": "^2.0.6",
+    "fs-extra": "^8.1.0",
     "history": "^4.10.1",
     "lodash": "^4.17.15",
     "react": "^16.12.0",
