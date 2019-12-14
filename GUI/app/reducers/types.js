@@ -1,4 +1,5 @@
 import type { Dispatch as ReduxDispatch, Store as ReduxStore } from 'redux';
+import type { ConfigObjectType } from '../api';
 
 export type counterStateType = {
   +counter: number
@@ -6,15 +7,17 @@ export type counterStateType = {
 
 export type settingsStateType = {
   +settings: {
-    +local: boolean,
-    +webserviceUrl: string,
-    +jobsPath: string
-  }
+    +state: {
+      saved: boolean,
+      error: boolean,
+      message: string
+    }
+  } & ConfigObjectType
 };
 
 export type Action = {
   +type: string,
-  data?: {}
+  payload?: {}
 };
 
 export type GetState = () => counterStateType & settingsStateType;

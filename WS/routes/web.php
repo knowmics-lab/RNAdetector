@@ -15,12 +15,7 @@
 |
 */
 
-Route::get(
-    '/',
-    static function () {
-        return view('welcome');
-    }
-);
+Route::get('/', 'IndexController@index');
 
 Auth::routes(
     [

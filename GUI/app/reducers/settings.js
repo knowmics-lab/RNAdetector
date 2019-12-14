@@ -1,15 +1,19 @@
 // @flow
-import Store from 'electron-store';
-import { SAVE_SETTINGS } from '../actions/settings';
+import {
+  SETTINGS_SAVED,
+  SETTINGS_ERROR,
+  SETTINGS_RESET_SAVED
+} from '../actions/settings';
 import { settingsStateType, Action } from './types';
-import configSchema from '../constants/config-schema.json';
-
-const configStore = new Store({ configSchema });
+import * as Api from '../api';
 
 const initConfigState = (): settingsStateType => ({
-  local: configStore.get('local', true),
-  webserviceUrl: configStore.get('webserviceUrl', 'https://localhost:9898/'),
-  jobsPath: configStore.get('jobsPath', '')
+  state: {
+    saved: false,
+    error: false,
+    message: ''
+  },
+  ...Api.Settings.getConfig()
 });
 
 export default function settings(
@@ -17,11 +21,32 @@ export default function settings(
   action: Action
 ) {
   switch (action.type) {
-    case SAVE_SETTINGS:
-      Object.keys(action.data.settings).forEach(prop => {
-        configStore.set(prop, action.data.settings[prop]);
-      });
-      return action.data.settings;
+    case SETTINGS_ERROR:
+      return {
+        ...state,
+        state: {
+          saved: false,
+          error: true,
+          message: action.payload.message
+        }
+      };
+    case SETTINGS_SAVED:
+      return {
+        state: {
+          ...state.state,
+          saved: true
+        },
+        ...action.payload.settings
+      };
+    case SETTINGS_RESET_SAVED:
+      return {
+        ...state,
+        state: {
+          saved: false,
+          error: false,
+          message: ''
+        }
+      };
     default:
       return state;
   }

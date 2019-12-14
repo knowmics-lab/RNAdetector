@@ -1,9 +1,22 @@
 {
+  "local": {
+    "type": "boolean",
+    "default": true
+  },
   "webserviceUrl": {
     "type": "string",
-    "format": "url"
+    "default": "http://localhost:9898/"
   },
   "jobsPath": {
-    "type": "string"
+    "type": "string",
+    "default": ""
+  },
+  "containerName": {
+    "type": "string",
+    "default": "RNADetector"
+  },
+  "apiKey": {
+    "type": "string",
+    "default": ""
   }
 }

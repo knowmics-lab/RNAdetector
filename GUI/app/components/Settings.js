@@ -14,6 +14,7 @@ import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import Collapse from '@material-ui/core/Collapse';
 import type { settingsStateType } from '../reducers/types';
+import type { ConfigObjectType } from '../api';
 import TextField from './Form/TextField';
 import FileField from './Form/FileField';
 import SwitchField from './Form/SwitchField';
@@ -21,7 +22,8 @@ import Snackbar from './UI/Snackbar';
 
 type Props = {
   settings: settingsStateType,
-  saveSettings: settingsStateType => *,
+  saveSettings: ConfigObjectType => *,
+  resetSaved: () => void,
   classes: {
     root: *,
     success: *,
@@ -56,31 +58,12 @@ const style = theme => ({
   }
 });
 
-type SettingsState = {
-  isSuccessOpen: boolean
-};
-
-class Settings extends Component<Props, SettingsState> {
+class Settings extends Component<Props> {
   props: Props;
 
-  constructor(props, context) {
-    super(props, context);
-
-    this.state = {
-      isSuccessOpen: false
-    };
-  }
-
-  handleOpen = () => {
-    this.setState({
-      isSuccessOpen: true
-    });
-  };
-
-  setSuccessClosed = () => {
-    this.setState({
-      isSuccessOpen: false
-    });
+  handleClose = () => {
+    const { resetSaved } = this.props;
+    resetSaved();
   };
 
   formSubmit = values => {
@@ -88,14 +71,19 @@ class Settings extends Component<Props, SettingsState> {
     saveSettings({
       webserviceUrl: values.webserviceUrl,
       local: values.local,
-      jobsPath: values.jobsPath
+      jobsPath: values.jobsPath,
+      containerName: values.containerName,
+      apiKey: values.apiKey
     });
-    this.handleOpen();
   };
 
   render() {
-    const { isSuccessOpen } = this.state;
     const { classes, settings } = this.props;
+    const {
+      saved: isSuccessOpen,
+      error: isErrorOpen,
+      message: errorMessage
+    } = settings.state;
     const validationSchema = Yup.object().shape({
       webserviceUrl: Yup.string().required(),
       local: Yup.boolean(),
@@ -103,7 +91,13 @@ class Settings extends Component<Props, SettingsState> {
         is: true,
         then: Yup.string().required(),
         otherwise: Yup.string().notRequired()
-      })
+      }),
+      containerName: Yup.string().when('local', {
+        is: true,
+        then: Yup.string().required(),
+        otherwise: Yup.string().notRequired()
+      }),
+      apiKey: Yup.string().required()
     });
     return (
       <Box>
@@ -134,11 +128,21 @@ class Settings extends Component<Props, SettingsState> {
                     name="jobsPath"
                     dialogOptions={{ properties: ['openDirectory'] }}
                   />
+                  <TextField
+                    label="Docker container name"
+                    name="containerName"
+                  />
                 </Collapse>
+                <TextField label="API key" name="apiKey" />
                 <FormGroup row className={classes.formControl}>
                   <Grid container justify="flex-end">
                     <Grid item xs="auto">
-                      <Button type="submit" variant="contained" color="primary">
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        disabled={isSuccessOpen || isErrorOpen}
+                      >
                         Save
                       </Button>
                     </Grid>
@@ -151,7 +155,13 @@ class Settings extends Component<Props, SettingsState> {
         <Snackbar
           message="Settings saved!"
           isOpen={isSuccessOpen}
-          setClosed={this.setSuccessClosed}
+          setClosed={this.handleClose}
+          variant="success"
+        />
+        <Snackbar
+          message={`An error occurred: ${errorMessage}!`}
+          isOpen={isErrorOpen}
+          setClosed={this.handleClose}
           variant="success"
         />
       </Box>

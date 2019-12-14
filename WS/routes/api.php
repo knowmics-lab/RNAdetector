@@ -18,6 +18,9 @@ use Illuminate\Http\Request;
 |
 */
 
+Route::get('/ping', 'Api\\PingController@ping');
+Route::middleware('auth:api')->get('/auth-ping', 'Api\\PingController@ping');
+
 Route::apiResource('users', 'Api\\UserController')->names(
     [
         'show' => 'users.show',
@@ -31,12 +34,7 @@ Route::middleware(
     ]
 )->get('/users/{user}/token', 'Api\\UserController@token');
 
-Route::middleware('auth:api')->get(
-    '/user',
-    function (Request $request) {
-        return $request->user();
-    }
-);
+Route::middleware('auth:api')->get('/user', 'Api\\PingController@user');
 
 Route::apiResource('jobs', 'Api\\JobController')->names(
     [
