@@ -16,6 +16,7 @@ import Collapse from '@material-ui/core/Collapse';
 import type { settingsStateType } from '../reducers/types';
 import type { ConfigObjectType } from '../api';
 import TextField from './Form/TextField';
+import SelectField from './Form/SelectField';
 import FileField from './Form/FileField';
 import SwitchField from './Form/SwitchField';
 import Snackbar from './UI/Snackbar';
@@ -69,9 +70,12 @@ class Settings extends Component<Props> {
   formSubmit = values => {
     const { saveSettings } = this.props;
     saveSettings({
-      webserviceUrl: values.webserviceUrl,
       local: values.local,
-      jobsPath: values.jobsPath,
+      apiProtocol: values.apiProtocol,
+      apiHostname: values.apiHostname,
+      apiPort: values.apiPort,
+      apiPath: values.apiPath,
+      dataPath: values.dataPath,
       dockerExecutablePath: values.dockerExecutablePath,
       containerName: values.containerName,
       apiKey: values.apiKey
@@ -81,14 +85,22 @@ class Settings extends Component<Props> {
   render() {
     const { classes, settings } = this.props;
     const {
+      saving: isSaving,
       saved: isSuccessOpen,
       error: isErrorOpen,
       message: errorMessage
     } = settings.state;
     const validationSchema = Yup.object().shape({
-      webserviceUrl: Yup.string().required(),
+      apiProtocol: Yup.string().required(),
+      apiHostname: Yup.string().required(),
+      apiPort: Yup.number()
+        .positive()
+        .integer()
+        .min(1)
+        .max(65535),
+      apiPath: Yup.string().required(),
       local: Yup.boolean(),
-      jobsPath: Yup.string().when('local', {
+      dataPath: Yup.string().when('local', {
         is: true,
         then: Yup.string().required(),
         otherwise: Yup.string().notRequired()
@@ -98,7 +110,11 @@ class Settings extends Component<Props> {
         then: Yup.string().required(),
         otherwise: Yup.string().notRequired()
       }),
-      apiKey: Yup.string().required()
+      apiKey: Yup.string().when('local', {
+        is: true,
+        then: Yup.string().notRequired(),
+        otherwise: Yup.string().required()
+      })
     });
     return (
       <Box>
@@ -114,11 +130,20 @@ class Settings extends Component<Props> {
           >
             {({ values }) => (
               <Form>
-                <TextField
-                  label="Web Service URL"
-                  name="webserviceUrl"
+                <SelectField
+                  label="API Protocol"
+                  name="apiProtocol"
+                  options={{ http: 'http', https: 'https' }}
                   required
                 />
+                <TextField label="API Hostname" name="apiHostname" required />
+                <TextField
+                  label="API Port"
+                  name="apiPort"
+                  type="number"
+                  required
+                />
+                <TextField label="API Path" name="apiPath" required />
                 <SwitchField
                   label="Is docker installed locally?"
                   name="local"
@@ -126,7 +151,7 @@ class Settings extends Component<Props> {
                 <Collapse in={values.local}>
                   <FileField
                     label="Local container storage path"
-                    name="jobsPath"
+                    name="dataPath"
                     dialogOptions={{ properties: ['openDirectory'] }}
                   />
                   <TextField
@@ -147,7 +172,7 @@ class Settings extends Component<Props> {
                         type="submit"
                         variant="contained"
                         color="primary"
-                        disabled={isSuccessOpen || isErrorOpen}
+                        disabled={isSaving}
                       >
                         Save
                       </Button>

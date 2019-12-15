@@ -1,5 +1,6 @@
 // @flow
 import {
+  SETTINGS_SAVING,
   SETTINGS_SAVED,
   SETTINGS_ERROR,
   SETTINGS_RESET_SAVED
@@ -9,6 +10,7 @@ import * as Api from '../api';
 
 const initConfigState = (): settingsStateType => ({
   state: {
+    saving: false,
     saved: false,
     error: false,
     message: ''
@@ -21,10 +23,21 @@ export default function settings(
   action: Action
 ) {
   switch (action.type) {
+    case SETTINGS_SAVING:
+      return {
+        ...state,
+        state: {
+          saving: true,
+          saved: false,
+          error: false,
+          message: ''
+        }
+      };
     case SETTINGS_ERROR:
       return {
         ...state,
         state: {
+          saving: false,
           saved: false,
           error: true,
           message: action.payload.message
@@ -33,8 +46,10 @@ export default function settings(
     case SETTINGS_SAVED:
       return {
         state: {
-          ...state.state,
-          saved: true
+          saving: false,
+          saved: true,
+          error: false,
+          message: ''
         },
         ...action.payload.settings
       };
@@ -42,6 +57,7 @@ export default function settings(
       return {
         ...state,
         state: {
+          saving: false,
           saved: false,
           error: false,
           message: ''

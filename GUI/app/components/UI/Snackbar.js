@@ -91,7 +91,7 @@ export type SnackbarProps = {
 Snackbar.defaultProps = {
   duration: 3000,
   anchorVertical: 'bottom',
-  anchorHorizontal: 'right'
+  anchorHorizontal: 'left'
 };
 
 export default function Snackbar({

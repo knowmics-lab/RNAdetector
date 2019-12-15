@@ -1,13 +1,32 @@
 {
+  "configured": {
+    "type": "boolean",
+    "default": false
+  },
   "local": {
     "type": "boolean",
     "default": true
   },
-  "webserviceUrl": {
+  "apiProtocol": {
     "type": "string",
-    "default": "http://localhost:9898/"
+    "default": "http",
+    "enum": ["http", "https"]
   },
-  "jobsPath": {
+  "apiHostname": {
+    "type": "string",
+    "default": "localhost"
+  },
+  "apiPort": {
+    "type": "integer",
+    "default": 9898,
+    "exclusiveMinimum": 0,
+    "maximum": 65535
+  },
+  "apiPath": {
+    "type": "string",
+    "default": "/api/"
+  },
+  "dataPath": {
     "type": "string"
   },
   "dockerExecutablePath": {

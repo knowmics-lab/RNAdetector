@@ -3,6 +3,7 @@ import type { Action, Dispatch } from '../reducers/types';
 import type { ConfigObjectType } from '../api';
 import * as Api from '../api';
 
+export const SETTINGS_SAVING = 'SETTINGS--SAVING';
 export const SETTINGS_SAVED = 'SETTINGS--SAVED';
 export const SETTINGS_ERROR = 'SETTINGS--ERROR';
 export const SETTINGS_RESET_SAVED = 'SETTINGS--RESET-SAVED';
@@ -10,10 +11,18 @@ export const SETTINGS_RESET_SAVED = 'SETTINGS--RESET-SAVED';
 export function saveSettings(newSettings: ConfigObjectType): Action {
   return async (dispatch: Dispatch) => {
     try {
+      dispatch(settingsSaving());
       dispatch(settingsSaved(await Api.Settings.saveConfig(newSettings)));
     } catch (e) {
       dispatch(settingsError(e));
     }
+  };
+}
+
+export function settingsSaving(): Action {
+  return {
+    type: SETTINGS_SAVING,
+    payload: {}
   };
 }
 

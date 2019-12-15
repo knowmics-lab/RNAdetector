@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+cleanup() {
+    if [ -f "/rnadetector/ws/storage/app/booted" ]; then
+        rm "/rnadetector/ws/storage/app/booted"
+    fi
+    exit 0
+}
+
 if [ ! -d "/rnadetector/ws/storage/app/public/" ]; then
     mkdir -p "/rnadetector/ws/storage/app/public/"
 fi
@@ -20,7 +27,7 @@ fi
 
 if [ ! -f "/rnadetector/ws/storage/app/references/indexed" ]; then
     echo "Indexing genomes...this might take a while..."
-    /bin/bash "/rnadetector/scripts/bwa_index.sh"     -f "/rnadetector/ws/storage/app/references/Human_hg19_genome/reference.fa" -p "/rnadetector/ws/storage/app/references/Human_hg19_genome/reference"
+    /bin/bash "/rnadetector/scripts/bwa_index.sh" -f "/rnadetector/ws/storage/app/references/Human_hg19_genome/reference.fa" -p "/rnadetector/ws/storage/app/references/Human_hg19_genome/reference"
     /bin/bash "/rnadetector/scripts/bowtie2_index.sh" -f "/rnadetector/ws/storage/app/references/Human_hg19_genome/reference.fa" -p "/rnadetector/ws/storage/app/references/Human_hg19_genome/reference"
     /bin/bash "/rnadetector/scripts/salmon_index_2.sh" -r "/rnadetector/ws/storage/app/references/Human_hg19_transcriptome/reference.fa" -i "/rnadetector/ws/storage/app/references/Human_hg19_transcriptome/reference"
     /bin/bash "/rnadetector/scripts/salmon_index_2.sh" -r "/rnadetector/ws/storage/app/references/Human_hg19_mRNA_transcriptome/reference.fa" -i "/rnadetector/ws/storage/app/references/Human_hg19_mRNA_transcriptome/reference"
@@ -37,4 +44,10 @@ chmod -R 777 "/rnadetector/ws/storage/"
 /etc/init.d/php7.3-fpm start
 /etc/init.d/supervisor start
 
+trap 'cleanup' SIGTERM
+
 exec "$@"
+
+wait $!
+
+cleanup

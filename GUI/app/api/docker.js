@@ -8,6 +8,7 @@ import Settings from './settings';
 import type { ConfigObjectType } from './settings';
 
 const execFile = util.promisify(process.execFile);
+export const DOCKER_IMAGE_NAME = 'alaimos/ubuntu-private:RNAdetector.v1.0';
 
 export default {
   async checkDockerProcess(
@@ -49,7 +50,24 @@ export default {
     return 'not found';
   },
   async createContainer(config: ConfigObjectType = Settings.getConfig()) {
-    // docker run -d -p 8888:80 -v /home/alaimos/rnadet/:/rnadetector/ws/storage/app/ --name=RNAdetector alaimos/ubuntu-private:RNAdetector.v1.0
+    const status = await this.checkContainerStatus(config);
+    if (status === 'not found') {
+      await execFile(config.dockerExecutablePath, [
+        'run',
+        '-d',
+        '-p',
+        `${config.apiPort}:80`,
+        '-v',
+        `${config.dataPath}:/rnadetector/ws/storage/app/`,
+        `--name=${config.containerName}`,
+        DOCKER_IMAGE_NAME
+      ]);
+      if ((await this.checkContainerStatus(config)) !== 'running') {
+        throw new Error(
+          `Unable to create the container ${config.containerName}. Create it manually`
+        );
+      }
+    }
   },
   async startContainer(config: ConfigObjectType = Settings.getConfig()) {
     const status = await this.checkContainerStatus(config);
@@ -89,5 +107,32 @@ export default {
         `Unable to remove the container ${config.containerName}. Remove it manually`
       );
     }
+  },
+  async execDockerCommand(
+    command: string[],
+    config: ConfigObjectType = Settings.getConfig()
+  ): mixed {
+    const status = await this.checkContainerStatus(config);
+    if (status === 'running') {
+      const { stdout } = await execFile(config.dockerExecutablePath, [
+        'exec',
+        config.containerName,
+        ...command
+      ]);
+      return JSON.parse(stdout);
+    }
+    throw new Error('Unable to exec command. Container is not running');
+  },
+  async generateAuthToken(
+    config: ConfigObjectType = Settings.getConfig()
+  ): Promise<string> {
+    const result = await this.execDockerCommand(
+      ['/genkey.sh', '--json'],
+      config
+    );
+    if (!result.error) {
+      return result.data;
+    }
+    throw new Error(result.message);
   }
 };

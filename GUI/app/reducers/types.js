@@ -8,6 +8,7 @@ export type counterStateType = {
 export type settingsStateType = {
   +settings: {
     +state: {
+      saving: boolean,
       saved: boolean,
       error: boolean,
       message: string

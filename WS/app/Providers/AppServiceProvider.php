@@ -23,6 +23,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        if (!file_exists(storage_path('app/booted'))) {
+            @touch(storage_path('app/booted'));
+        }
     }
 }
