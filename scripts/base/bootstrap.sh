@@ -1,12 +1,5 @@
 #!/usr/bin/env bash
 
-cleanup() {
-    if [ -f "/rnadetector/ws/storage/app/booted" ]; then
-        rm "/rnadetector/ws/storage/app/booted"
-    fi
-    exit 0
-}
-
 if [ ! -d "/rnadetector/ws/storage/app/public/" ]; then
     mkdir -p "/rnadetector/ws/storage/app/public/"
 fi
@@ -44,10 +37,4 @@ chmod -R 777 "/rnadetector/ws/storage/"
 /etc/init.d/php7.3-fpm start
 /etc/init.d/supervisor start
 
-trap 'cleanup' SIGTERM
-
 exec "$@"
-
-wait $!
-
-cleanup
