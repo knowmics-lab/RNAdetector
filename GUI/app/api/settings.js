@@ -6,7 +6,6 @@ import axios from 'axios';
 import configSchema from '../constants/config-schema.json';
 // eslint-disable-next-line import/no-cycle
 import Docker from './docker';
-import Utils from './utils';
 
 export type ConfigObjectType = {
   +configured: boolean,
@@ -40,6 +39,12 @@ export default {
       apiKey: this.configStore.get('apiKey')
     };
   },
+  isConfigured() {
+    return this.configStore.get('configured');
+  },
+  isLocal() {
+    return this.configStore.get('local');
+  },
   getApiUrl(config: ConfigObjectType = this.getConfig()): string {
     const path = config.apiPath.replace(/^\/|\/$/gm, '');
     return `${config.apiProtocol}://${config.apiHostname}:${config.apiPort}/${path}/`;
@@ -49,21 +54,14 @@ export default {
     return new Promise(async (resolve, reject) => {
       try {
         const oldConfig = this.getConfig();
-        const newConfig = {
-          ...oldConfig,
-          ...config,
-          configured: true
-        };
-        if (oldConfig.containerName !== newConfig.containerName) {
-          Docker.removeContainer(oldConfig);
-        }
-        if (oldConfig.configured && oldConfig.dataPath !== newConfig.dataPath) {
-          // TODO
-        }
-        if (newConfig.local && !newConfig.apiKey) {
-          newConfig.apiKey = await Docker.generateAuthToken();
-        }
-        await this.checkConfig(newConfig);
+        const newConfig = await this.checkConfig(
+          {
+            ...oldConfig,
+            ...config,
+            configured: true
+          },
+          oldConfig
+        );
         this.configStore.set(newConfig);
         resolve(newConfig);
       } catch (e) {
@@ -91,8 +89,20 @@ export default {
     }
     if (data !== 'pong') throw new Error('Invalid authentication token');
   },
-  async checkConfig(config: ConfigObjectType = this.getConfig()) {
+  async checkConfig(
+    config: ConfigObjectType = this.getConfig(),
+    oldConfig: ?ConfigObjectType = null
+  ): Promise<ConfigObjectType> {
     if (config.local) {
+      if (oldConfig && oldConfig.configured) {
+        if (
+          oldConfig.containerName !== config.containerName ||
+          oldConfig.dataPath !== config.dataPath ||
+          oldConfig.apiPort !== config.apiPort
+        ) {
+          Docker.removeContainer(oldConfig);
+        }
+      }
       if (!(await fs.pathExists(config.dataPath))) {
         await fs.ensureDir(config.dataPath, 0o755);
       }
@@ -101,8 +111,16 @@ export default {
       if (status !== 'running') {
         await Docker.startContainer(config);
       }
+      if (!config.apiKey) {
+        // eslint-disable-next-line no-param-reassign
+        config = {
+          ...config,
+          apiKey: await Docker.generateAuthToken()
+        };
+      }
     }
     await this.checkUrl(config);
     await this.checkToken(config);
+    return config;
   }
 };

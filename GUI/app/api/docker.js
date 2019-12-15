@@ -1,8 +1,9 @@
 // @flow
 /* eslint-disable no-restricted-syntax */
 import process from 'child_process';
-import { is } from 'electron-util';
+import fs from 'fs-extra';
 import util from 'util';
+import Utils from './utils';
 // eslint-disable-next-line import/no-cycle
 import Settings from './settings';
 import type { ConfigObjectType } from './settings';
@@ -11,7 +12,16 @@ const execFile = util.promisify(process.execFile);
 export const DOCKER_IMAGE_NAME = 'alaimos/ubuntu-private:RNAdetector.v1.0';
 
 export default {
-  async checkDockerProcess(
+  getBootedFile(config: ConfigObjectType = Settings.getConfig()): string {
+    return `${config.dataPath}/booted`;
+  },
+  async waitContainerBooted(config: ConfigObjectType = Settings.getConfig()) {
+    await Utils.waitExists(this.getBootedFile(config));
+  },
+  async cleanupBootedFile(config: ConfigObjectType = Settings.getConfig()) {
+    await fs.remove(this.getBootedFile(config));
+  },
+  checkDockerProcess(
     config: ConfigObjectType = Settings.getConfig()
   ): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -52,6 +62,7 @@ export default {
   async createContainer(config: ConfigObjectType = Settings.getConfig()) {
     const status = await this.checkContainerStatus(config);
     if (status === 'not found') {
+      await this.cleanupBootedFile();
       await execFile(config.dockerExecutablePath, [
         'run',
         '-d',
@@ -67,12 +78,14 @@ export default {
           `Unable to create the container ${config.containerName}. Create it manually`
         );
       }
+      await this.waitContainerBooted(config);
     }
   },
   async startContainer(config: ConfigObjectType = Settings.getConfig()) {
     const status = await this.checkContainerStatus(config);
-    if (status === 'not found') this.createContainer(config);
+    if (status === 'not found') return this.createContainer(config);
     if (status === 'stopped') {
+      await this.cleanupBootedFile();
       await execFile(config.dockerExecutablePath, [
         'start',
         config.containerName
@@ -82,6 +95,7 @@ export default {
           `Unable to start the container ${config.containerName}. Start it manually`
         );
       }
+      await this.waitContainerBooted(config);
     }
   },
   async stopContainer(config: ConfigObjectType = Settings.getConfig()) {
@@ -96,6 +110,7 @@ export default {
           `Unable to stop the container ${config.containerName}. Stop it manually`
         );
       }
+      await this.cleanupBootedFile();
     }
   },
   async removeContainer(config: ConfigObjectType = Settings.getConfig()) {

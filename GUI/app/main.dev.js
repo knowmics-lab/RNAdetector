@@ -14,6 +14,7 @@ import { app, BrowserWindow } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
+import { Settings, Docker } from './api';
 
 export default class AppUpdater {
   constructor() {
@@ -67,6 +68,10 @@ app.on('ready', async () => {
     await installExtensions();
   }
 
+  if (Settings.isConfigured() && Settings.isLocal()) {
+    await Docker.startContainer();
+  }
+
   mainWindow = new BrowserWindow({
     show: false,
     width: 1024,
@@ -92,7 +97,7 @@ app.on('ready', async () => {
     }
   });
 
-  mainWindow.on('closed', () => {
+  mainWindow.on('closed', async () => {
     mainWindow = null;
   });
 
@@ -102,4 +107,10 @@ app.on('ready', async () => {
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
   new AppUpdater();
+});
+
+app.on('before-quit', async () => {
+  if (Settings.isConfigured() && Settings.isLocal()) {
+    await Docker.stopContainer();
+  }
 });
