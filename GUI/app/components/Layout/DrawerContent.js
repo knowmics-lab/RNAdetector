@@ -14,7 +14,7 @@ import Collapse from '@material-ui/core/Collapse';
 import { items as menuItems } from '../../constants/menu.json';
 
 type ListItemLinkProps = {
-  icon?: ?JSX.Element,
+  icon?: ?React.Element<*>,
   primary: string,
   to: string,
   className?: ?string
@@ -51,7 +51,7 @@ ListItemLink.defaultProps = {
 };
 
 type ListItemExpandableProps = {
-  icon?: ?JSX.Element,
+  icon?: ?React.Element<*>,
   primary: string,
   isOpen: boolean,
   handleClick: () => void,
@@ -145,7 +145,11 @@ class DrawerContent extends React.Component<
     };
   };
 
-  renderMenuItems = (items: MenuItem[], nested: boolean = false) => {
+  renderMenuItems = (
+    items: ?(MenuItem[]),
+    nested: boolean = false
+  ): ?React.Element<*> => {
+    if (!items) return null;
     const { classes } = this.props;
     const itemsElements = items.map(item => this.renderMenuItem(item, nested));
     if (nested) {
@@ -166,7 +170,7 @@ class DrawerContent extends React.Component<
   renderMenuItem = (
     { icon, text, collapsible, key, items, to }: MenuItem,
     nested: boolean = false
-  ) => {
+  ): ?React.Element<*> => {
     const { classes } = this.props;
     if (collapsible) {
       return (
@@ -189,19 +193,22 @@ class DrawerContent extends React.Component<
         </React.Fragment>
       );
     }
-    return (
-      <ListItemLink
-        icon={<Icon className={icon} />}
-        primary={text}
-        to={to}
-        key={key}
-        className={nested ? classes.nested : null}
-      />
-    );
+    if (to) {
+      return (
+        <ListItemLink
+          icon={<Icon className={icon} />}
+          primary={text}
+          to={to}
+          key={key}
+          className={nested ? classes.nested : null}
+        />
+      );
+    }
+    return null;
   };
 
   render() {
-    return this.renderMenuItems(menuItems);
+    return <>{this.renderMenuItems(menuItems)}</>;
   }
 }
 

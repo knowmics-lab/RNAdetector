@@ -9,6 +9,7 @@ import Settings from './settings';
 import type { ConfigObjectType } from './settings';
 
 const execFile = util.promisify(process.execFile);
+
 export const DOCKER_IMAGE_NAME = 'alaimos/ubuntu-private:RNAdetector.v1.0';
 
 export default {
@@ -126,7 +127,7 @@ export default {
   async execDockerCommand(
     command: string[],
     config: ConfigObjectType = Settings.getConfig()
-  ): mixed {
+  ): Promise<*> {
     const status = await this.checkContainerStatus(config);
     if (status === 'running') {
       const { stdout } = await execFile(config.dockerExecutablePath, [
