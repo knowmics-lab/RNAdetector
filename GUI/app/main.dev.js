@@ -1,3 +1,5 @@
+/* eslint-disable promise/catch-or-return */
+/* eslint-disable promise/always-return */
 /* eslint global-require: off */
 
 /**
@@ -69,7 +71,9 @@ app.on('ready', async () => {
   }
 
   if (Settings.isConfigured() && Settings.isLocal()) {
+    console.log('Starting docker container!');
     await Docker.startContainer();
+    console.log('Docker container started!');
   }
 
   mainWindow = new BrowserWindow({
@@ -109,8 +113,30 @@ app.on('ready', async () => {
   new AppUpdater();
 });
 
-app.on('before-quit', async () => {
-  if (Settings.isConfigured() && Settings.isLocal()) {
-    await Docker.stopContainer();
+let waitingDockerClose = false;
+let dockerClosed = false;
+
+app.on('before-quit', e => {
+  if (!dockerClosed) {
+    if (Settings.isConfigured() && Settings.isLocal() && !waitingDockerClose) {
+      console.log('Waiting for docker container to stop');
+      waitingDockerClose = true;
+      Docker.stopContainer()
+        .then(_ => {
+          console.log('Docker container has been stopped! Quitting!');
+        })
+        .catch(e => {
+          console.log('Docker container cannot be stopped! Stop it manually!');
+          console.log(e);
+        })
+        .finally(_ => {
+          waitingDockerClose = false;
+          dockerClosed = true;
+          app.quit();
+        });
+    }
+  }
+  if (waitingDockerClose) {
+    e.preventDefault();
   }
 });

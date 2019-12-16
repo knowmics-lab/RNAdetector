@@ -115,7 +115,7 @@ export default {
         // eslint-disable-next-line no-param-reassign
         config = {
           ...config,
-          apiKey: await Docker.generateAuthToken()
+          apiKey: await Docker.generateAuthToken(config)
         };
       }
     }

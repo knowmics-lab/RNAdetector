@@ -7,12 +7,12 @@ import {
   Box,
   FormGroup,
   Button,
-  Grid
+  Grid,
+  Collapse
 } from '@material-ui/core';
 import { green } from '@material-ui/core/colors';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
-import Collapse from '@material-ui/core/Collapse';
 import type { settingsStateType } from '../reducers/types';
 import type { ConfigObjectType } from '../api';
 import TextField from './Form/TextField';
@@ -161,7 +161,7 @@ class Settings extends Component<Props> {
                   <FileField
                     label="Local docker executable"
                     name="dockerExecutablePath"
-                    dialogOptions={{ properties: ['openFile'] }}
+                    dialogOptions={{ properties: ['openFile'], filters: [] }}
                   />
                 </Collapse>
                 <TextField label="API key" name="apiKey" />
