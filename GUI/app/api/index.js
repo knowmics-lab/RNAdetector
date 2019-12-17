@@ -3,3 +3,4 @@ export { default as Docker } from './docker';
 export { default as Utils } from './utils';
 export { default as Jobs } from './jobs';
 export type { ConfigObjectType } from './settings';
+export type { Job, JobsCollectionItem, JobsCollection } from './jobs';

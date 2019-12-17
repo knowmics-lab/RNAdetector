@@ -1,6 +1,6 @@
 // @flow
-import Settings from './settings';
 import axios from 'axios';
+import Settings from './settings';
 
 export type Job = {
   id: number,

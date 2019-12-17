@@ -5,8 +5,9 @@ import {
   SETTINGS_ERROR,
   SETTINGS_RESET_SAVED
 } from '../actions/settings';
-import { settingsStateType, Action } from './types';
+import { Action } from './types';
 import * as Api from '../api';
+import type { settingsStateType } from './types';
 
 const initConfigState = (): settingsStateType => ({
   state: {
