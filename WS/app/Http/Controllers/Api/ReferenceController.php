@@ -40,7 +40,7 @@ class ReferenceController extends Controller
             $perPage = 15;
         }
 
-        return new ReferenceCollection(Reference::paginate($perPage));
+        return new ReferenceCollection(Reference::paginate($perPage)->appends($request->input()));
     }
 
     /**

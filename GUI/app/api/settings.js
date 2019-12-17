@@ -49,6 +49,15 @@ export default {
     const path = config.apiPath.replace(/^\/|\/$/gm, '');
     return `${config.apiProtocol}://${config.apiHostname}:${config.apiPort}/${path}/`;
   },
+  getAxiosHeaders(config: ConfigObjectType = this.getConfig()): {} {
+    return {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${config.apiKey}`
+      }
+    };
+  },
   saveConfig(config: ConfigObjectType): Promise<ConfigObjectType> {
     // eslint-disable-next-line no-async-promise-executor
     return new Promise(async (resolve, reject) => {
@@ -80,6 +89,8 @@ export default {
     try {
       const response = await axios.get(`${this.getApiUrl(config)}auth-ping`, {
         headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${config.apiKey}`
         }
       });
@@ -100,7 +111,7 @@ export default {
           oldConfig.dataPath !== config.dataPath ||
           oldConfig.apiPort !== config.apiPort
         ) {
-          Docker.removeContainer(oldConfig);
+          await Docker.removeContainer(oldConfig);
         }
       }
       if (!(await fs.pathExists(config.dataPath))) {

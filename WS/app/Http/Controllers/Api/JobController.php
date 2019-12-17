@@ -21,6 +21,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Symfony\Component\Console\Input\Input;
 
 class JobController extends Controller
 {
@@ -50,10 +51,10 @@ class JobController extends Controller
         /** @var \App\Models\User $user */
         $user = \Auth::guard('api')->user();
         if ($user->admin) {
-            return new JobCollection(Job::paginate($perPage));
+            return new JobCollection(Job::paginate($perPage)->appends($request->input()));
         }
 
-        return new JobCollection(Job::whereUserId($user->id)->paginate($perPage));
+        return new JobCollection(Job::whereUserId($user->id)->paginate($perPage)->appends($request->input()));
     }
 
     /**

@@ -1,11 +1,11 @@
 // @flow
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
 import { Typography } from '@material-ui/core';
-import routes from '../constants/routes';
-import styles from './Home.css';
+import { Jobs } from '../api';
 
 type Props = {};
+
+Jobs.fetchJobById(5).then(data => console.log(data));
 
 export default class Home extends Component<Props> {
   props: Props;

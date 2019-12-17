@@ -40,7 +40,7 @@ class AnnotationController extends Controller
             $perPage = 15;
         }
 
-        return new AnnotationCollection(Annotation::paginate($perPage));
+        return new AnnotationCollection(Annotation::paginate($perPage)->appends($request->input()));
     }
 
     /**
