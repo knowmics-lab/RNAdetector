@@ -16,12 +16,12 @@ export function setPerPage(perPage: number = 15) {
     } = getState();
     if (oldPerPage !== perPage) {
       dispatch(internalSetPerPage(perPage));
-      dispatch(requestPage());
+      dispatch(requestPage(1, true));
     }
   };
 }
 
-export function requestPage(page: number = 1) {
+export function requestPage(page: number, force: boolean = false) {
   return async (dispatch: Dispatch, getState: GetState) => {
     try {
       dispatch(jobsListLoading());
