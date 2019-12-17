@@ -22,20 +22,25 @@ class JobCollection extends ResourceCollection
      * Transform the resource collection into an array.
      *
      * @param \Illuminate\Http\Request $request
+     *
      * @return array
      */
     public function toArray($request)
     {
-        return $this->collection->map(static function ($item) {
-            return [
-                'id'         => $item->id,
-                'type'       => $item->job_type,
-                'status'     => $item->status,
-                'created_at' => $item->created_at,
-                'updated_at' => $item->updated_at,
-                'owner'      => new User($item->user),
-                'submit'     => route('jobs.submit', $item),
-            ];
-        })->keyBy('id')->all();
+        return $this->collection->map(
+            static function ($item) {
+                return [
+                    'id'         => $item->id,
+                    'type'       => $item->job_type,
+                    'status'     => $item->status,
+                    'created_at' => $item->created_at,
+                    'updated_at' => $item->updated_at,
+                    'owner'      => new User($item->user),
+                    'self'       => route('jobs.show', $item),
+                    'upload'     => route('jobs.upload', $item),
+                    'submit'     => route('jobs.submit', $item),
+                ];
+            }
+        )->keyBy('id')->all();
     }
 }
