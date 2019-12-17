@@ -32,9 +32,17 @@ export type JobsCollectionItem = {
   submit: string
 };
 
-//export type PaginatedJobsCollection
-
-export type JobsCollection = { [number]: JobsCollectionItem };
+export type JobsCollection = {
+  data: { [number]: JobsCollectionItem },
+  meta: {
+    current_page: number,
+    last_page: number,
+    per_page: number,
+    from: number,
+    to: number,
+    total: number
+  }
+};
 
 export default {
   async fetchJobById(jobId: number): Promise<Job> {
@@ -47,7 +55,21 @@ export default {
       links
     };
   },
-  async fetchJobs(): Promise<JobsCollection> {
-
+  async fetchJobs(
+    per_page: number = 15,
+    page: number = 1
+  ): Promise<JobsCollection> {
+    const result = await axios.get(`${Settings.getApiUrl()}jobs`, {
+      params: {
+        page,
+        per_page
+      },
+      ...Settings.getAxiosHeaders()
+    });
+    const { data, meta } = result.data;
+    return {
+      data,
+      meta
+    };
   }
 };

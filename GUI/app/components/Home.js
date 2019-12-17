@@ -1,11 +1,9 @@
 // @flow
 import React, { Component } from 'react';
 import { Typography } from '@material-ui/core';
-import { Jobs } from '../api';
+import Table from './UI/Table';
 
 type Props = {};
-
-Jobs.fetchJobById(5).then(data => console.log(data));
 
 export default class Home extends Component<Props> {
   props: Props;
@@ -14,6 +12,9 @@ export default class Home extends Component<Props> {
     return (
       <div>
         <Typography paragraph>Hello World</Typography>
+        <Table columns={[
+
+        ]}/>
       </div>
     );
   }

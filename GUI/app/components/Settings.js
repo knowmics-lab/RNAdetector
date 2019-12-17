@@ -8,7 +8,8 @@ import {
   FormGroup,
   Button,
   Grid,
-  Collapse
+  Collapse,
+  CircularProgress
 } from '@material-ui/core';
 import { green } from '@material-ui/core/colors';
 import { Formik, Form } from 'formik';
@@ -31,7 +32,9 @@ type Props = {
     icon: *,
     iconVariant: *,
     message: *,
-    formControl: *
+    formControl: *,
+    buttonWrapper: *,
+    buttonProgress: *
   }
 };
 
@@ -56,6 +59,18 @@ const style = theme => ({
   formControl: {
     margin: theme.spacing(1),
     minWidth: 120
+  },
+  buttonWrapper: {
+    margin: theme.spacing(1),
+    position: 'relative'
+  },
+  buttonProgress: {
+    color: green[500],
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginTop: -12,
+    marginLeft: -12
   }
 });
 
@@ -168,14 +183,22 @@ class Settings extends Component<Props> {
                 <FormGroup row className={classes.formControl}>
                   <Grid container justify="flex-end">
                     <Grid item xs="auto">
-                      <Button
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                        disabled={isSaving}
-                      >
-                        Save
-                      </Button>
+                      <div className={classes.buttonWrapper}>
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          color="primary"
+                          disabled={isSaving}
+                        >
+                          Save
+                        </Button>
+                        {isSaving && (
+                          <CircularProgress
+                            size={24}
+                            className={classes.buttonProgress}
+                          />
+                        )}
+                      </div>
                     </Grid>
                   </Grid>
                 </FormGroup>

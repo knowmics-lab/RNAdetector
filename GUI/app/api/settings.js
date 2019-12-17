@@ -20,6 +20,10 @@ export type ConfigObjectType = {
   +dockerExecutablePath: string
 };
 
+export type AxiosHeaders = {|
+  headers: { [string]: string }
+|};
+
 export default {
   configStore: new Store({ schema: configSchema }),
   getConfig(): ConfigObjectType {
@@ -49,7 +53,7 @@ export default {
     const path = config.apiPath.replace(/^\/|\/$/gm, '');
     return `${config.apiProtocol}://${config.apiHostname}:${config.apiPort}/${path}/`;
   },
-  getAxiosHeaders(config: ConfigObjectType = this.getConfig()): {} {
+  getAxiosHeaders(config: ConfigObjectType = this.getConfig()): AxiosHeaders {
     return {
       headers: {
         Accept: 'application/json',
