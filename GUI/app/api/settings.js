@@ -6,23 +6,8 @@ import axios from 'axios';
 import configSchema from '../constants/config-schema.json';
 // eslint-disable-next-line import/no-cycle
 import Docker from './docker';
-
-export type ConfigObjectType = {
-  +configured: boolean,
-  +local: boolean,
-  +apiProtocol: 'http' | 'https',
-  +apiHostname: string,
-  +apiPort: number,
-  +apiPath: string,
-  +dataPath: string,
-  +containerName: string,
-  +apiKey: string,
-  +dockerExecutablePath: string
-};
-
-export type AxiosHeaders = {|
-  headers: { [string]: string }
-|};
+import type { ConfigObjectType } from '../types/settings';
+import type { AxiosHeaders } from '../types/common';
 
 export default {
   configStore: new Store({ schema: configSchema }),

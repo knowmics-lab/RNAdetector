@@ -6,7 +6,7 @@ import util from 'util';
 import Utils from './utils';
 // eslint-disable-next-line import/no-cycle
 import Settings from './settings';
-import type { ConfigObjectType } from './settings';
+import type { ConfigObjectType } from '../types/settings';
 
 const execFile = util.promisify(process.execFile);
 

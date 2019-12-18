@@ -7,9 +7,9 @@ import {
 } from '../actions/settings';
 import { Action } from './types';
 import * as Api from '../api';
-import type { settingsStateType } from './types';
+import type { SettingsStateType } from '../types/settings';
 
-const initConfigState = (): settingsStateType => ({
+const initConfigState = (): SettingsStateType => ({
   state: {
     saving: false,
     saved: false,
@@ -20,13 +20,14 @@ const initConfigState = (): settingsStateType => ({
 });
 
 export default function settings(
-  state: ?settingsStateType = initConfigState(),
+  state: ?SettingsStateType,
   action: Action
-) {
+): SettingsStateType {
+  const oldState = state || initConfigState();
   switch (action.type) {
     case SETTINGS_SAVING:
       return {
-        ...state,
+        ...oldState,
         state: {
           saving: true,
           saved: false,
@@ -36,7 +37,7 @@ export default function settings(
       };
     case SETTINGS_ERROR:
       return {
-        ...state,
+        ...oldState,
         state: {
           saving: false,
           saved: false,
@@ -56,7 +57,7 @@ export default function settings(
       };
     case SETTINGS_RESET_SAVED:
       return {
-        ...state,
+        ...oldState,
         state: {
           saving: false,
           saved: false,
@@ -65,6 +66,6 @@ export default function settings(
         }
       };
     default:
-      return state;
+      return oldState;
   }
 }

@@ -2,9 +2,9 @@
 import * as JobsActions from '../actions/jobs';
 import { Action } from './types';
 import * as Api from '../api';
-import type { jobsListType } from './types';
+import type { JobsListType } from './types';
 
-const initJobsListState = (): jobsListType => ({
+const initJobsListState = (): JobsListType => ({
   jobsList: {
     state: {
       current_page: null,
@@ -20,11 +20,12 @@ const initJobsListState = (): jobsListType => ({
 });
 
 export default function jobs(
-  state: ?jobsListType = initJobsListState(),
+  state: JobsListType,
   action: Action
-) {
+): JobsListType {
+  const oldState = state || initJobsListState();
   switch (action.type) {
     default:
-      return state;
+      return oldState;
   }
 }

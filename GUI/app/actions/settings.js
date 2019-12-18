@@ -1,7 +1,7 @@
 // @flow
 import type { Action, Dispatch } from '../reducers/types';
-import type { ConfigObjectType } from '../api';
 import * as Api from '../api';
+import type { ConfigObjectType } from '../types/settings';
 
 export const SETTINGS_SAVING = 'SETTINGS--SAVING';
 export const SETTINGS_SAVED = 'SETTINGS--SAVED';

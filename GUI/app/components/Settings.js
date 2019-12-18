@@ -14,16 +14,14 @@ import {
 import { green } from '@material-ui/core/colors';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
-import type { settingsStateType } from '../reducers/types';
-import type { ConfigObjectType } from '../api';
 import TextField from './Form/TextField';
 import SelectField from './Form/SelectField';
 import FileField from './Form/FileField';
 import SwitchField from './Form/SwitchField';
 import Snackbar from './UI/Snackbar';
+import type { ConfigObjectType, SettingsStateType } from '../types/settings';
 
 type Props = {
-  settings: settingsStateType,
   saveSettings: ConfigObjectType => *,
   resetSaved: () => void,
   classes: {
@@ -36,7 +34,7 @@ type Props = {
     buttonWrapper: *,
     buttonProgress: *
   }
-};
+} & SettingsStateType;
 
 const style = theme => ({
   root: {
