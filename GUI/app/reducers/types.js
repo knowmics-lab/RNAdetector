@@ -1,5 +1,5 @@
 import type { Dispatch as ReduxDispatch, Store as ReduxStore } from 'redux';
-import type { JobsListType } from '../types/jobs';
+import type { JobsStateType } from '../types/jobs';
 import type { SettingsStateType } from '../types/settings';
 
 export type counterStateType = {
@@ -11,7 +11,7 @@ export type Action = {
   payload?: {}
 };
 
-export type StateType = counterStateType & SettingsStateType & JobsListType;
+export type StateType = counterStateType & SettingsStateType & JobsStateType;
 
 export type GetState = () => StateType;
 

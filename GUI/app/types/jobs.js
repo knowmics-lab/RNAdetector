@@ -36,11 +36,13 @@ export type JobsCollection = {
   meta: MetaResponseType
 };
 
-export type JobsListType = {
-  +jobsList: {|
-    +refresh_all: boolean,
-    +refresh_pages: number[],
-    +state: StatePaginationType,
-    +pages: { +[number]: JobsCollectionItem[] }
-  |}
-};
+export type JobsListType = {|
+  +refreshAll: boolean,
+  +refreshPages: number[],
+  +state: StatePaginationType,
+  +pages: { +[number]: JobsCollectionItem[] }
+|};
+
+export type JobsStateType = {|
+  +jobsList: JobsListType
+|};

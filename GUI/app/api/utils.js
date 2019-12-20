@@ -5,6 +5,16 @@ import path from 'path';
 let watcher = null;
 
 export default {
+  filterByKey(raw: {}, callback: string => boolean) {
+    return Object.keys(raw)
+      .filter(callback)
+      .reduce((obj, key) => {
+        return {
+          ...obj,
+          [key]: raw[key]
+        };
+      }, {});
+  },
   async waitExists(filePath: string, timeout: number = 0): Promise<*> {
     return new Promise((resolve, reject) => {
       let timer = null;
