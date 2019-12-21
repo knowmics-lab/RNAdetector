@@ -1,5 +1,6 @@
 {
   "HOME": "/",
   "COUNTER": "/counter",
-  "SETTINGS": "/settings"
+  "SETTINGS": "/settings",
+  "JOBS": "/jobs"
 }

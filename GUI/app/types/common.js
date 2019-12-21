@@ -21,10 +21,10 @@ export type MetaResponseType = {
 };
 
 export type StatePaginationType = {
-  +current_page: number,
-  +last_page: number,
+  +current_page: ?number,
+  +last_page: ?number,
   +per_page: number,
-  +total: number,
+  +total: ?number,
   +isFetching: boolean,
   +isError: boolean,
   +errorMessage: string

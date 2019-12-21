@@ -5,11 +5,13 @@ import App from './containers/App';
 import HomePage from './containers/HomePage';
 import CounterPage from './containers/CounterPage';
 import SettingsPage from './containers/SettingsPage';
+import JobsListPage from './containers/JobsListPage';
 
 export default () => (
   <App>
     <Switch>
       <Route path={routes.SETTINGS} component={SettingsPage} />
+      <Route path={routes.JOBS} component={JobsListPage} />
       <Route path={routes.COUNTER} component={CounterPage} />
       <Route path={routes.HOME} component={HomePage} />
     </Switch>

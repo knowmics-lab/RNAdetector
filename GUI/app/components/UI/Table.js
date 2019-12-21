@@ -24,7 +24,12 @@ export type TableProps = {
   columns: TableColumn[],
   keyField?: string,
   loading?: boolean,
-  data: *
+  data: *,
+  currentPage: number,
+  totalRows: number,
+  rowsPerPage: number,
+  onPageChange: (page: number) => void,
+  onRowsPerPageChange: (perPage: number) => void
 };
 
 const useStyles = makeStyles({
@@ -45,19 +50,23 @@ export default function Table({
   columns,
   keyField,
   loading,
-  data
+  data,
+  currentPage,
+  totalRows,
+  rowsPerPage,
+  onPageChange,
+  onRowsPerPageChange
 }: TableProps) {
   const classes = useStyles();
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
   const handleChangePage = (event, newPage) => {
-    setPage(newPage);
+    onPageChange(newPage + 1);
   };
 
+  const isLoading = loading || !data;
+
   const handleChangeRowsPerPage = event => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
+    onRowsPerPageChange(+event.target.value);
   };
 
   return (
@@ -78,7 +87,7 @@ export default function Table({
             </TableRow>
           </TableHead>
           <TableBody>
-            {loading ? (
+            {isLoading ? (
               <TableRow>
                 <TableCell align="center" colSpan={columns.length}>
                   <CircularProgress />
@@ -103,32 +112,20 @@ export default function Table({
                 </TableRow>
               ))
             )}
-            {/* rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => {
-              return (
-                <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
-                  {columns.map(column => {
-                    const value = row[column.id];
-                    return (
-                      <TableCell key={column.id} align={column.align}>
-                        {column.format && typeof value === 'number' ? column.format(value) : value}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              );
-            }) */}
           </TableBody>
         </MaterialTable>
       </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[10, 25, 100]}
-        component="div"
-        count={100}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onChangePage={handleChangePage}
-        onChangeRowsPerPage={handleChangeRowsPerPage}
-      />
+      {!isLoading && (
+        <TablePagination
+          rowsPerPageOptions={[1, 10, 15, 20, 30, 100]}
+          component="div"
+          count={totalRows}
+          rowsPerPage={rowsPerPage}
+          page={currentPage - 1}
+          onChangePage={handleChangePage}
+          onChangeRowsPerPage={handleChangeRowsPerPage}
+        />
+      )}
     </>
   );
 }

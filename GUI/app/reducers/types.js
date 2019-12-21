@@ -11,7 +11,8 @@ export type Action = {
   payload?: {}
 };
 
-export type StateType = counterStateType & SettingsStateType & JobsStateType;
+export type StateType = counterStateType &
+  SettingsStateType & { jobs: JobsStateType };
 
 export type GetState = () => StateType;
 
