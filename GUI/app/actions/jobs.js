@@ -85,7 +85,7 @@ export function jobsListLoaded(payload: JobsCollection): Action {
   };
 }
 
-export function jobsListCached(page: number) {
+export function jobsListCached(page: number): Action {
   return {
     type: JOBS_LIST_CACHED,
     payload: {

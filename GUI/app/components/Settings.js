@@ -135,7 +135,7 @@ class Settings extends Component<Props> {
           <Typography variant="h5" component="h3">
             Settings
           </Typography>
-          <Typography component="p">Description goes here</Typography>
+          <Typography component="p"/>
           <Formik
             initialValues={settings}
             validationSchema={validationSchema}

@@ -1,57 +1,50 @@
 // @flow
 import React, { Component } from 'react';
-import has from 'lodash/has';
-import { Typography, CircularProgress } from '@material-ui/core';
-import Table from './UI/Table';
-import type { JobsCollectionItem, JobsListType } from '../types/jobs';
-import Snackbar from './UI/Snackbar';
-import type { StatePaginationType } from '../types/common';
+import { withStyles } from '@material-ui/core/styles';
+import { Typography, Paper, Box } from '@material-ui/core';
+import moment from 'moment';
+import { ConnectTable } from './UI/PaginatedRemoteTable';
+import * as JobsActions from '../actions/jobs';
+import type { StateType } from '../reducers/types';
+
+const JobsTable = ConnectTable(
+  (state: StateType) => ({
+    paginationState: state.jobs.jobsList.state,
+    pagesCollection: state.jobs.jobsList.pages
+  }),
+  {
+    changeRowsPerPage: JobsActions.setPerPage,
+    handleSnackbarClose: JobsActions.jobsListResetLoading,
+    requestPage: JobsActions.requestPage
+  }
+);
+
+const style = theme => ({
+  root: {
+    padding: theme.spacing(3, 2)
+  }
+});
 
 type Props = {
-  requestPage: number => void,
-  setPerPage: number => void,
-  jobsListResetLoading: () => void,
-  refreshAll: boolean,
-  refreshPages: number[],
-  state: StatePaginationType,
-  pages: { +[number]: JobsCollectionItem[] }
-} & JobsListType;
+  classes: {
+    root: *
+  }
+};
 
-export default class JobsList extends Component<Props> {
+class JobsList extends Component<Props> {
   props: Props;
 
-  handleClose = () => {
-    const { jobsListResetLoading } = this.props;
-    jobsListResetLoading();
-  };
-
   render() {
-    const {
-      refreshAll,
-      refreshPages,
-      state,
-      pages,
-      requestPage,
-      setPerPage
-    } = this.props;
-    const cp = state.current_page;
-    const needsLoading =
-      !state.isError &&
-      !state.isFetching &&
-      (!cp || refreshAll || refreshPages.includes(cp) || !has(pages, cp));
-    if (needsLoading) {
-      requestPage(1);
-    }
+    const { classes } = this.props;
     return (
-      <div>
-        <Typography paragraph>Hello World</Typography>
-        {needsLoading ? (
-          <div className="text-center">
-            <CircularProgress />
-          </div>
-        ) : (
-          !state.isError && (
-            <Table
+      <Box>
+        <Paper className={classes.root}>
+          <Typography variant="h5" component="h3">
+            Jobs list
+          </Typography>
+          <Typography component="p" />
+          <div>
+            <JobsTable
               columns={[
                 {
                   id: 'type',
@@ -66,27 +59,18 @@ export default class JobsList extends Component<Props> {
                 {
                   id: 'created_at',
                   label: 'Created at',
+                  format: value => {
+                    return moment(value).format('YYYY-MM-DD HH:mm:ss');
+                  },
                   minWidth: 150
                 }
               ]}
-              currentPage={state.current_page || 1}
-              data={pages[state.current_page] || null}
-              keyField="id"
-              loading={state.isFetching}
-              rowsPerPage={state.per_page}
-              totalRows={state.total || 1}
-              onPageChange={page => requestPage(page)}
-              onRowsPerPageChange={perPage => setPerPage(perPage)}
             />
-          )
-        )}
-        <Snackbar
-          message={`An error occurred: ${state.errorMessage}!`}
-          isOpen={state.isError}
-          setClosed={this.handleClose}
-          variant="error"
-        />
-      </div>
+          </div>
+        </Paper>
+      </Box>
     );
   }
 }
+
+export default withStyles(style)(JobsList);

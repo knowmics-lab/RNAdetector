@@ -1,16 +1,10 @@
-import { bindActionCreators } from 'redux';
-import { connect } from 'react-redux';
-import * as JobsActions from '../actions/jobs';
+import React from 'react';
 import JobsList from '../components/JobsList';
 
-function mapStateToProps(state) {
-  return {
-    ...state.jobs.jobsList
-  };
+export default function JobsListPage() {
+  return (
+    <>
+      <JobsList />
+    </>
+  );
 }
-
-function mapDispatchToProps(dispatch) {
-  return bindActionCreators(JobsActions, dispatch);
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(JobsList);
