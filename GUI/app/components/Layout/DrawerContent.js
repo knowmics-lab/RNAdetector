@@ -122,8 +122,7 @@ class DrawerContent extends React.Component<
 
   realGetCollapsibleState = (panelKey: string, state: DrawerContentState) => {
     const { collapsibleState } = state;
-    const panelState = collapsibleState[panelKey] || false;
-    return panelState;
+    return collapsibleState[panelKey] || false;
   };
 
   getCollapsibleState = (panelKey: string) => {

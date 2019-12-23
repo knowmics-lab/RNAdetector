@@ -36,6 +36,13 @@ export type JobsCollection = {
   meta: MetaResponseType
 };
 
+export type JobTypes = {
+  id: string,
+  description: string
+};
+
+export type JobTypesCollection = { [string]: JobTypes };
+
 export type JobsListType = {|
   +refreshAll: boolean,
   +refreshPages: number[],

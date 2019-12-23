@@ -9,7 +9,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
 import TableContainer from '@material-ui/core/TableContainer';
-import CircularProgress from '@material-ui/core/CircularProgress';
+import LinearProgress from '@material-ui/core/LinearProgress';
 import { makeStyles } from '@material-ui/core/styles';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
@@ -21,9 +21,9 @@ import type { Action, StateType } from '../../reducers/types';
 export type TableColumn = {
   id: string,
   label: string,
-  minWidth: number,
+  minWidth?: number,
   align?: 'left' | 'right' | 'center' | 'justify',
-  format?: * => string
+  format?: (*) => mixed
 };
 
 export type DispatchActions = {
@@ -50,7 +50,7 @@ export type TableProps = {
   handleSnackbarClose: () => void
 } & StateProps;
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(theme => ({
   root: {
     width: '100%'
   },
@@ -59,8 +59,14 @@ const useStyles = makeStyles({
   },
   stickyStyle: {
     backgroundColor: 'white'
+  },
+  loading: {
+    width: '100%',
+    '& > * + *': {
+      marginTop: theme.spacing(2)
+    }
   }
-});
+}));
 
 PaginatedRemoteTable.defaultProps = {
   keyField: 'id'
@@ -108,6 +114,11 @@ export default function PaginatedRemoteTable({
 
   return (
     <Paper className={classes.root}>
+      {isLoading && (
+        <div className={classes.loading}>
+          <LinearProgress />
+        </div>
+      )}
       <TableContainer className={classes.container}>
         <Table stickyHeader size="medium">
           <TableHead>
@@ -125,13 +136,7 @@ export default function PaginatedRemoteTable({
             </TableRow>
           </TableHead>
           <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell align="center" colSpan={columns.length}>
-                  <CircularProgress />
-                </TableCell>
-              </TableRow>
-            ) : (
+            {!isLoading &&
               data.map(row => (
                 <TableRow
                   hover
@@ -148,8 +153,7 @@ export default function PaginatedRemoteTable({
                     );
                   })}
                 </TableRow>
-              ))
-            )}
+              ))}
           </TableBody>
         </Table>
       </TableContainer>

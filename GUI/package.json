@@ -269,6 +269,7 @@
     "core-js": "^3.4.5",
     "devtron": "^1.4.0",
     "electron-debug": "^3.0.1",
+    "electron-dl": "^2.0.0",
     "electron-log": "^3.0.9",
     "electron-store": "^5.1.0",
     "electron-updater": "^4.2.0",

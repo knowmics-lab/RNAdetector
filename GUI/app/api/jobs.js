@@ -1,7 +1,7 @@
 // @flow
 import axios from 'axios';
 import Settings from './settings';
-import type { Job, JobsCollection } from '../types/jobs';
+import type { Job, JobsCollection, JobTypesCollection } from '../types/jobs';
 
 export default {
   async fetchJobById(jobId: number): Promise<Job> {
@@ -30,5 +30,12 @@ export default {
       data,
       meta
     };
+  },
+  async fetchTypes(): Promise<JobTypesCollection> {
+    const result = await axios.get(`${Settings.getApiUrl()}job-types`, {
+      ...Settings.getAxiosHeaders()
+    });
+    const { data } = result.data;
+    return data;
   }
 };
