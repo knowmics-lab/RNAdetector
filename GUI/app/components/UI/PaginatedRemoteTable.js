@@ -102,7 +102,7 @@ export default function PaginatedRemoteTable({
     errorMessage
   } = paginationState;
 
-  if (!currentPage && !totalRows && !isFetching) {
+  if (!currentPage && !totalRows && !isFetching && !isError) {
     requestPage(1);
   }
 

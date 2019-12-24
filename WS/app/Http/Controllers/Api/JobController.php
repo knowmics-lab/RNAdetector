@@ -50,7 +50,7 @@ class JobController extends Controller
         if ($perPage < 0) {
             $perPage = 15;
         }
-        $builder = Job::newQuery();
+        $builder = Job::query();
         if (!empty($orderBy)) {
             for ($i = 0, $count = count($orderBy); $i < $count; $i++) {
                 if ($orderBy[$i]) {
