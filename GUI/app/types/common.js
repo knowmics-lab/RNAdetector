@@ -25,7 +25,15 @@ export type StatePaginationType = {
   +last_page: ?number,
   +per_page: number,
   +total: ?number,
-  +isFetching: boolean,
-  +isError: boolean,
-  +errorMessage: string
+  +fetching: boolean,
+  +fetched: boolean,
+  +error: ?string
 };
+
+export type LoadedCollectionMeta = {
+  +fetching: boolean,
+  +fetched: boolean,
+  +error: ?string
+};
+
+export type MapType = { [string]: string | number | boolean | MapType };

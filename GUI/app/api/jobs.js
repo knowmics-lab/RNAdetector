@@ -27,7 +27,14 @@ export default {
     });
     const { data, meta } = result.data;
     return {
-      data,
+      data: data.map(x => ({
+        ...x,
+        links: {
+          self: x.self,
+          upload: x.upload,
+          submit: x.submit
+        }
+      })),
       meta
     };
   },

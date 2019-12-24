@@ -1,38 +1,37 @@
 // @flow
-import type { MetaResponseType, StatePaginationType } from './common';
+import type {
+  LoadedCollectionMeta,
+  MapType,
+  MetaResponseType,
+  StatePaginationType
+} from './common';
 
 export type Job = {
   id: number,
+  name: string,
   type: string,
+  readable_type: string,
   status: 'ready' | 'queued' | 'processing' | 'completed' | 'failed',
-  parameters: { [string]: string | number | {} },
-  output: { [string]: string | number | {} },
-  log: string,
+  parameters?: MapType,
+  output?: MapType,
+  log?: string,
   created_at: string,
+  created_at_diff: string,
   updated_at: string,
+  updated_at_diff: string,
   owner: *,
   links: {
     self: string,
-    owner: string,
+    owner?: string,
     upload: string,
     submit: string
   }
 };
 
-export type JobsCollectionItem = {
-  id: string,
-  type: string,
-  status: 'ready' | 'queued' | 'processing' | 'completed' | 'failed',
-  created_at: string,
-  updated_at: string,
-  owner: *,
-  self: string,
-  upload: string,
-  submit: string
-};
+export type JobsCollectionItem = Job;
 
 export type JobsCollection = {
-  data: { [number]: JobsCollectionItem },
+  data: JobsCollectionItem[],
   meta: MetaResponseType
 };
 
@@ -50,6 +49,12 @@ export type JobsListType = {|
   +pages: { +[number]: JobsCollectionItem[] }
 |};
 
+export type LoadedJobs = {|
+  +meta: LoadedCollectionMeta,
+  +items: { +[number]: Job }
+|};
+
 export type JobsStateType = {|
-  +jobsList: JobsListType
+  +jobsList: JobsListType,
+  +jobs: LoadedJobs
 |};

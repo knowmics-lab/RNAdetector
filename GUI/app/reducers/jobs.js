@@ -6,8 +6,10 @@ import * as Api from '../api';
 import type {
   JobsListType,
   JobsStateType,
-  JobsCollection
+  JobsCollection,
+  LoadedJobs
 } from '../types/jobs';
+import { JOBS_RESET_ERROR_MESSAGE } from '../actions/jobs';
 
 const initJobsListState = (perPage: number = 15): JobsStateType => ({
   jobsList: {
@@ -18,11 +20,19 @@ const initJobsListState = (perPage: number = 15): JobsStateType => ({
       last_page: null,
       per_page: perPage,
       total: null,
-      isFetching: false,
-      isError: false,
-      errorMessage: ''
+      fetching: false,
+      fetched: false,
+      error: null
     },
     pages: {}
+  },
+  jobs: {
+    meta: {
+      fetching: false,
+      fetched: false,
+      error: null
+    },
+    items: {}
   }
 });
 
@@ -58,9 +68,9 @@ function addLoadedPayload(
       current_page: payload.meta.current_page,
       last_page: payload.meta.last_page,
       total: payload.meta.total,
-      isFetching: false,
-      isError: false,
-      errorMessage: ''
+      fetching: false,
+      fetched: true,
+      error: null
     },
     pages: {
       ...state.pages,
@@ -71,12 +81,8 @@ function addLoadedPayload(
 
 function jobsList(state: JobsListType, action: Action): JobsListType {
   switch (action.type) {
-    case JobsActions.JOBS_LIST_RESET_LOADING:
-      return changeJobsListState(state, {
-        isFetching: false,
-        isError: false,
-        errorMessage: ''
-      });
+    case JobsActions.JOBS_LIST_RESET_ERROR_MESSAGE:
+      return changeJobsListState(state, { error: null });
     case JobsActions.JOBS_LIST_RESET_ALL:
       const newState = initJobsListState(state.state.per_page);
       return newState.jobsList;
@@ -84,9 +90,9 @@ function jobsList(state: JobsListType, action: Action): JobsListType {
       return resetJobsListSelected(state, action.payload.pages);
     case JobsActions.JOBS_LIST_ERROR:
       return changeJobsListState(state, {
-        isFetching: false,
-        isError: true,
-        errorMessage: action.payload.message
+        fetching: true,
+        fetched: false,
+        error: action.payload.message
       });
     case JobsActions.JOBS_LIST_SET_PER_PAGE:
       return {
@@ -95,7 +101,11 @@ function jobsList(state: JobsListType, action: Action): JobsListType {
         refreshPages: []
       };
     case JobsActions.JOBS_LIST_LOADING:
-      return changeJobsListState(state, { isFetching: true });
+      return changeJobsListState(state, {
+        fetching: true,
+        fetched: false,
+        error: null
+      });
     case JobsActions.JOBS_LIST_REQUEST_REFRESH:
       return {
         ...state,
@@ -107,9 +117,60 @@ function jobsList(state: JobsListType, action: Action): JobsListType {
     case JobsActions.JOBS_LIST_CACHED:
       return changeJobsListState(state, {
         current_page: action.payload.page,
-        isFetching: false,
-        isError: false,
-        errorMessage: ''
+        fetching: false,
+        fetched: true,
+        error: null
+      });
+    default:
+      return state;
+  }
+}
+
+function changeLoadedJobMeta(state, newMeta) {
+  return {
+    ...state,
+    meta: {
+      ...state.meta,
+      ...newMeta
+    }
+  };
+}
+
+function loadedJobs(state: LoadedJobs, action: Action): LoadedJobs {
+  switch (action.type) {
+    case JobsActions.JOBS_LOADING:
+      return changeLoadedJobMeta(state, {
+        fetching: true,
+        fetched: false,
+        error: null
+      });
+    case JobsActions.JOBS_LOADED:
+      return {
+        items: {
+          ...state.items,
+          [action.payload.id]: action.payload
+        },
+        meta: {
+          fetching: false,
+          fetched: true,
+          error: null
+        }
+      };
+    case JobsActions.JOBS_CACHED:
+      return changeLoadedJobMeta(state, {
+        fetching: false,
+        fetched: true,
+        error: null
+      });
+    case JobsActions.JOBS_ERROR:
+      return changeLoadedJobMeta(state, {
+        fetching: true,
+        fetched: false,
+        error: action.payload.message
+      });
+    case JobsActions.JOBS_RESET_ERROR_MESSAGE:
+      return changeLoadedJobMeta(state, {
+        error: null
       });
     default:
       return state;
@@ -121,7 +182,15 @@ export default function jobs(
   action: Action
 ): JobsStateType {
   const oldState = state || initJobsListState();
-  return {
-    jobsList: jobsList(oldState.jobsList, action)
+  const newState = {
+    jobsList: jobsList(oldState.jobsList, action),
+    jobs: loadedJobs(oldState.jobs, action)
   };
+  if (
+    newState.jobsList === oldState.jobsList &&
+    newState.jobs === oldState.jobs
+  ) {
+    return oldState;
+  }
+  return newState;
 }

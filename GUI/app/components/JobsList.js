@@ -10,7 +10,7 @@ import * as JobsActions from '../actions/jobs';
 import * as Api from '../api';
 import type { StateType } from '../reducers/types';
 import Button from './UI/Button';
-import IconButton from "./UI/IconButton";
+import IconButton from './UI/IconButton';
 
 const JobsTable = ConnectTable(
   (state: StateType) => ({
@@ -19,7 +19,7 @@ const JobsTable = ConnectTable(
   }),
   {
     changeRowsPerPage: JobsActions.setPerPage,
-    handleSnackbarClose: JobsActions.jobsListResetLoading,
+    resetErrorMessage: JobsActions.jobsListResetErrorMessage,
     requestPage: JobsActions.requestPage
   }
 );
@@ -74,50 +74,76 @@ class JobsList extends Component<Props, State> {
             <JobsTable
               columns={[
                 {
-                  id: 'type',
-                  label: 'Type',
-                  minWidth: 100,
-                  format: value => {
-                    return Api.Utils.capitalize(
-                      Api.Utils.dashToWordString(value)
-                        .replace(' Job Type', '')
-                        .replace('Rna', 'RNA')
-                        .replace('Dna', 'DNA')
-                    );
-                  }
+                  id: 'name',
+                  label: 'Name'
+                },
+                {
+                  id: 'readable_type',
+                  label: 'Type'
                 },
                 {
                   id: 'status',
-                  label: 'Status',
-                  minWidth: 100
+                  label: 'Status'
                 },
                 {
-                  id: 'created_at',
-                  label: 'Created at',
-                  format: value => {
-                    return moment(value).format('YYYY-MM-DD HH:mm:ss');
-                  },
-                  minWidth: 150
+                  id: 'created_at_diff',
+                  label: 'Created at'
                 },
                 {
                   id: 'id',
+                  align: 'center',
                   label: 'Action',
-                  format: value => {
+                  format: row => {
                     // eslint-disable-next-line radix
-                    return (
-                      <>
-                        <IconButton title="Logs" href="/test">
+                    // 'ready' | 'queued' | 'processing' | 'completed' | 'failed'
+                    const components = [];
+                    if (row.status === 'ready') {
+                      components.push(
+                        <IconButton
+                          title="Submit"
+                          color="primary"
+                          href="/href"
+                          key={`${row.id}-submit`}
+                        >
+                          <Icon className="fas fa-play" />
+                        </IconButton>
+                      );
+                    }
+                    if (row.status !== 'ready' && row.status !== 'queued') {
+                      components.push(
+                        <IconButton
+                          title="Logs"
+                          href="/test"
+                          key={`${row.id}-logs`}
+                        >
                           <Icon className="fas fa-file-alt" />
                         </IconButton>
+                      );
+                    }
+                    if (row.status === 'completed') {
+                      components.push(
+                        <IconButton
+                          title="Save results"
+                          href="/test"
+                          key={`${row.id}-save`}
+                        >
+                          <Icon className="fas fa-save" />
+                        </IconButton>
+                      );
+                    }
+                    if (row.status !== 'processing') {
+                      components.push(
                         <IconButton
                           title="Delete"
                           color="secondary"
                           href="/test"
+                          key={`${row.id}-delete`}
                         >
                           <Icon className="fas fa-trash" />
                         </IconButton>
-                      </>
-                    );
+                      );
+                    }
+                    return <>{components}</>;
                   }
                 }
               ]}
