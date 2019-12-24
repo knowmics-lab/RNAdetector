@@ -9,12 +9,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 use Storage;
 
 /**
  * App\Models\Job
  *
  * @property int                             $id
+ * @property string                          $name
  * @property string                          $job_type
  * @property string                          $status
  * @property array                           $job_parameters
@@ -29,6 +31,7 @@ use Storage;
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job query()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereJobOutput($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereJobParameters($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereJobType($value)
@@ -70,6 +73,32 @@ class Job extends Model
         'job_parameters' => 'array',
         'job_output'     => 'array',
     ];
+
+    /**
+     * Returns the readable job type
+     *
+     * @return string
+     */
+    public function readableJobType(): string
+    {
+        return Str::title(ucwords(str_replace(['-', '_'], ' ', str_replace('_job_type', '', $this->job_type))));
+    }
+
+    /**
+     * Returns a default name is the value is null
+     *
+     * @param string|null $value
+     *
+     * @return string
+     */
+    public function getNameAttribute(?string $value): string
+    {
+        if ($value === null) {
+            return $this->readableJobType() . ' Job of ' . $this->created_at->diffForHumans();
+        }
+
+        return $value;
+    }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo

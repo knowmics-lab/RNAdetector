@@ -45,16 +45,25 @@ class JobController extends Controller
     public function index(Request $request): JobCollection
     {
         $perPage = (int)($request->get('per_page') ?? 15);
+        $orderBy = (array)($request->get('order') ?? ['created_at']);
+        $orderDirection = (array)($request->get('order_direction') ?? ['desc']);
         if ($perPage < 0) {
             $perPage = 15;
         }
+        $builder = Job::newQuery();
+        if (!empty($orderBy)) {
+            for ($i = 0, $count = count($orderBy); $i < $count; $i++) {
+                if ($orderBy[$i]) {
+                    $builder->orderBy($orderBy[$i], $orderDirection[$i] ?? 'desc');
+                }
+            }
+        }
         /** @var \App\Models\User $user */
         $user = \Auth::guard('api')->user();
-        if ($user->admin) {
-            return new JobCollection(Job::paginate($perPage)->appends($request->input()));
+        if (!$user->admin) {
+            $builder->where('user_id', $user->id);
         }
-
-        return new JobCollection(Job::whereUserId($user->id)->paginate($perPage)->appends($request->input()));
+        return new JobCollection($builder->paginate($perPage)->appends($request->input()));
     }
 
     /**
