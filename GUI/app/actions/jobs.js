@@ -67,7 +67,7 @@ export function requestPage(page: number) {
   };
 }
 
-export function requestJob(jobId: number, force: boolean = true) {
+export function requestJob(jobId: number, force: boolean = false) {
   return async (dispatch: Dispatch, getState: GetState) => {
     try {
       dispatch(jobLoading());
@@ -169,7 +169,7 @@ export function jobLoading(): Action {
 
 export function jobLoaded(payload: Job): Action {
   return {
-    type: JOBS_LOADING,
+    type: JOBS_LOADED,
     payload
   };
 }

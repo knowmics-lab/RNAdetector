@@ -47,13 +47,30 @@ const useStylesWrapper = makeStyles(theme => ({
 
 type ContentWrapperProps = {
   message: string,
-  onClose: (*, string) => void,
+  onClose: ?(*, string) => void,
   variant: 'success' | 'warning' | 'error' | 'info'
 };
 
-function ContentWrapper({ message, onClose, variant }: ContentWrapperProps) {
+export function ContentWrapper({
+  message,
+  onClose,
+  variant
+}: ContentWrapperProps) {
   const classes = useStylesWrapper();
   const Icon = variantIcon[variant];
+  const actions = [];
+  if (onClose) {
+    actions.push(
+      <IconButton
+        key="close"
+        aria-label="close"
+        color="inherit"
+        onClick={onClose}
+      >
+        <CloseIcon className={classes.icon} />
+      </IconButton>
+    );
+  }
 
   return (
     <SnackbarContent
@@ -64,16 +81,7 @@ function ContentWrapper({ message, onClose, variant }: ContentWrapperProps) {
           {message}
         </span>
       }
-      action={[
-        <IconButton
-          key="close"
-          aria-label="close"
-          color="inherit"
-          onClick={onClose}
-        >
-          <CloseIcon className={classes.icon} />
-        </IconButton>
-      ]}
+      action={actions}
     />
   );
 }
