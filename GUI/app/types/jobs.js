@@ -50,7 +50,9 @@ export type JobsListType = {|
 |};
 
 export type LoadedJobs = {|
-  +meta: LoadedCollectionMeta,
+  +meta: LoadedCollectionMeta & {
+    submitting: boolean
+  },
   +items: { +[number]: Job }
 |};
 

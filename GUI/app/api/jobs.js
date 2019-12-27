@@ -4,6 +4,19 @@ import Settings from './settings';
 import type { Job, JobsCollection, JobTypesCollection } from '../types/jobs';
 
 export default {
+  async submitJob(jobId: number): Promise<Job> {
+    const result = await axios.get(
+      `${Settings.getApiUrl()}jobs/${jobId}/submit`,
+      {
+        ...Settings.getAxiosHeaders()
+      }
+    );
+    const { data, links } = result.data;
+    return {
+      ...data,
+      links
+    };
+  },
   async fetchJobById(jobId: number): Promise<Job> {
     const result = await axios.get(`${Settings.getApiUrl()}jobs/${jobId}`, {
       ...Settings.getAxiosHeaders()

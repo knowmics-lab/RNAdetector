@@ -15,6 +15,7 @@ export const JOBS_LIST_RESET_ALL = 'JOBS--LIST--RESET_ALL';
 export const JOBS_LIST_RESET_SELECTED = 'JOBS--LIST--RESET_SELECTED';
 export const JOBS_LIST_REQUEST_REFRESH = 'JOBS--LIST--REQUEST_REFRESH';
 export const JOBS_LOADING = 'JOBS--JOB-LOADING';
+export const JOBS_SUBMITTING = 'JOBS--JOB-SUBMITTING';
 export const JOBS_LOADED = 'JOBS--JOB-LOADED';
 export const JOBS_CACHED = 'JOBS--JOB-CACHED';
 export const JOBS_ERROR = 'JOBS--JOB-ERROR';
@@ -67,6 +68,13 @@ export function requestPage(page: number) {
   };
 }
 
+export function refreshPage(page: number) {
+  return (dispatch: Dispatch) => {
+    dispatch(jobsListRequestRefresh([page]));
+    dispatch(requestPage(page));
+  };
+}
+
 export function requestJob(jobId: number, force: boolean = false) {
   return async (dispatch: Dispatch, getState: GetState) => {
     try {
@@ -81,6 +89,21 @@ export function requestJob(jobId: number, force: boolean = false) {
         dispatch(jobLoaded(job));
       } else {
         dispatch(jobCached());
+      }
+    } catch (e) {
+      dispatch(jobError(e.message));
+    }
+  };
+}
+
+export function submitJob(jobId: number, page: ?number = null) {
+  return async (dispatch: Dispatch) => {
+    try {
+      dispatch(jobLoading());
+      const job = await Api.Jobs.submitJob(jobId);
+      dispatch(jobLoaded(job));
+      if (page) {
+        dispatch(refreshPage(page));
       }
     } catch (e) {
       dispatch(jobError(e.message));
@@ -163,6 +186,13 @@ export function jobsListRequestRefresh(pages: ?(number[]) = null): Action {
 export function jobLoading(): Action {
   return {
     type: JOBS_LOADING,
+    payload: {}
+  };
+}
+
+export function jobSubmitting(): Action {
+  return {
+    type: JOBS_SUBMITTING,
     payload: {}
   };
 }

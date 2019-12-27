@@ -38,14 +38,13 @@ export type StateProps = {
 };
 
 export type ConnectedTableProps = {
-  columns: TableColumn[],
-  keyField?: string
-};
-
-export type TableProps = {
   size?: 'small' | 'medium',
   columns: TableColumn[],
   keyField?: string,
+  onPageChange: number => void
+};
+
+export type TableProps = ConnectedTableProps & {
   requestPage: number => void,
   changeRowsPerPage: number => void,
   resetErrorMessage: () => void,
@@ -106,9 +105,21 @@ class PaginatedRemoteTable extends Component<TableProps, TableState> {
     return null;
   }
 
+  componentDidUpdate(prevProps: TableProps) {
+    const {
+      paginationState: { current_page: prevPage }
+    } = prevProps;
+    const {
+      paginationState: { current_page: currentPage },
+      onPageChange
+    } = this.props;
+    if (currentPage !== prevPage) onPageChange(currentPage);
+  }
+
   handleChangePage = (event, newPage) => {
-    const { requestPage } = this.props;
+    const { requestPage, onPageChange } = this.props;
     requestPage(newPage + 1);
+    onPageChange(newPage + 1);
   };
 
   handleChangeRowsPerPage = event => {

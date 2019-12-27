@@ -9,7 +9,6 @@ import type {
   JobsCollection,
   LoadedJobs
 } from '../types/jobs';
-import { JOBS_RESET_ERROR_MESSAGE } from '../actions/jobs';
 
 const initJobsListState = (perPage: number = 15): JobsStateType => ({
   jobsList: {
@@ -28,6 +27,7 @@ const initJobsListState = (perPage: number = 15): JobsStateType => ({
   },
   jobs: {
     meta: {
+      submitting: false,
       fetching: false,
       fetched: false,
       error: null
@@ -140,7 +140,15 @@ function loadedJobs(state: LoadedJobs, action: Action): LoadedJobs {
   switch (action.type) {
     case JobsActions.JOBS_LOADING:
       return changeLoadedJobMeta(state, {
+        submitting: false,
         fetching: true,
+        fetched: false,
+        error: null
+      });
+    case JobsActions.JOBS_SUBMITTING:
+      return changeLoadedJobMeta(state, {
+        submitting: true,
+        fetching: false,
         fetched: false,
         error: null
       });
@@ -151,6 +159,7 @@ function loadedJobs(state: LoadedJobs, action: Action): LoadedJobs {
           [action.payload.id]: action.payload
         },
         meta: {
+          submitting: false,
           fetching: false,
           fetched: true,
           error: null
@@ -158,12 +167,14 @@ function loadedJobs(state: LoadedJobs, action: Action): LoadedJobs {
       };
     case JobsActions.JOBS_CACHED:
       return changeLoadedJobMeta(state, {
+        submitting: false,
         fetching: false,
         fetched: true,
         error: null
       });
     case JobsActions.JOBS_ERROR:
       return changeLoadedJobMeta(state, {
+        submitting: true,
         fetching: true,
         fetched: false,
         error: action.payload.message

@@ -49,11 +49,11 @@ function InternalLogsDialog({
 
   const hasJob = jobId && has(jobs.items, jobId);
 
-  const startTimer = () => {
+  const startTimer = (val: ?number = null) => {
     if (timer) {
       clearInterval(timer);
     }
-    setTimer(setInterval(fnRequestJob, timeout * 1000));
+    setTimer(setInterval(fnRequestJob, (val || timeout) * 1000));
   };
 
   const stopTimer = () => {
@@ -67,10 +67,13 @@ function InternalLogsDialog({
     const val = +e.target.value;
     if (timeout !== val) {
       setTimeout(val);
-      if (timer) {
-        startTimer();
-      }
+      if (timer) startTimer(val);
     }
+  };
+
+  const internalOnClose = () => {
+    stopTimer();
+    onClose();
   };
 
   const needsRefresh = hasJob && jobs.items[jobId].status === 'processing';
@@ -84,6 +87,10 @@ function InternalLogsDialog({
   }
 
   if (!isOpen && timer && needsRefresh) {
+    stopTimer();
+  }
+
+  if (isOpen && timer && !needsRefresh) {
     stopTimer();
   }
 
@@ -119,6 +126,7 @@ function InternalLogsDialog({
                 variant="filled"
                 value={timeout}
                 onChange={handleTimeoutChange}
+                onBlur={handleTimeoutChange}
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">s</InputAdornment>
@@ -129,7 +137,7 @@ function InternalLogsDialog({
           ) : (
             <Icon className="fas fa-sync" />
           )}
-          <Button onClick={onClose} color="primary" autoFocus>
+          <Button onClick={internalOnClose} color="primary" autoFocus>
             Close
           </Button>
         </DialogActions>

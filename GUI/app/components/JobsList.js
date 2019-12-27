@@ -35,6 +35,8 @@ const style = theme => ({
 });
 
 type Props = {
+  submitJob: (number, ?number) => void,
+  refreshPage: number => void,
   classes: {
     root: *,
     loading: *
@@ -44,7 +46,8 @@ type Props = {
 type State = {
   isLoading: boolean,
   logsOpen: boolean,
-  logsSelectedJobId: ?number
+  logsSelectedJobId: ?number,
+  currentPage: ?number
 };
 
 class JobsList extends Component<Props, State> {
@@ -53,12 +56,17 @@ class JobsList extends Component<Props, State> {
     this.state = {
       isLoading: false,
       logsOpen: false,
-      logsSelectedJobId: null
+      logsSelectedJobId: null,
+      currentPage: null
     };
   }
 
-  handleLogsClose = () =>
+  handleLogsClose = () => {
+    const { currentPage } = this.state;
+    const { refreshPage } = this.props;
     this.setState({ logsOpen: false, logsSelectedJobId: null });
+    if (currentPage) refreshPage(currentPage);
+  };
 
   handleLogsSelectJob = (jobId: number) =>
     this.setState({
@@ -66,9 +74,11 @@ class JobsList extends Component<Props, State> {
       logsSelectedJobId: jobId
     });
 
+  handlePageChange = (currentPage: number) => this.setState({ currentPage });
+
   render() {
-    const { classes } = this.props;
-    const { isLoading, logsOpen, logsSelectedJobId } = this.state;
+    const { submitJob, classes } = this.props;
+    const { isLoading, logsOpen, logsSelectedJobId, currentPage } = this.state;
     return (
       <>
         <Box>
@@ -84,6 +94,7 @@ class JobsList extends Component<Props, State> {
             )}
             <div>
               <JobsTable
+                onPageChange={this.handlePageChange}
                 columns={[
                   {
                     id: 'name',
@@ -106,15 +117,13 @@ class JobsList extends Component<Props, State> {
                     align: 'center',
                     label: 'Action',
                     format: row => {
-                      // eslint-disable-next-line radix
-                      // 'ready' | 'queued' | 'processing' | 'completed' | 'failed'
                       const components = [];
                       if (row.status === 'ready') {
                         components.push(
                           <IconButton
                             title="Submit"
                             color="primary"
-                            href="/href"
+                            onClick={() => submitJob(row.id, currentPage)}
                             key={`${row.id}-submit`}
                           >
                             <Icon className="fas fa-play" />
