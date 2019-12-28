@@ -12,9 +12,10 @@
  *
  * @flow
  */
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
+import { download } from 'electron-dl';
 import MenuBuilder from './menu';
 import { Settings, Docker } from './api';
 
@@ -108,6 +109,23 @@ app.on('ready', async () => {
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();
 
+  ipcMain.on('download-file', async (event, { id, url, filename }) => {
+    const win = BrowserWindow.getFocusedWindow();
+    await download(win, url, {
+      saveAs: true,
+      openFolderWhenDone: false,
+      filename,
+      onStarted() {
+        event.reply('download-started', { id });
+      },
+      onProgress(progress) {
+        if (progress.percent >= 1) {
+          event.reply('download-completed', { id });
+        }
+      }
+    });
+  });
+
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
   new AppUpdater();
@@ -122,14 +140,14 @@ app.on('before-quit', e => {
       console.log('Waiting for docker container to stop');
       waitingDockerClose = true;
       Docker.stopContainer()
-        .then(_ => {
+        .then(() => {
           console.log('Docker container has been stopped! Quitting!');
         })
-        .catch(e => {
+        .catch(ex => {
           console.log('Docker container cannot be stopped! Stop it manually!');
-          console.log(e);
+          console.log(ex);
         })
-        .finally(_ => {
+        .finally(() => {
           waitingDockerClose = false;
           dockerClosed = true;
           app.quit();

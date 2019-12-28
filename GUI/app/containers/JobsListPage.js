@@ -2,6 +2,7 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import JobsList from '../components/JobsList';
 import * as JobsActions from '../actions/jobs';
+import { pushNotificationSimple } from '../actions/notifications';
 
 function mapStateToProps(state) {
   return {
@@ -15,7 +16,8 @@ function mapDispatchToProps(dispatch) {
     {
       submitJob: JobsActions.submitJob,
       refreshPage: JobsActions.refreshPage,
-      deleteJob: JobsActions.deleteJob
+      deleteJob: JobsActions.deleteJob,
+      pushNotification: pushNotificationSimple
     },
     dispatch
   );

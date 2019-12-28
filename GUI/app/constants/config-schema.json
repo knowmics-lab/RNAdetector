@@ -26,6 +26,10 @@
     "type": "string",
     "default": "/api/"
   },
+  "publicPath": {
+    "type": "string",
+    "default": "/storage/"
+  },
   "dataPath": {
     "type": "string"
   },

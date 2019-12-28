@@ -41,6 +41,7 @@ type Props = {
   submitJob: (number, ?number) => void,
   refreshPage: number => void,
   deleteJob: number => void,
+  pushNotification: (string, 'success' | 'warning' | 'error' | 'info') => void,
   classes: {
     root: *,
     loading: *
@@ -51,7 +52,8 @@ type State = {
   isLoading: boolean,
   logsOpen: boolean,
   logsSelectedJobId: ?number,
-  currentPage: ?number
+  currentPage: ?number,
+  downloading: number[]
 };
 
 class JobsList extends Component<Props, State> {
@@ -61,7 +63,8 @@ class JobsList extends Component<Props, State> {
       isLoading: false,
       logsOpen: false,
       logsSelectedJobId: null,
-      currentPage: null
+      currentPage: null,
+      downloading: []
     };
   }
 
@@ -75,8 +78,32 @@ class JobsList extends Component<Props, State> {
   handleJobDelete = (jobId: number) => {
     const { deleteJob } = this.props;
     deleteJob(jobId);
-    /* Api.Jobs.processDeletedList([1,2,3,4,5,7,8,9]).then(console.log);
-    console.log(jobId); */
+  };
+
+  openResultsFolder = (jobId: number) => {
+    const { pushNotification } = this.props;
+    Api.Jobs.openLocalFolder(jobId).catch(e =>
+      pushNotification(`An error occurred ${e.message}`, 'error')
+    );
+  };
+
+  downloadResults = (jobId: number) => {
+    const { pushNotification } = this.props;
+    Api.Jobs.download(
+      jobId,
+      () => {
+        const { downloading } = this.state;
+        this.setState({
+          downloading: [...downloading, jobId]
+        });
+      },
+      () => {
+        const { downloading } = this.state;
+        this.setState({
+          downloading: downloading.filter(i => i !== jobId)
+        });
+      }
+    ).catch(e => pushNotification(`An error occurred ${e.message}`, 'error'));
   };
 
   handleLogsSelectJob = (jobId: number) =>
@@ -89,7 +116,13 @@ class JobsList extends Component<Props, State> {
 
   render() {
     const { deletingJobs, submittingJobs, submitJob, classes } = this.props;
-    const { isLoading, logsOpen, logsSelectedJobId, currentPage } = this.state;
+    const {
+      isLoading,
+      logsOpen,
+      logsSelectedJobId,
+      currentPage,
+      downloading
+    } = this.state;
     return (
       <>
         <Box>
@@ -167,15 +200,35 @@ class JobsList extends Component<Props, State> {
                           );
                         }
                         if (row.status === 'completed') {
-                          components.push(
-                            <IconButton
-                              title="Save results"
-                              href="/test"
-                              key={`${row.id}-save`}
-                            >
-                              <Icon className="fas fa-save" />
-                            </IconButton>
-                          );
+                          if (downloading.includes(row.id)) {
+                            components.push(
+                              <CircularProgress
+                                key={`${row.id}-downloading`}
+                                size={20}
+                              />
+                            );
+                          } else {
+                            components.push(
+                              <IconButton
+                                title="Save results"
+                                onClick={() => this.downloadResults(row.id)}
+                                key={`${row.id}-save`}
+                              >
+                                <Icon className="fas fa-save" />
+                              </IconButton>
+                            );
+                          }
+                          if (Api.Settings.isLocal()) {
+                            components.push(
+                              <IconButton
+                                title="Open results folder"
+                                onClick={() => this.openResultsFolder(row.id)}
+                                key={`${row.id}-open-folder`}
+                              >
+                                <Icon className="fas fa-folder-open" />
+                              </IconButton>
+                            );
+                          }
                         }
                         if (row.status !== 'processing') {
                           components.push(

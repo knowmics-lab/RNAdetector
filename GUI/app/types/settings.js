@@ -8,6 +8,7 @@ export type ConfigObjectType = {
   +apiHostname: string,
   +apiPort: number,
   +apiPath: string,
+  +publicPath: string,
   +dataPath: string,
   +containerName: string,
   +apiKey: string,

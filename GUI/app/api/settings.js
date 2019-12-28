@@ -19,6 +19,7 @@ export default {
       apiHostname: this.configStore.get('apiHostname'),
       apiPort: this.configStore.get('apiPort'),
       apiPath: this.configStore.get('apiPath'),
+      publicPath: this.configStore.get('publicPath'),
       dataPath: this.configStore.get(
         'dataPath',
         `${api.app.getPath('home')}/.RNADetector`
@@ -37,6 +38,18 @@ export default {
   getApiUrl(config: ConfigObjectType = this.getConfig()): string {
     const path = config.apiPath.replace(/^\/|\/$/gm, '');
     return `${config.apiProtocol}://${config.apiHostname}:${config.apiPort}/${path}/`;
+  },
+  getPublicUrl(
+    p: string = '',
+    config: ConfigObjectType = this.getConfig()
+  ): string {
+    const path = config.publicPath.replace(/^\/|\/$/gm, '');
+    return `${config.apiProtocol}://${config.apiHostname}:${
+      config.apiPort
+    }/${path}/${p ? p.replace(/^\//, '') : ''}`;
+  },
+  getLocalPath(p: string = '', config: ConfigObjectType = this.getConfig()) {
+    return `${config.dataPath}/${p ? p.replace(/^\//, '') : ''}`;
   },
   getAxiosHeaders(config: ConfigObjectType = this.getConfig()): AxiosHeaders {
     return {

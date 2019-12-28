@@ -21,7 +21,7 @@ import SwitchField from './Form/SwitchField';
 import type { ConfigObjectType, SettingsStateType } from '../types/settings';
 
 type Props = {
-  saveSettings: ConfigObjectType => *,
+  saveSettings: ConfigObjectType => void,
   classes: {
     root: *,
     formControl: *,
@@ -63,6 +63,7 @@ class Settings extends Component<Props> {
       apiHostname: values.apiHostname,
       apiPort: values.apiPort,
       apiPath: values.apiPath,
+      publicPath: values.publicPath,
       dataPath: values.dataPath,
       dockerExecutablePath: values.dockerExecutablePath,
       containerName: values.containerName,
@@ -82,6 +83,7 @@ class Settings extends Component<Props> {
         .min(1)
         .max(65535),
       apiPath: Yup.string().required(),
+      publicPath: Yup.string().required(),
       local: Yup.boolean(),
       dataPath: Yup.string().when('local', {
         is: true,
@@ -127,6 +129,7 @@ class Settings extends Component<Props> {
                   required
                 />
                 <TextField label="API Path" name="apiPath" required />
+                <TextField label="Public Path" name="publicPath" required />
                 <SwitchField
                   label="Is docker installed locally?"
                   name="local"
