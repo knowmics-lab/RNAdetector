@@ -4,6 +4,19 @@ import Settings from './settings';
 import type { Job, JobsCollection, JobTypesCollection } from '../types/jobs';
 
 export default {
+  async processDeletedList(deleted: number[]): Promise<number[]> {
+    if (deleted.length === 0) return deleted;
+    const deletedPromises = deleted.map(
+      id =>
+        new Promise(resolve => {
+          this.fetchJobById(id)
+            .then(() => resolve(true))
+            .catch(() => resolve(false));
+        })
+    );
+    const res = await Promise.all(deletedPromises);
+    return deleted.filter((ignore, idx) => res[idx]);
+  },
   async deleteJob(jobId: number): Promise<void> {
     await axios.delete(`${Settings.getApiUrl()}jobs/${jobId}`, {
       ...Settings.getAxiosHeaders()

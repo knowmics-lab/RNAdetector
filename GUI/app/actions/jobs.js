@@ -20,6 +20,10 @@ export const JOB_SUBMITTED = 'JOBS--JOB-SUBMITTED';
 export const JOB_LOADED = 'JOBS--JOB-LOADED';
 export const JOB_CACHED = 'JOBS--JOB-CACHED';
 export const JOB_ERROR = 'JOBS--JOB-ERROR';
+export const JOB_DELETING = 'JOBS--JOB-DELETING';
+export const JOB_UPDATE_DELETING = 'JOBS--JOB-UPDATE-DELETING';
+
+let waitForDeleteTimer = null;
 
 export function setPerPage(perPage: number = 15) {
   return async (dispatch: Dispatch, getState: GetState) => {
@@ -71,10 +75,10 @@ export function requestPage(page: number) {
   };
 }
 
-export function refreshPage(page: number) {
+export function refreshPage(page: ?number = null) {
   return (dispatch: Dispatch) => {
-    dispatch(jobsListRequestRefresh([page]));
-    dispatch(requestPage(page));
+    dispatch(jobsListRequestRefresh(!page ? null : [page]));
+    if (page) dispatch(requestPage(page));
   };
 }
 
@@ -114,6 +118,48 @@ export function submitJob(jobId: number, page: ?number = null) {
       dispatch(pushNotificationSimple(`Job "${job.name}" has been submitted!`));
     } catch (e) {
       dispatch(jobError());
+      dispatch(
+        pushNotificationSimple(`An error occurred: ${e.message}!`, 'error')
+      );
+    } finally {
+      dispatch(jobSubmitted(jobId));
+    }
+  };
+}
+
+export function waitForDelete() {
+  return async (dispatch: Dispatch, getState: GetState) => {
+    if (waitForDeleteTimer !== null) return;
+    waitForDeleteTimer = setInterval(() => {
+      const state = getState();
+      const {
+        jobs: {
+          jobs: { deleting }
+        }
+      } = state;
+      if (deleting.length === 0) {
+        clearInterval(waitForDeleteTimer);
+      } else {
+        // eslint-disable-next-line promise/catch-or-return
+        Api.Jobs.processDeletedList(deleting).then(d => {
+          // eslint-disable-next-line promise/always-return
+          if (d.length === 0) clearInterval(waitForDeleteTimer);
+          dispatch(jobUpdateDeleting(d));
+          dispatch(refreshPage());
+        });
+      }
+    }, 10000);
+  };
+}
+
+export function deleteJob(jobId: number) {
+  return async (dispatch: Dispatch) => {
+    try {
+      await Api.Jobs.deleteJob(jobId);
+      dispatch(pushNotificationSimple('Job cancellation request sent.'));
+      dispatch(jobDeleting(jobId));
+      dispatch(waitForDelete());
+    } catch (e) {
       dispatch(
         pushNotificationSimple(`An error occurred: ${e.message}!`, 'error')
       );
@@ -203,6 +249,20 @@ export function jobSubmitting(payload: number): Action {
 export function jobSubmitted(payload: number): Action {
   return {
     type: JOB_SUBMITTED,
+    payload
+  };
+}
+
+export function jobDeleting(payload: number): Action {
+  return {
+    type: JOB_DELETING,
+    payload
+  };
+}
+
+export function jobUpdateDeleting(payload: number[]): Action {
+  return {
+    type: JOB_UPDATE_DELETING,
     payload
   };
 }

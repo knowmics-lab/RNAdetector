@@ -26,6 +26,7 @@ const initJobsListState = (perPage: number = 15): JobsStateType => ({
   jobs: {
     fetching: false,
     submitting: [],
+    deleting: [],
     items: {}
   }
 });
@@ -149,6 +150,7 @@ function loadedJobs(state: LoadedJobs, action: Action): LoadedJobs {
       return {
         fetching: false,
         submitting: state.submitting,
+        deleting: state.deleting,
         items: {
           ...state.items,
           [action.payload.id]: action.payload
@@ -156,6 +158,17 @@ function loadedJobs(state: LoadedJobs, action: Action): LoadedJobs {
       };
     case JobsActions.JOB_CACHED:
       return changeFetching(state, false);
+    case JobsActions.JOB_DELETING:
+      if (state.deleting.includes(action.payload)) return state;
+      return {
+        ...state,
+        deleting: [...state.deleting, action.payload]
+      };
+    case JobsActions.JOB_UPDATE_DELETING:
+      return {
+        ...state,
+        deleting: action.payload
+      };
     default:
       return state;
   }

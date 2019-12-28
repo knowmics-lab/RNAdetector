@@ -47,6 +47,7 @@ export type JobsListType = {|
 export type LoadedJobs = {|
   fetching: boolean,
   submitting: number[],
+  deleting: number[],
   +items: { +[number]: Job }
 |};
 
