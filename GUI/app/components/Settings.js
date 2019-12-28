@@ -18,18 +18,12 @@ import TextField from './Form/TextField';
 import SelectField from './Form/SelectField';
 import FileField from './Form/FileField';
 import SwitchField from './Form/SwitchField';
-import Snackbar from './UI/Snackbar';
 import type { ConfigObjectType, SettingsStateType } from '../types/settings';
 
 type Props = {
   saveSettings: ConfigObjectType => *,
-  resetSaved: () => void,
   classes: {
     root: *,
-    success: *,
-    icon: *,
-    iconVariant: *,
-    message: *,
     formControl: *,
     buttonWrapper: *,
     buttonProgress: *
@@ -39,20 +33,6 @@ type Props = {
 const style = theme => ({
   root: {
     padding: theme.spacing(3, 2)
-  },
-  success: {
-    backgroundColor: green[600]
-  },
-  icon: {
-    fontSize: 20
-  },
-  iconVariant: {
-    opacity: 0.9,
-    marginRight: theme.spacing(1)
-  },
-  message: {
-    display: 'flex',
-    alignItems: 'center'
   },
   formControl: {
     margin: theme.spacing(1),
@@ -75,11 +55,6 @@ const style = theme => ({
 class Settings extends Component<Props> {
   props: Props;
 
-  handleClose = () => {
-    const { resetSaved } = this.props;
-    resetSaved();
-  };
-
   formSubmit = values => {
     const { saveSettings } = this.props;
     saveSettings({
@@ -97,12 +72,7 @@ class Settings extends Component<Props> {
 
   render() {
     const { classes, settings } = this.props;
-    const {
-      saving: isSaving,
-      saved: isSuccessOpen,
-      error: isErrorOpen,
-      message: errorMessage
-    } = settings.state;
+    const { saving: isSaving } = settings.state;
     const validationSchema = Yup.object().shape({
       apiProtocol: Yup.string().required(),
       apiHostname: Yup.string().required(),
@@ -135,7 +105,7 @@ class Settings extends Component<Props> {
           <Typography variant="h5" component="h3">
             Settings
           </Typography>
-          <Typography component="p"/>
+          <Typography component="p" />
           <Formik
             initialValues={settings}
             validationSchema={validationSchema}
@@ -204,18 +174,6 @@ class Settings extends Component<Props> {
             )}
           </Formik>
         </Paper>
-        <Snackbar
-          message="Settings saved!"
-          isOpen={isSuccessOpen}
-          setClosed={this.handleClose}
-          variant="success"
-        />
-        <Snackbar
-          message={`An error occurred: ${errorMessage}!`}
-          isOpen={isErrorOpen}
-          setClosed={this.handleClose}
-          variant="error"
-        />
       </Box>
     );
   }

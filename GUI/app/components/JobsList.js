@@ -4,6 +4,7 @@ import React, { Component } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import { Typography, Paper, Box, Icon } from '@material-ui/core';
 import LinearProgress from '@material-ui/core/LinearProgress';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import { ConnectTable } from './UI/PaginatedRemoteTable';
 import * as JobsActions from '../actions/jobs';
 import type { StateType } from '../reducers/types';
@@ -17,7 +18,6 @@ const JobsTable = ConnectTable(
   }),
   {
     changeRowsPerPage: JobsActions.setPerPage,
-    resetErrorMessage: JobsActions.jobsListResetErrorMessage,
     requestPage: JobsActions.requestPage
   }
 );
@@ -35,6 +35,7 @@ const style = theme => ({
 });
 
 type Props = {
+  submittingJobs: number[],
   submitJob: (number, ?number) => void,
   refreshPage: number => void,
   classes: {
@@ -68,6 +69,10 @@ class JobsList extends Component<Props, State> {
     if (currentPage) refreshPage(currentPage);
   };
 
+  handleJobDelete = (jobId: number) => {
+    console.log(jobId);
+  };
+
   handleLogsSelectJob = (jobId: number) =>
     this.setState({
       logsOpen: true,
@@ -77,7 +82,7 @@ class JobsList extends Component<Props, State> {
   handlePageChange = (currentPage: number) => this.setState({ currentPage });
 
   render() {
-    const { submitJob, classes } = this.props;
+    const { submittingJobs, submitJob, classes } = this.props;
     const { isLoading, logsOpen, logsSelectedJobId, currentPage } = this.state;
     return (
       <>
@@ -119,16 +124,25 @@ class JobsList extends Component<Props, State> {
                     format: row => {
                       const components = [];
                       if (row.status === 'ready') {
-                        components.push(
-                          <IconButton
-                            title="Submit"
-                            color="primary"
-                            onClick={() => submitJob(row.id, currentPage)}
-                            key={`${row.id}-submit`}
-                          >
-                            <Icon className="fas fa-play" />
-                          </IconButton>
-                        );
+                        if (submittingJobs.includes(row.id)) {
+                          components.push(
+                            <CircularProgress
+                              key={`${row.id}-submitting`}
+                              size={20}
+                            />
+                          );
+                        } else {
+                          components.push(
+                            <IconButton
+                              title="Submit"
+                              color="primary"
+                              onClick={() => submitJob(row.id, currentPage)}
+                              key={`${row.id}-submit`}
+                            >
+                              <Icon className="fas fa-play" />
+                            </IconButton>
+                          );
+                        }
                       }
                       if (row.status !== 'ready' && row.status !== 'queued') {
                         components.push(
@@ -157,7 +171,7 @@ class JobsList extends Component<Props, State> {
                           <IconButton
                             title="Delete"
                             color="secondary"
-                            href="/test"
+                            onClick={() => this.handleJobDelete(row.id)}
                             key={`${row.id}-delete`}
                           >
                             <Icon className="fas fa-trash" />

@@ -19,19 +19,13 @@ const initJobsListState = (perPage: number = 15): JobsStateType => ({
       last_page: null,
       per_page: perPage,
       total: null,
-      fetching: false,
-      fetched: false,
-      error: null
+      fetching: false
     },
     pages: {}
   },
   jobs: {
-    meta: {
-      submitting: false,
-      fetching: false,
-      fetched: false,
-      error: null
-    },
+    fetching: false,
+    submitting: [],
     items: {}
   }
 });
@@ -68,9 +62,7 @@ function addLoadedPayload(
       current_page: payload.meta.current_page,
       last_page: payload.meta.last_page,
       total: payload.meta.total,
-      fetching: false,
-      fetched: true,
-      error: null
+      fetching: false
     },
     pages: {
       ...state.pages,
@@ -81,8 +73,6 @@ function addLoadedPayload(
 
 function jobsList(state: JobsListType, action: Action): JobsListType {
   switch (action.type) {
-    case JobsActions.JOBS_LIST_RESET_ERROR_MESSAGE:
-      return changeJobsListState(state, { error: null });
     case JobsActions.JOBS_LIST_RESET_ALL:
       const newState = initJobsListState(state.state.per_page);
       return newState.jobsList;
@@ -90,9 +80,10 @@ function jobsList(state: JobsListType, action: Action): JobsListType {
       return resetJobsListSelected(state, action.payload.pages);
     case JobsActions.JOBS_LIST_ERROR:
       return changeJobsListState(state, {
-        fetching: true,
-        fetched: false,
-        error: action.payload.message
+        current_page: state.state.current_page || 0,
+        last_page: state.state.last_page || 0,
+        total: state.state.total || 0,
+        fetching: false
       });
     case JobsActions.JOBS_LIST_SET_PER_PAGE:
       return {
@@ -102,9 +93,7 @@ function jobsList(state: JobsListType, action: Action): JobsListType {
       };
     case JobsActions.JOBS_LIST_LOADING:
       return changeJobsListState(state, {
-        fetching: true,
-        fetched: false,
-        error: null
+        fetching: true
       });
     case JobsActions.JOBS_LIST_REQUEST_REFRESH:
       return {
@@ -117,72 +106,56 @@ function jobsList(state: JobsListType, action: Action): JobsListType {
     case JobsActions.JOBS_LIST_CACHED:
       return changeJobsListState(state, {
         current_page: action.payload.page,
-        fetching: false,
-        fetched: true,
-        error: null
+        fetching: false
       });
     default:
       return state;
   }
 }
 
-function changeLoadedJobMeta(state, newMeta) {
+function changeSubmitting(
+  state: LoadedJobs,
+  jobId: number,
+  isSubmitting: boolean
+) {
+  let { submitting } = state;
+  if (isSubmitting && !submitting.includes(jobId))
+    submitting = [...submitting, jobId];
+  if (!isSubmitting && submitting.includes(jobId))
+    submitting = submitting.filter(k => k !== jobId);
   return {
     ...state,
-    meta: {
-      ...state.meta,
-      ...newMeta
-    }
+    submitting
+  };
+}
+
+function changeFetching(state, fetching) {
+  return {
+    ...state,
+    fetching
   };
 }
 
 function loadedJobs(state: LoadedJobs, action: Action): LoadedJobs {
   switch (action.type) {
-    case JobsActions.JOBS_LOADING:
-      return changeLoadedJobMeta(state, {
-        submitting: false,
-        fetching: true,
-        fetched: false,
-        error: null
-      });
-    case JobsActions.JOBS_SUBMITTING:
-      return changeLoadedJobMeta(state, {
-        submitting: true,
-        fetching: false,
-        fetched: false,
-        error: null
-      });
-    case JobsActions.JOBS_LOADED:
+    case JobsActions.JOB_ERROR:
+    case JobsActions.JOB_LOADING:
+      return changeFetching(state, true);
+    case JobsActions.JOB_SUBMITTING:
+      return changeSubmitting(state, action.payload, true);
+    case JobsActions.JOB_SUBMITTED:
+      return changeSubmitting(state, action.payload, false);
+    case JobsActions.JOB_LOADED:
       return {
+        fetching: false,
+        submitting: state.submitting,
         items: {
           ...state.items,
           [action.payload.id]: action.payload
-        },
-        meta: {
-          submitting: false,
-          fetching: false,
-          fetched: true,
-          error: null
         }
       };
-    case JobsActions.JOBS_CACHED:
-      return changeLoadedJobMeta(state, {
-        submitting: false,
-        fetching: false,
-        fetched: true,
-        error: null
-      });
-    case JobsActions.JOBS_ERROR:
-      return changeLoadedJobMeta(state, {
-        submitting: true,
-        fetching: true,
-        fetched: false,
-        error: action.payload.message
-      });
-    case JobsActions.JOBS_RESET_ERROR_MESSAGE:
-      return changeLoadedJobMeta(state, {
-        error: null
-      });
+    case JobsActions.JOB_CACHED:
+      return changeFetching(state, false);
     default:
       return state;
   }

@@ -10,6 +10,7 @@ import Divider from '@material-ui/core/Divider';
 import MenuIcon from '@material-ui/icons/Menu';
 import IconButton from '@material-ui/core/IconButton';
 import DrawerContent from '../components/Layout/DrawerContent';
+import NotificationsList from '../components/Layout/Notifications';
 
 const drawerWidth = 260;
 const fixDriverMinSize = 1100;
@@ -128,6 +129,7 @@ export default function App({ children }: Props) {
       <main className={classes.content}>
         <div className={classes.toolbar} />
         {children}
+        <NotificationsList />
       </main>
     </div>
   );

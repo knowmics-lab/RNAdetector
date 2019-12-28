@@ -5,10 +5,7 @@ export type AxiosHeaders = {|
 |};
 
 export type ModifiableStateType = {
-  +saving: boolean,
-  +saved: boolean,
-  +error: boolean,
-  +message: string
+  +saving: boolean
 };
 
 export type MetaResponseType = {
@@ -20,20 +17,16 @@ export type MetaResponseType = {
   total: number
 };
 
-export type StatePaginationType = {
+export type StatePaginationType = {|
   +current_page: ?number,
   +last_page: ?number,
   +per_page: number,
   +total: ?number,
-  +fetching: boolean,
-  +fetched: boolean,
-  +error: ?string
-};
+  +fetching: boolean
+|};
 
-export type LoadedCollectionMeta = {
-  +fetching: boolean,
-  +fetched: boolean,
-  +error: ?string
-};
+export type LoadedCollectionMeta = {|
+  +fetching: boolean
+|};
 
 export type MapType = { [string]: string | number | boolean | MapType };

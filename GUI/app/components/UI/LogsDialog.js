@@ -1,3 +1,4 @@
+// @flow
 /* eslint-disable no-nested-ternary */
 import React from 'react';
 import Button from '@material-ui/core/Button';
@@ -17,17 +18,13 @@ import Icon from '@material-ui/core/Icon';
 import type { StateType } from '../../reducers/types';
 import * as JobsActions from '../../actions/jobs';
 import type { LoadedJobs } from '../../types/jobs';
-import { ContentWrapper as Snackbar } from './Snackbar';
 
-type LogsDialogProps = {|
+type InternalLogsDialogProps = {
+  jobs: LoadedJobs,
+  requestJob: (number, boolean) => void,
   jobId: ?number,
   open: boolean,
   onClose: () => void
-|};
-
-type InternalLogsDialogProps = LogsDialogProps & {
-  jobs: LoadedJobs,
-  requestJob: (number, boolean) => void
 };
 
 function InternalLogsDialog({
@@ -39,30 +36,25 @@ function InternalLogsDialog({
 }: InternalLogsDialogProps) {
   const theme = useTheme();
   const fnRequestJob = () => {
-    requestJob(jobId, true);
+    if (jobId) requestJob(jobId, true);
   };
   const [timeout, setTimeout] = React.useState(30);
   const [timer, setTimer] = React.useState();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
-
   const isOpen = !!jobId && open;
-
   const hasJob = jobId && has(jobs.items, jobId);
-
   const startTimer = (val: ?number = null) => {
     if (timer) {
       clearInterval(timer);
     }
     setTimer(setInterval(fnRequestJob, (val || timeout) * 1000));
   };
-
   const stopTimer = () => {
     if (timer) {
       clearInterval(timer);
       setTimer(null);
     }
   };
-
   const handleTimeoutChange = e => {
     const val = +e.target.value;
     if (timeout !== val) {
@@ -70,82 +62,59 @@ function InternalLogsDialog({
       if (timer) startTimer(val);
     }
   };
-
   const internalOnClose = () => {
     stopTimer();
     onClose();
   };
-
-  const needsRefresh = hasJob && jobs.items[jobId].status === 'processing';
-
-  if (isOpen && !hasJob && !jobs.meta.fetching) {
-    fnRequestJob();
-  }
-
-  if (isOpen && !timer && needsRefresh) {
-    startTimer();
-  }
-
-  if (!isOpen && timer && needsRefresh) {
-    stopTimer();
-  }
-
-  if (isOpen && timer && !needsRefresh) {
-    stopTimer();
-  }
+  const needsRefresh =
+    jobId && hasJob && jobs.items[jobId].status === 'processing';
+  const doRequestJob = isOpen && !hasJob && !jobs.fetching;
+  const doStartTimer = isOpen && !timer && needsRefresh;
+  const doStopTimer =
+    (!isOpen && timer && needsRefresh) || (isOpen && timer && !needsRefresh);
+  if (doRequestJob) fnRequestJob();
+  if (doStartTimer) startTimer();
+  if (doStopTimer) stopTimer();
 
   return (
-    <>
-      <Dialog fullScreen={fullScreen} open={isOpen} onClose={onClose}>
-        <DialogTitle>
-          {hasJob ? `Logs of ${jobs.items[jobId].name}` : 'Logs'}
-        </DialogTitle>
-        <DialogContent>
-          {hasJob ? (
-            <pre>{jobs.items[jobId].log}</pre>
-          ) : jobs.meta.fetching && jobs.meta.error ? (
-            <div style={{ textAlign: 'center' }}>
-              <Snackbar
-                message={`An error occurred: ${jobs.meta.error}!`}
-                onClose={null}
-                variant="error"
-              />
-            </div>
-          ) : (
-            <div style={{ textAlign: 'center' }}>
-              <CircularProgress />
-            </div>
-          )}
-        </DialogContent>
-        <DialogActions>
-          {timer ? (
-            <>
-              <Icon className="fas fa-sync fa-spin" />
-              <TextField
-                label="Refresh every"
-                variant="filled"
-                value={timeout}
-                onChange={handleTimeoutChange}
-                onBlur={handleTimeoutChange}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">s</InputAdornment>
-                  )
-                }}
-              />
-            </>
-          ) : (
-            <Icon className="fas fa-sync" />
-          )}
-          <Button onClick={internalOnClose} color="primary" autoFocus>
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </>
+    <Dialog fullScreen={fullScreen} open={isOpen} onClose={onClose}>
+      <DialogTitle>
+        {jobId && hasJob ? `Logs of ${jobs.items[jobId].name}` : 'Logs'}
+      </DialogTitle>
+      <DialogContent>
+        {jobId && hasJob ? (
+          <pre>{jobs.items[jobId].log}</pre>
+        ) : (
+          <div style={{ textAlign: 'center' }}>
+            <CircularProgress />
+          </div>
+        )}
+      </DialogContent>
+      <DialogActions>
+        {timer && (
+          <>
+            <Icon className="fas fa-sync fa-spin" />
+            <TextField
+              label="Refresh every"
+              variant="filled"
+              value={timeout}
+              onChange={handleTimeoutChange}
+              onBlur={handleTimeoutChange}
+              InputProps={{
+                endAdornment: <InputAdornment position="end">s</InputAdornment>
+              }}
+            />
+          </>
+        )}
+        <Button onClick={internalOnClose} color="primary" autoFocus>
+          Close
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }
 
+// $FlowFixMe: flow disabled for this line
 export default connect(
   (state: StateType) => ({
     jobs: state.jobs.jobs

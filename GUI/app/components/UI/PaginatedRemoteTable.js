@@ -15,8 +15,7 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import type { ComponentType } from 'react';
 import type { StatePaginationType } from '../../types/common';
-import Snackbar from './Snackbar';
-import type { Action, StateType } from '../../reducers/types';
+import type { StateType } from '../../reducers/types';
 
 export type TableColumn = {
   id: string,
@@ -27,9 +26,8 @@ export type TableColumn = {
 };
 
 export type DispatchActions = {
-  requestPage: number => Action,
-  changeRowsPerPage: number => Action,
-  resetErrorMessage: () => Action
+  requestPage: number => *,
+  changeRowsPerPage: number => *
 };
 
 export type StateProps = {
@@ -44,10 +42,13 @@ export type ConnectedTableProps = {
   onPageChange: number => void
 };
 
-export type TableProps = ConnectedTableProps & {
+export type TableProps = {
+  size?: 'small' | 'medium',
+  columns: TableColumn[],
+  keyField?: string,
+  onPageChange: number => void,
   requestPage: number => void,
   changeRowsPerPage: number => void,
-  resetErrorMessage: () => void,
   paginationState: StatePaginationType,
   pagesCollection: { +[number]: { +[string]: * }[] },
   classes: {
@@ -76,34 +77,13 @@ const styles = theme => ({
   }
 });
 
-type TableState = {
-  showError: boolean
-};
+class PaginatedRemoteTable extends Component<TableProps> {
+  props: TableProps;
 
-class PaginatedRemoteTable extends Component<TableProps, TableState> {
   static defaultProps = {
     keyField: 'id',
     size: 'small'
   };
-
-  constructor(props) {
-    super(props);
-    this.state = {
-      showError: false
-    };
-  }
-
-  static getDerivedStateFromProps(props: TableProps, state: TableState) {
-    const { showError: oldShowError } = state;
-    const { paginationState } = props;
-    if (!oldShowError && paginationState.error) {
-      return {
-        ...state,
-        showError: true
-      };
-    }
-    return null;
-  }
 
   componentDidUpdate(prevProps: TableProps) {
     const {
@@ -113,7 +93,7 @@ class PaginatedRemoteTable extends Component<TableProps, TableState> {
       paginationState: { current_page: currentPage },
       onPageChange
     } = this.props;
-    if (currentPage !== prevPage) onPageChange(currentPage);
+    if (currentPage && currentPage !== prevPage) onPageChange(currentPage);
   }
 
   handleChangePage = (event, newPage) => {
@@ -127,17 +107,7 @@ class PaginatedRemoteTable extends Component<TableProps, TableState> {
     changeRowsPerPage(+event.target.value);
   };
 
-  handleClose = () => {
-    const { resetErrorMessage } = this.props;
-    resetErrorMessage();
-    this.setState({
-      showError: false
-    });
-  };
-
   render() {
-    const { showError } = this.state;
-
     const {
       size,
       classes,
@@ -152,21 +122,13 @@ class PaginatedRemoteTable extends Component<TableProps, TableState> {
       current_page: currentPage,
       per_page: rowsPerPage,
       total: totalRows,
-      fetching,
-      fetched
+      fetching
     } = paginationState;
 
-    if (
-      !currentPage &&
-      !totalRows &&
-      !fetching &&
-      !fetched &&
-      !paginationState.error
-    ) {
+    if (currentPage === null && totalRows === null && !fetching) {
       requestPage(1);
     }
-
-    const isLoading = fetching || !totalRows;
+    const isLoading = fetching || totalRows === null;
     const data =
       !isLoading && has(pagesCollection, currentPage)
         ? pagesCollection[currentPage]
@@ -225,12 +187,6 @@ class PaginatedRemoteTable extends Component<TableProps, TableState> {
           page={(currentPage || 1) - 1}
           onChangePage={this.handleChangePage}
           onChangeRowsPerPage={this.handleChangeRowsPerPage}
-        />
-        <Snackbar
-          message={`An error occurred: ${paginationState.error || ''}!`}
-          isOpen={showError}
-          setClosed={this.handleClose}
-          variant="error"
         />
       </Paper>
     );

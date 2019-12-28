@@ -1,20 +1,24 @@
 // @flow
 import type { Action, Dispatch } from '../reducers/types';
 import * as Api from '../api';
+import { pushNotificationSimple } from './notifications';
 import type { ConfigObjectType } from '../types/settings';
 
 export const SETTINGS_SAVING = 'SETTINGS--SAVING';
 export const SETTINGS_SAVED = 'SETTINGS--SAVED';
 export const SETTINGS_ERROR = 'SETTINGS--ERROR';
-export const SETTINGS_RESET_SAVED = 'SETTINGS--RESET-SAVED';
 
 export function saveSettings(newSettings: ConfigObjectType): Action {
   return async (dispatch: Dispatch) => {
     try {
       dispatch(settingsSaving());
       dispatch(settingsSaved(await Api.Settings.saveConfig(newSettings)));
+      dispatch(pushNotificationSimple(`Settings saved!`));
     } catch (e) {
-      dispatch(settingsError(e));
+      dispatch(settingsError());
+      dispatch(
+        pushNotificationSimple(`An error occurred: ${e.message}!`, 'error')
+      );
     }
   };
 }
@@ -35,18 +39,9 @@ export function settingsSaved(newSettings: ConfigObjectType): Action {
   };
 }
 
-export function settingsError(message: string): Action {
+export function settingsError(): Action {
   return {
     type: SETTINGS_ERROR,
-    payload: {
-      message
-    }
-  };
-}
-
-export function resetSaved(): Action {
-  return {
-    type: SETTINGS_RESET_SAVED,
     payload: {}
   };
 }

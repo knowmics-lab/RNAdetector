@@ -3,8 +3,10 @@ import { connect } from 'react-redux';
 import JobsList from '../components/JobsList';
 import * as JobsActions from '../actions/jobs';
 
-function mapStateToProps() {
-  return {};
+function mapStateToProps(state) {
+  return {
+    submittingJobs: state.jobs.jobs.submitting
+  };
 }
 
 function mapDispatchToProps(dispatch) {

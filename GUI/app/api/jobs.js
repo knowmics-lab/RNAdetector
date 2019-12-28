@@ -4,6 +4,11 @@ import Settings from './settings';
 import type { Job, JobsCollection, JobTypesCollection } from '../types/jobs';
 
 export default {
+  async deleteJob(jobId: number): Promise<void> {
+    await axios.delete(`${Settings.getApiUrl()}jobs/${jobId}`, {
+      ...Settings.getAxiosHeaders()
+    });
+  },
   async submitJob(jobId: number): Promise<Job> {
     const result = await axios.get(
       `${Settings.getApiUrl()}jobs/${jobId}/submit`,

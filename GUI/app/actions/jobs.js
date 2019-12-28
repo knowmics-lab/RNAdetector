@@ -4,22 +4,22 @@ import { has } from 'lodash';
 import type { Action, Dispatch, GetState } from '../reducers/types';
 import type { Job, JobsCollection } from '../types/jobs';
 import * as Api from '../api';
+import { pushNotificationSimple } from './notifications';
 
 export const JOBS_LIST_LOADING = 'JOBS--LIST--LOADING';
 export const JOBS_LIST_LOADED = 'JOBS--LIST--LOADED';
 export const JOBS_LIST_CACHED = 'JOBS--LIST--CACHED';
 export const JOBS_LIST_ERROR = 'JOBS--LIST--ERROR';
-export const JOBS_LIST_RESET_ERROR_MESSAGE = 'JOBS--LIST--RESET_ERROR_MESSAGE';
 export const JOBS_LIST_SET_PER_PAGE = 'JOBS--LIST--SET_PER_PAGE';
 export const JOBS_LIST_RESET_ALL = 'JOBS--LIST--RESET_ALL';
 export const JOBS_LIST_RESET_SELECTED = 'JOBS--LIST--RESET_SELECTED';
 export const JOBS_LIST_REQUEST_REFRESH = 'JOBS--LIST--REQUEST_REFRESH';
-export const JOBS_LOADING = 'JOBS--JOB-LOADING';
-export const JOBS_SUBMITTING = 'JOBS--JOB-SUBMITTING';
-export const JOBS_LOADED = 'JOBS--JOB-LOADED';
-export const JOBS_CACHED = 'JOBS--JOB-CACHED';
-export const JOBS_ERROR = 'JOBS--JOB-ERROR';
-export const JOBS_RESET_ERROR_MESSAGE = 'JOBS--JOB-RESET_ERROR_MESSAGE';
+export const JOB_LOADING = 'JOBS--JOB-LOADING';
+export const JOB_SUBMITTING = 'JOBS--JOB-SUBMITTING';
+export const JOB_SUBMITTED = 'JOBS--JOB-SUBMITTED';
+export const JOB_LOADED = 'JOBS--JOB-LOADED';
+export const JOB_CACHED = 'JOBS--JOB-CACHED';
+export const JOB_ERROR = 'JOBS--JOB-ERROR';
 
 export function setPerPage(perPage: number = 15) {
   return async (dispatch: Dispatch, getState: GetState) => {
@@ -39,7 +39,6 @@ export function setPerPage(perPage: number = 15) {
 export function requestPage(page: number) {
   return async (dispatch: Dispatch, getState: GetState) => {
     try {
-      dispatch(jobsListLoading());
       const {
         jobs: {
           jobsList: { refreshAll, refreshPages }
@@ -48,6 +47,7 @@ export function requestPage(page: number) {
       if (refreshAll) dispatch(jobsListResetAll());
       if (refreshPages.length > 0)
         dispatch(jobsListResetSelected(refreshPages));
+      dispatch(jobsListLoading());
       const {
         jobs: {
           jobsList: {
@@ -63,7 +63,10 @@ export function requestPage(page: number) {
         dispatch(jobsListCached(page));
       }
     } catch (e) {
-      dispatch(jobsListError(e.message));
+      dispatch(jobsListError());
+      dispatch(
+        pushNotificationSimple(`An error occurred: ${e.message}!`, 'error')
+      );
     }
   };
 }
@@ -91,7 +94,10 @@ export function requestJob(jobId: number, force: boolean = false) {
         dispatch(jobCached());
       }
     } catch (e) {
-      dispatch(jobError(e.message));
+      dispatch(jobError());
+      dispatch(
+        pushNotificationSimple(`An error occurred: ${e.message}!`, 'error')
+      );
     }
   };
 }
@@ -99,14 +105,20 @@ export function requestJob(jobId: number, force: boolean = false) {
 export function submitJob(jobId: number, page: ?number = null) {
   return async (dispatch: Dispatch) => {
     try {
-      dispatch(jobLoading());
+      dispatch(jobSubmitting(jobId));
       const job = await Api.Jobs.submitJob(jobId);
       dispatch(jobLoaded(job));
       if (page) {
         dispatch(refreshPage(page));
       }
+      dispatch(pushNotificationSimple(`Job "${job.name}" has been submitted!`));
     } catch (e) {
-      dispatch(jobError(e.message));
+      dispatch(jobError());
+      dispatch(
+        pushNotificationSimple(`An error occurred: ${e.message}!`, 'error')
+      );
+    } finally {
+      dispatch(jobSubmitted(jobId));
     }
   };
 }
@@ -143,18 +155,9 @@ export function jobsListCached(page: number): Action {
   };
 }
 
-export function jobsListError(message: string): Action {
+export function jobsListError(): Action {
   return {
     type: JOBS_LIST_ERROR,
-    payload: {
-      message
-    }
-  };
-}
-
-export function jobsListResetErrorMessage(): Action {
-  return {
-    type: JOBS_LIST_RESET_ERROR_MESSAGE,
     payload: {}
   };
 }
@@ -185,44 +188,42 @@ export function jobsListRequestRefresh(pages: ?(number[]) = null): Action {
 
 export function jobLoading(): Action {
   return {
-    type: JOBS_LOADING,
+    type: JOB_LOADING,
     payload: {}
   };
 }
 
-export function jobSubmitting(): Action {
+export function jobSubmitting(payload: number): Action {
   return {
-    type: JOBS_SUBMITTING,
-    payload: {}
+    type: JOB_SUBMITTING,
+    payload
+  };
+}
+
+export function jobSubmitted(payload: number): Action {
+  return {
+    type: JOB_SUBMITTED,
+    payload
   };
 }
 
 export function jobLoaded(payload: Job): Action {
   return {
-    type: JOBS_LOADED,
+    type: JOB_LOADED,
     payload
   };
 }
 
 export function jobCached(): Action {
   return {
-    type: JOBS_LOADING,
+    type: JOB_LOADING,
     payload: {}
   };
 }
 
-export function jobError(message: string): Action {
+export function jobError(): Action {
   return {
-    type: JOBS_ERROR,
-    payload: {
-      message
-    }
-  };
-}
-
-export function jobResetErrorMessage(): Action {
-  return {
-    type: JOBS_RESET_ERROR_MESSAGE,
+    type: JOB_ERROR,
     payload: {}
   };
 }

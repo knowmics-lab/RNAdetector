@@ -2,8 +2,7 @@
 import {
   SETTINGS_SAVING,
   SETTINGS_SAVED,
-  SETTINGS_ERROR,
-  SETTINGS_RESET_SAVED
+  SETTINGS_ERROR
 } from '../actions/settings';
 import { Action } from './types';
 import * as Api from '../api';
@@ -11,10 +10,7 @@ import type { SettingsStateType } from '../types/settings';
 
 const initConfigState = (): SettingsStateType => ({
   state: {
-    saving: false,
-    saved: false,
-    error: false,
-    message: ''
+    saving: false
   },
   ...Api.Settings.getConfig()
 });
@@ -29,41 +25,22 @@ export default function settings(
       return {
         ...oldState,
         state: {
-          saving: true,
-          saved: false,
-          error: false,
-          message: ''
+          saving: true
         }
       };
     case SETTINGS_ERROR:
       return {
         ...oldState,
         state: {
-          saving: false,
-          saved: false,
-          error: true,
-          message: action.payload.message
+          saving: false
         }
       };
     case SETTINGS_SAVED:
       return {
         state: {
-          saving: false,
-          saved: true,
-          error: false,
-          message: ''
+          saving: false
         },
         ...action.payload.settings
-      };
-    case SETTINGS_RESET_SAVED:
-      return {
-        ...oldState,
-        state: {
-          saving: false,
-          saved: false,
-          error: false,
-          message: ''
-        }
       };
     default:
       return oldState;

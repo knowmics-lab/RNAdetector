@@ -1,10 +1,5 @@
 // @flow
-import type {
-  LoadedCollectionMeta,
-  MapType,
-  MetaResponseType,
-  StatePaginationType
-} from './common';
+import type { MapType, MetaResponseType, StatePaginationType } from './common';
 
 export type Job = {
   id: number,
@@ -50,9 +45,8 @@ export type JobsListType = {|
 |};
 
 export type LoadedJobs = {|
-  +meta: LoadedCollectionMeta & {
-    submitting: boolean
-  },
+  fetching: boolean,
+  submitting: number[],
   +items: { +[number]: Job }
 |};
 
