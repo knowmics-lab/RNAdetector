@@ -2,13 +2,13 @@
 // @flow
 import React, { Component } from 'react';
 import { withStyles } from '@material-ui/core/styles';
-import { Typography, Paper, Box, Icon } from '@material-ui/core';
+import Box from '@material-ui/core/Box';
+import Paper from '@material-ui/core/Paper';
+import Typography from '@material-ui/core/Typography';
 import LinearProgress from '@material-ui/core/LinearProgress';
-import CircularProgress from '@material-ui/core/CircularProgress';
 import { ConnectTable } from './UI/PaginatedRemoteTable';
 import * as JobsActions from '../actions/jobs';
 import type { StateType } from '../reducers/types';
-import IconButton from './UI/IconButton';
 import LogsDialog from './UI/LogsDialog';
 import * as Api from '../api';
 
@@ -75,20 +75,23 @@ class JobsList extends Component<Props, State> {
     if (currentPage) refreshPage(currentPage);
   };
 
-  handleJobDelete = (jobId: number) => {
+  handleJobDelete = (e, row) => {
     const { deleteJob } = this.props;
-    deleteJob(jobId);
+    deleteJob(row.id);
+    e.preventDefault();
   };
 
-  openResultsFolder = (jobId: number) => {
+  openResultsFolder = (e, row) => {
     const { pushNotification } = this.props;
-    Api.Jobs.openLocalFolder(jobId).catch(e =>
-      pushNotification(`An error occurred ${e.message}`, 'error')
+    Api.Jobs.openLocalFolder(row.id).catch(ex =>
+      pushNotification(`An error occurred ${ex.message}`, 'error')
     );
+    e.preventDefault();
   };
 
-  downloadResults = (jobId: number) => {
+  downloadResults = (e, row) => {
     const { pushNotification } = this.props;
+    const jobId = row.id;
     Api.Jobs.download(
       jobId,
       () => {
@@ -103,26 +106,88 @@ class JobsList extends Component<Props, State> {
           downloading: downloading.filter(i => i !== jobId)
         });
       }
-    ).catch(e => pushNotification(`An error occurred ${e.message}`, 'error'));
+    ).catch(ex => pushNotification(`An error occurred ${ex.message}`, 'error'));
+    e.preventDefault();
   };
 
-  handleLogsSelectJob = (jobId: number) =>
+  handleLogsSelectJob = (e, row) => {
     this.setState({
       logsOpen: true,
-      logsSelectedJobId: jobId
+      logsSelectedJobId: row.id
     });
+    e.preventDefault();
+  };
 
   handlePageChange = (currentPage: number) => this.setState({ currentPage });
 
+  handleSubmitJob = (e, row) => {
+    const { submitJob } = this.props;
+    const { currentPage } = this.state;
+    submitJob(row.id, currentPage);
+    e.preventDefault();
+  };
+
+  getActions() {
+    const { deletingJobs, submittingJobs } = this.props;
+    const { downloading } = this.state;
+
+    const cd = r => deletingJobs.includes(r.id);
+    const cs = r => submittingJobs.includes(r.id);
+    const cw = r => downloading.includes(r.id);
+
+    return [
+      {
+        shown: r => !cd(r) && r.status === 'ready' && !cs(r),
+        icon: 'fas fa-play',
+        color: 'primary',
+        onClick: this.handleSubmitJob,
+        tooltip: 'Submit'
+      },
+      {
+        disabled: true,
+        shown: r => !cd(r) && r.status === 'ready' && cs(r),
+        icon: 'fas fa-circle-notch fa-spin',
+        color: 'primary',
+        tooltip: 'Submitting...'
+      },
+      {
+        shown: r => !cd(r) && r.status !== 'ready' && r.status !== 'queued',
+        icon: 'fas fa-file-alt',
+        tooltip: 'Logs',
+        onClick: this.handleLogsSelectJob
+      },
+      {
+        shown: r => !cd(r) && r.status === 'completed' && cw(r),
+        icon: 'fas fa-circle-notch fa-spin',
+        tooltip: 'Saving...'
+      },
+      {
+        shown: r => !cd(r) && r.status === 'completed' && !cw(r),
+        icon: 'fas fa-save',
+        tooltip: 'Save results',
+        onClick: this.downloadResults
+      },
+      {
+        shown: r =>
+          !cd(r) && r.status === 'completed' && Api.Settings.isLocal(),
+        icon: 'fas fa-folder-open',
+        tooltip: 'Open results folder',
+        onClick: this.openResultsFolder
+      },
+      {
+        shown: r => !cd(r) && r.status !== 'processing',
+        color: 'secondary',
+        icon: 'fas fa-trash',
+        tooltip: 'Delete',
+        onClick: this.handleJobDelete
+      }
+    ];
+  }
+
   render() {
-    const { deletingJobs, submittingJobs, submitJob, classes } = this.props;
-    const {
-      isLoading,
-      logsOpen,
-      logsSelectedJobId,
-      currentPage,
-      downloading
-    } = this.state;
+    const { deletingJobs, classes } = this.props;
+    const { isLoading, logsOpen, logsSelectedJobId } = this.state;
+
     return (
       <>
         <Box>
@@ -139,6 +204,7 @@ class JobsList extends Component<Props, State> {
             <div>
               <JobsTable
                 onPageChange={this.handlePageChange}
+                actions={this.getActions()}
                 columns={[
                   {
                     id: 'name',
@@ -160,92 +226,7 @@ class JobsList extends Component<Props, State> {
                     id: 'created_at_diff',
                     label: 'Created at'
                   },
-                  {
-                    id: 'id',
-                    align: 'center',
-                    label: 'Action',
-                    format: row => {
-                      const components = [];
-                      if (!deletingJobs.includes(row.id)) {
-                        if (row.status === 'ready') {
-                          if (submittingJobs.includes(row.id)) {
-                            components.push(
-                              <CircularProgress
-                                key={`${row.id}-submitting`}
-                                size={20}
-                              />
-                            );
-                          } else {
-                            components.push(
-                              <IconButton
-                                title="Submit"
-                                color="primary"
-                                onClick={() => submitJob(row.id, currentPage)}
-                                key={`${row.id}-submit`}
-                              >
-                                <Icon className="fas fa-play" />
-                              </IconButton>
-                            );
-                          }
-                        }
-                        if (row.status !== 'ready' && row.status !== 'queued') {
-                          components.push(
-                            <IconButton
-                              title="Logs"
-                              onClick={() => this.handleLogsSelectJob(row.id)}
-                              key={`${row.id}-logs`}
-                            >
-                              <Icon className="fas fa-file-alt" />
-                            </IconButton>
-                          );
-                        }
-                        if (row.status === 'completed') {
-                          if (downloading.includes(row.id)) {
-                            components.push(
-                              <CircularProgress
-                                key={`${row.id}-downloading`}
-                                size={20}
-                              />
-                            );
-                          } else {
-                            components.push(
-                              <IconButton
-                                title="Save results"
-                                onClick={() => this.downloadResults(row.id)}
-                                key={`${row.id}-save`}
-                              >
-                                <Icon className="fas fa-save" />
-                              </IconButton>
-                            );
-                          }
-                          if (Api.Settings.isLocal()) {
-                            components.push(
-                              <IconButton
-                                title="Open results folder"
-                                onClick={() => this.openResultsFolder(row.id)}
-                                key={`${row.id}-open-folder`}
-                              >
-                                <Icon className="fas fa-folder-open" />
-                              </IconButton>
-                            );
-                          }
-                        }
-                        if (row.status !== 'processing') {
-                          components.push(
-                            <IconButton
-                              title="Delete"
-                              color="secondary"
-                              onClick={() => this.handleJobDelete(row.id)}
-                              key={`${row.id}-delete`}
-                            >
-                              <Icon className="fas fa-trash" />
-                            </IconButton>
-                          );
-                        }
-                      }
-                      return <>{components}</>;
-                    }
-                  }
+                  'actions'
                 ]}
               />
             </div>

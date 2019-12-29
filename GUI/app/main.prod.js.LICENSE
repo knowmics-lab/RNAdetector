@@ -17,6 +17,12 @@
  * @see http://sites.google.com/site/murmurhash/
  */
 
+/*!
+ * mime-db
+ * Copyright(c) 2014 Jonathan Ong
+ * MIT Licensed
+ */
+
 /*! http://mths.be/fromcodepoint v0.1.0 by @mathias */
 
 /** @license URI.js v4.2.1 (c) 2011 Gary Court. License: http://github.com/garycourt/uri-js */

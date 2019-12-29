@@ -3,11 +3,7 @@ import React, { Component } from 'react';
 import has from 'lodash/has';
 import Paper from '@material-ui/core/Paper';
 import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
 import TablePagination from '@material-ui/core/TablePagination';
-import TableRow from '@material-ui/core/TableRow';
 import TableContainer from '@material-ui/core/TableContainer';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import { withStyles } from '@material-ui/core/styles';
@@ -16,14 +12,9 @@ import { connect } from 'react-redux';
 import type { ComponentType } from 'react';
 import type { StatePaginationType } from '../../types/common';
 import type { StateType } from '../../reducers/types';
-
-export type TableColumn = {
-  id: string,
-  label: string,
-  minWidth?: number,
-  align?: 'left' | 'right' | 'center' | 'justify',
-  format?: ({ +[string]: * }) => mixed
-};
+import type { RowAction, TableColumn } from './Table/types';
+import TableHeader from './Table/Header';
+import TableBody from './Table/Body';
 
 export type DispatchActions = {
   requestPage: number => *,
@@ -38,6 +29,7 @@ export type StateProps = {
 export type ConnectedTableProps = {
   size?: 'small' | 'medium',
   columns: TableColumn[],
+  actions?: RowAction[],
   keyField?: string,
   onPageChange: number => void
 };
@@ -45,6 +37,7 @@ export type ConnectedTableProps = {
 export type TableProps = {
   size?: 'small' | 'medium',
   columns: TableColumn[],
+  actions?: RowAction[],
   keyField?: string,
   onPageChange: number => void,
   requestPage: number => void,
@@ -82,7 +75,8 @@ class PaginatedRemoteTable extends Component<TableProps> {
 
   static defaultProps = {
     keyField: 'id',
-    size: 'small'
+    size: 'small',
+    actions: []
   };
 
   componentDidUpdate(prevProps: TableProps) {
@@ -109,14 +103,18 @@ class PaginatedRemoteTable extends Component<TableProps> {
 
   render() {
     const {
-      size,
       classes,
       columns,
-      keyField,
       paginationState,
       pagesCollection,
       requestPage
     } = this.props;
+
+    let { keyField, size, actions } = this.props;
+
+    keyField = keyField || 'id';
+    size = size || 'small';
+    actions = actions || [];
 
     const {
       current_page: currentPage,
@@ -143,40 +141,15 @@ class PaginatedRemoteTable extends Component<TableProps> {
         )}
         <TableContainer className={classes.container}>
           <Table stickyHeader size={size}>
-            <TableHead>
-              <TableRow>
-                {columns.map(column => (
-                  <TableCell
-                    key={column.id}
-                    align={column.align}
-                    style={{ minWidth: column.minWidth }}
-                    className={classes.stickyStyle}
-                  >
-                    {column.label}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {!isLoading &&
-                data.map(row => (
-                  <TableRow
-                    hover
-                    role="checkbox"
-                    tabIndex={-1}
-                    key={row[keyField]}
-                  >
-                    {columns.map(column => {
-                      const value = row[column.id];
-                      return (
-                        <TableCell key={column.id} align={column.align}>
-                          {column.format ? column.format(row) : value}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-            </TableBody>
+            <TableHeader columns={columns} />
+            <TableBody
+              isLoading={isLoading}
+              data={data}
+              keyField={keyField}
+              columns={columns}
+              actions={actions}
+              size={size}
+            />
           </Table>
         </TableContainer>
         <TablePagination

@@ -1,16 +1,28 @@
 // @flow
 import React, { useMemo, forwardRef } from 'react';
+import type { ChildrenArray, Element } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { Tooltip, IconButton as IB } from '@material-ui/core';
 
 export type IconButtonType = {
-  color?: 'default' | 'inherit' | 'primary' | 'secondary',
-  title: string,
-  children: *,
+  color?: string,
+  title?: string,
+  children: ChildrenArray<Element<*>>,
   disabled?: boolean,
   href?: ?string,
-  size?: 'small' | 'medium',
-  onClick?: ?() => void
+  size?: string,
+  onClick?: ?(MouseEvent) => void
+};
+
+const makeTooltip = (component, tooltip, disabled) => {
+  if (!tooltip) return component;
+  return disabled ? (
+    <Tooltip title={tooltip}>
+      <span>{component}</span>
+    </Tooltip>
+  ) : (
+    <Tooltip title={tooltip}>{component}</Tooltip>
+  );
 };
 
 export default function IconButton({
@@ -22,15 +34,6 @@ export default function IconButton({
   size,
   onClick
 }: IconButtonType) {
-  if (!href && onClick) {
-    return (
-      <Tooltip title={title}>
-        <IB color={color} disabled={disabled} onClick={onClick} size={size}>
-          {children}
-        </IB>
-      </Tooltip>
-    );
-  }
   if (!onClick && href) {
     const renderLink = useMemo(
       () =>
@@ -44,27 +47,29 @@ export default function IconButton({
         )),
       [href]
     );
-    return (
-      <Tooltip title={title}>
-        <IB
-          color={color}
-          disabled={disabled}
-          component={renderLink}
-          size={size}
-        >
-          {children}
-        </IB>
-      </Tooltip>
+    return makeTooltip(
+      <IB color={color} disabled={disabled} component={renderLink} size={size}>
+        {children}
+      </IB>,
+      title,
+      disabled
     );
   }
-  throw new Error('You must specify onClick or href.');
+  const onClickFn = onClick || (() => undefined);
+  return makeTooltip(
+    <IB color={color} disabled={disabled} onClick={onClickFn} size={size}>
+      {children}
+    </IB>,
+    title,
+    disabled
+  );
 }
 
 IconButton.defaultProps = {
   color: 'default',
   size: 'medium',
-  variant: 'text',
   disabled: false,
+  title: '',
   href: null,
   onClick: null
 };

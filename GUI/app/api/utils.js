@@ -56,9 +56,7 @@ export default {
     });
   },
   dashToWordString(s: string) {
-    return s.replace(/[_\\-]([a-z0-9])/g, function(g) {
-      return ` ${g[1].toUpperCase()}`;
-    });
+    return s.replace(/[_\\-]([a-z0-9])/g, g => ` ${g[1].toUpperCase()}`);
   },
   capitalize(s: string) {
     return s.charAt(0).toUpperCase() + s.slice(1);
