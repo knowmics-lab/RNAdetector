@@ -18,6 +18,16 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
+    /**
+     * @param \Illuminate\Http\Request              $request
+     * @param \Illuminate\Database\Eloquent\Builder $builder
+     * @param callable|null                         $callback
+     * @param string                                $defaultOrderField
+     * @param string                                $defaultOrdering
+     * @param int                                   $defaultPerPage
+     *
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator|\Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection
+     */
     protected function handleBuilderRequest(
         Request $request,
         Builder $builder,
@@ -26,12 +36,13 @@ class Controller extends BaseController
         string $defaultOrdering = 'desc',
         int $defaultPerPage = 15
     ) {
-        $perPage = (int)($request->get('per_page') ?? $defaultPerPage);
+        $filterBy = $request->get('filter_by');
+        $filterValue = $request->get('filter_value');
+        if ($filterBy && $filterValue) {
+            $builder->where($filterBy, 'LIKE', '%' . $filterValue . '%');
+        }
         $orderBy = (array)($request->get('order') ?? [$defaultOrderField]);
         $orderDirection = (array)($request->get('order_direction') ?? [$defaultOrdering]);
-        if ($perPage < 0) {
-            $perPage = 15;
-        }
         if (!empty($orderBy)) {
             for ($i = 0, $count = count($orderBy); $i < $count; $i++) {
                 if ($orderBy[$i]) {
@@ -42,7 +53,11 @@ class Controller extends BaseController
         if ($callback !== null && is_callable($callback)) {
             $builder = $callback($builder);
         }
+        $perPage = (int)($request->get('per_page') ?? $defaultPerPage);
+        if ($perPage > 0) {
+            return $builder->paginate($perPage)->appends($request->input());
+        }
 
-        return $builder->paginate($perPage)->appends($request->input());
+        return $builder->get();
     }
 }
