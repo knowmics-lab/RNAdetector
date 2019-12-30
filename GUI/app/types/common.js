@@ -31,6 +31,8 @@ export type LoadedCollectionMeta = {|
   +fetching: boolean
 |};
 
+export type SimpleMapType<T> = { [string]: T };
+
 export type MapType = { [string]: string | number | boolean | MapType };
 
 export type SortingDirection = 'asc' | 'desc';

@@ -2,5 +2,7 @@
   "HOME": "/",
   "COUNTER": "/counter",
   "SETTINGS": "/settings",
-  "JOBS": "/jobs"
+  "ANNOTATIONS": "/annotations",
+  "JOBS": "/jobs",
+  "REFERENCES": "/references"
 }

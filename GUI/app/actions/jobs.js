@@ -171,8 +171,6 @@ export function deleteJob(jobId: number) {
       dispatch(
         pushNotificationSimple(`An error occurred: ${e.message}!`, 'error')
       );
-    } finally {
-      dispatch(jobSubmitted(jobId));
     }
   };
 }
@@ -291,7 +289,7 @@ export function jobLoaded(payload: Job): Action {
 
 export function jobCached(): Action {
   return {
-    type: JOB_LOADING,
+    type: JOB_CACHED,
     payload: {}
   };
 }
