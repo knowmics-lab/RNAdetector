@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import has from 'lodash/has';
 import Paper from '@material-ui/core/Paper';
 import Table from '@material-ui/core/Table';
@@ -12,9 +12,14 @@ import { connect } from 'react-redux';
 import type { ComponentType } from 'react';
 import type { StatePaginationType } from '../../types/common';
 import type { StateType } from '../../reducers/types';
-import type { RowAction, TableColumn } from './Table/types';
+import type {
+  RowActionType,
+  TableColumn,
+  ToolbarActionType
+} from './Table/types';
 import TableHeader from './Table/Header';
 import TableBody from './Table/Body';
+import TableToolbar from './Table/Toolbar';
 
 export type DispatchActions = {
   requestPage: number => *,
@@ -27,17 +32,21 @@ export type StateProps = {
 };
 
 export type ConnectedTableProps = {
+  title?: ?(string | React.ChildrenArray<React.Element<*>>),
   size?: 'small' | 'medium',
   columns: TableColumn[],
-  actions?: RowAction[],
+  toolbar?: ToolbarActionType[],
+  actions?: RowActionType[],
   keyField?: string,
   onPageChange: number => void
 };
 
 export type TableProps = {
+  title?: ?(string | React.ChildrenArray<React.Element<*>>),
   size?: 'small' | 'medium',
   columns: TableColumn[],
-  actions?: RowAction[],
+  toolbar?: ToolbarActionType[],
+  actions?: RowActionType[],
   keyField?: string,
   onPageChange: number => void,
   requestPage: number => void,
@@ -70,15 +79,18 @@ const styles = theme => ({
   }
 });
 
-class PaginatedRemoteTable extends Component<TableProps> {
+class PaginatedRemoteTable extends React.Component<TableProps> {
   props: TableProps;
 
   static defaultProps = {
+    title: null,
     keyField: 'id',
     size: 'small',
+    toolbar: [],
     actions: []
   };
 
+  // noinspection JSCheckFunctionSignatures
   componentDidUpdate(prevProps: TableProps) {
     const {
       paginationState: { current_page: prevPage }
@@ -110,11 +122,13 @@ class PaginatedRemoteTable extends Component<TableProps> {
       requestPage
     } = this.props;
 
-    let { keyField, size, actions } = this.props;
+    let { keyField, size, actions, toolbar, title } = this.props;
 
     keyField = keyField || 'id';
     size = size || 'small';
     actions = actions || [];
+    toolbar = toolbar || [];
+    title = title || null;
 
     const {
       current_page: currentPage,
@@ -134,12 +148,17 @@ class PaginatedRemoteTable extends Component<TableProps> {
 
     return (
       <Paper className={classes.root}>
-        {isLoading && (
-          <div className={classes.loading}>
-            <LinearProgress />
-          </div>
-        )}
         <TableContainer className={classes.container}>
+          <TableToolbar
+            title={title}
+            actions={toolbar}
+            state={{ currentPage, rowsPerPage, totalRows, isLoading }}
+          />
+          {isLoading && (
+            <div className={classes.loading}>
+              <LinearProgress />
+            </div>
+          )}
           <Table stickyHeader size={size}>
             <TableHeader columns={columns} />
             <TableBody

@@ -35,12 +35,7 @@ class ReferenceController extends Controller
      */
     public function index(Request $request): ReferenceCollection
     {
-        $perPage = (int)($request->get('per_page') ?? 15);
-        if ($perPage < 0) {
-            $perPage = 15;
-        }
-
-        return new ReferenceCollection(Reference::paginate($perPage)->appends($request->input()));
+        return new ReferenceCollection($this->handleBuilderRequest($request, Reference::query()));
     }
 
     /**

@@ -4,14 +4,14 @@ import React from 'react';
 import TableBody from '@material-ui/core/TableBody';
 import TableRow from '@material-ui/core/TableRow';
 import TableCell from '@material-ui/core/TableCell';
-import type { ReadOnlyData, RowAction, TableColumn } from './types';
-import Actions from './Actions';
+import type { ReadOnlyData, RowActionType, TableColumn } from './types';
+import RowActions from './RowActions';
 
 function Cell(
   column: TableColumn,
   row: ReadOnlyData,
   keyBase: string,
-  actions: RowAction[],
+  actions: RowActionType[],
   keyField: string,
   size: string
 ) {
@@ -25,7 +25,7 @@ function Cell(
   }
   return (
     <TableCell key={`${keyBase}-actions`} align="center">
-      <Actions actions={actions} data={row} keyField={keyField} size={size} />
+      <RowActions actions={actions} data={row} keyField={keyField} size={size} />
     </TableCell>
   );
 }
@@ -35,7 +35,7 @@ type Props = {
   data: ReadOnlyData[],
   keyField: string,
   columns: TableColumn[],
-  actions: RowAction[],
+  actions: RowActionType[],
   size: string
 };
 

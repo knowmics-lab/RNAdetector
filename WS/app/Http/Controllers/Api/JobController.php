@@ -10,18 +10,16 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Job as JobResource;
 use App\Http\Resources\JobCollection;
-use App\Http\Resources\UserCollection;
 use App\Jobs\DeleteJobDirectory;
 use App\Jobs\Request as JobRequest;
 use App\Jobs\Types\Factory;
 use App\Models\Job;
-use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
-use Symfony\Component\Console\Input\Input;
 
 class JobController extends Controller
 {
@@ -44,26 +42,21 @@ class JobController extends Controller
      */
     public function index(Request $request): JobCollection
     {
-        $perPage = (int)($request->get('per_page') ?? 15);
-        $orderBy = (array)($request->get('order') ?? ['created_at']);
-        $orderDirection = (array)($request->get('order_direction') ?? ['desc']);
-        if ($perPage < 0) {
-            $perPage = 15;
-        }
-        $builder = Job::query();
-        if (!empty($orderBy)) {
-            for ($i = 0, $count = count($orderBy); $i < $count; $i++) {
-                if ($orderBy[$i]) {
-                    $builder->orderBy($orderBy[$i], $orderDirection[$i] ?? 'desc');
+        return new JobCollection(
+            $this->handleBuilderRequest(
+                $request,
+                Job::query(),
+                static function (Builder $builder) {
+                    /** @var \App\Models\User $user */
+                    $user = \Auth::guard('api')->user();
+                    if (!$user->admin) {
+                        $builder->where('user_id', $user->id);
+                    }
+
+                    return $builder;
                 }
-            }
-        }
-        /** @var \App\Models\User $user */
-        $user = \Auth::guard('api')->user();
-        if (!$user->admin) {
-            $builder->where('user_id', $user->id);
-        }
-        return new JobCollection($builder->paginate($perPage)->appends($request->input()));
+            )
+        );
     }
 
     /**

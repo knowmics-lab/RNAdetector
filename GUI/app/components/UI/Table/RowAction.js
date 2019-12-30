@@ -2,10 +2,10 @@
 import React from 'react';
 import Icon from '@material-ui/core/Icon';
 import IconButton from '../IconButton';
-import type { ReadOnlyData, RowAction } from './types';
+import type { ReadOnlyData, RowActionType } from './types';
 
 export type Props = {
-  action: RowAction,
+  action: RowActionType,
   data: ReadOnlyData,
   size: string
 };
@@ -14,7 +14,7 @@ function isF(x: mixed): boolean %checks {
   return typeof x === 'function';
 }
 
-export default function Action({ action, data, size }: Props) {
+export default function RowAction({ action, data, size }: Props) {
   if (typeof action === 'function') {
     return action(data);
   }
@@ -30,17 +30,7 @@ export default function Action({ action, data, size }: Props) {
   const color = action.color || 'inherit';
   const onClick = event =>
     action.onClick ? action.onClick(event, data) : undefined;
-  return action.href ? (
-    <IconButton
-      size={action.size || size}
-      color={color}
-      disabled={disabled}
-      href={action.href}
-      title={action.tooltip}
-    >
-      {icon}
-    </IconButton>
-  ) : (
+  return (
     <IconButton
       size={action.size || size}
       color={color}

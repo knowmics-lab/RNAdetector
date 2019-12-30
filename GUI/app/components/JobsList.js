@@ -1,10 +1,8 @@
 /* eslint-disable promise/always-return,promise/catch-or-return */
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
-import Paper from '@material-ui/core/Paper';
-import Typography from '@material-ui/core/Typography';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import { ConnectTable } from './UI/PaginatedRemoteTable';
 import * as JobsActions from '../actions/jobs';
@@ -56,7 +54,7 @@ type State = {
   downloading: number[]
 };
 
-class JobsList extends Component<Props, State> {
+class JobsList extends React.Component<Props, State> {
   constructor(props) {
     super(props);
     this.state = {
@@ -127,6 +125,14 @@ class JobsList extends Component<Props, State> {
     e.preventDefault();
   };
 
+  handleRefresh = (e, state) => {
+    if (!state.isLoading) {
+      const { refreshPage } = this.props;
+      refreshPage(state.currentPage || 1);
+    }
+    e.preventDefault();
+  };
+
   getActions() {
     const { deletingJobs, submittingJobs } = this.props;
     const { downloading } = this.state;
@@ -184,53 +190,62 @@ class JobsList extends Component<Props, State> {
     ];
   }
 
+  getToolbarActions() {
+    return [
+      {
+        align: 'right',
+        shown: true,
+        icon: 'fas fa-redo',
+        disabled: s => s.isLoading,
+        tooltip: 'Refresh',
+        onClick: this.handleRefresh
+      }
+    ];
+  }
+
   render() {
     const { deletingJobs, classes } = this.props;
     const { isLoading, logsOpen, logsSelectedJobId } = this.state;
 
     return (
       <>
-        <Box>
-          <Paper className={classes.root}>
-            <Typography variant="h5" component="h3">
-              Jobs list
-            </Typography>
-            <Typography component="p" />
-            {isLoading && (
-              <div className={classes.loading}>
-                <LinearProgress />
-              </div>
-            )}
-            <div>
-              <JobsTable
-                onPageChange={this.handlePageChange}
-                actions={this.getActions()}
-                columns={[
-                  {
-                    id: 'name',
-                    label: 'Name'
-                  },
-                  {
-                    id: 'readable_type',
-                    label: 'Type'
-                  },
-                  {
-                    id: 'status',
-                    label: 'Status',
-                    format: row => {
-                      if (deletingJobs.includes(row.id)) return 'Deleting';
-                      return Api.Utils.capitalize(row.status);
-                    }
-                  },
-                  {
-                    id: 'created_at_diff',
-                    label: 'Created at'
-                  },
-                  'actions'
-                ]}
-              />
+        <Box className={classes.root}>
+          {isLoading && (
+            <div className={classes.loading}>
+              <LinearProgress />
             </div>
-          </Paper>
+          )}
+          <div>
+            <JobsTable
+              title="Jobs list"
+              onPageChange={this.handlePageChange}
+              toolbar={this.getToolbarActions()}
+              actions={this.getActions()}
+              columns={[
+                {
+                  id: 'name',
+                  label: 'Name'
+                },
+                {
+                  id: 'readable_type',
+                  label: 'Type'
+                },
+                {
+                  id: 'status',
+                  label: 'Status',
+                  format: row => {
+                    if (deletingJobs.includes(row.id)) return 'Deleting';
+                    return Api.Utils.capitalize(row.status);
+                  }
+                },
+                {
+                  id: 'created_at_diff',
+                  label: 'Created at'
+                },
+                'actions'
+              ]}
+            />
+          </div>
         </Box>
         <LogsDialog
           jobId={logsSelectedJobId}

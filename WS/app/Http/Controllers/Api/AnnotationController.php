@@ -35,12 +35,7 @@ class AnnotationController extends Controller
      */
     public function index(Request $request): AnnotationCollection
     {
-        $perPage = (int)($request->get('per_page') ?? 15);
-        if ($perPage < 0) {
-            $perPage = 15;
-        }
-
-        return new AnnotationCollection(Annotation::paginate($perPage)->appends($request->input()));
+        return new AnnotationCollection($this->handleBuilderRequest($request, Annotation::query()));
     }
 
     /**
