@@ -10,7 +10,7 @@ import { withStyles } from '@material-ui/core/styles';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import type { ComponentType } from 'react';
-import type { StatePaginationType } from '../../types/common';
+import type { SortingSpec, StatePaginationType } from '../../types/common';
 import type { StateType } from '../../reducers/types';
 import type {
   RowActionType,
@@ -23,7 +23,8 @@ import TableToolbar from './Table/Toolbar';
 
 export type DispatchActions = {
   requestPage: number => *,
-  changeRowsPerPage: number => *
+  changeRowsPerPage: number => *,
+  changeSorting: SortingSpec => *
 };
 
 export type StateProps = {
@@ -38,6 +39,7 @@ export type ConnectedTableProps = {
   toolbar?: ToolbarActionType[],
   actions?: RowActionType[],
   keyField?: string,
+  sortable?: boolean,
   onPageChange: number => void
 };
 
@@ -48,9 +50,11 @@ export type TableProps = {
   toolbar?: ToolbarActionType[],
   actions?: RowActionType[],
   keyField?: string,
+  sortable?: boolean,
   onPageChange: number => void,
   requestPage: number => void,
   changeRowsPerPage: number => void,
+  changeSorting: SortingSpec => void,
   paginationState: StatePaginationType,
   pagesCollection: { +[number]: { +[string]: * }[] },
   classes: {
@@ -86,6 +90,7 @@ class PaginatedRemoteTable extends React.Component<TableProps> {
     title: null,
     keyField: 'id',
     size: 'small',
+    sortable: true,
     toolbar: [],
     actions: []
   };
@@ -119,21 +124,24 @@ class PaginatedRemoteTable extends React.Component<TableProps> {
       columns,
       paginationState,
       pagesCollection,
+      changeSorting,
       requestPage
     } = this.props;
 
-    let { keyField, size, actions, toolbar, title } = this.props;
+    let { keyField, size, actions, toolbar, title, sortable } = this.props;
 
     keyField = keyField || 'id';
     size = size || 'small';
     actions = actions || [];
     toolbar = toolbar || [];
     title = title || null;
+    sortable = sortable || true;
 
     const {
       current_page: currentPage,
       per_page: rowsPerPage,
       total: totalRows,
+      sorting,
       fetching
     } = paginationState;
 
@@ -160,9 +168,13 @@ class PaginatedRemoteTable extends React.Component<TableProps> {
             </div>
           )}
           <Table stickyHeader size={size}>
-            <TableHeader columns={columns} />
+            <TableHeader
+              columns={columns}
+              sorting={sorting || {}}
+              sortable={sortable}
+              changeSorting={changeSorting}
+            />
             <TableBody
-              isLoading={isLoading}
               data={data}
               keyField={keyField}
               columns={columns}

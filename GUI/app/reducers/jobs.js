@@ -9,8 +9,12 @@ import type {
   JobsCollection,
   LoadedJobs
 } from '../types/jobs';
+import type { SortingSpec } from '../types/common';
 
-const initJobsListState = (perPage: number = 15): JobsStateType => ({
+const initJobsListState = (
+  perPage: number = 15,
+  sorting: SortingSpec = { created_at: 'desc' }
+): JobsStateType => ({
   jobsList: {
     refreshAll: false,
     refreshPages: [],
@@ -19,6 +23,7 @@ const initJobsListState = (perPage: number = 15): JobsStateType => ({
       last_page: null,
       per_page: perPage,
       total: null,
+      sorting,
       fetching: false
     },
     pages: {}
@@ -63,6 +68,7 @@ function addLoadedPayload(
       current_page: payload.meta.current_page,
       last_page: payload.meta.last_page,
       total: payload.meta.total,
+      sorting: payload.meta.sorting,
       fetching: false
     },
     pages: {
@@ -75,7 +81,10 @@ function addLoadedPayload(
 function jobsList(state: JobsListType, action: Action): JobsListType {
   switch (action.type) {
     case JobsActions.JOBS_LIST_RESET_ALL:
-      const newState = initJobsListState(state.state.per_page);
+      const newState = initJobsListState(
+        state.state.per_page,
+        state.state.sorting
+      );
       return newState.jobsList;
     case JobsActions.JOBS_LIST_RESET_SELECTED:
       return resetJobsListSelected(state, action.payload.pages);
@@ -89,6 +98,12 @@ function jobsList(state: JobsListType, action: Action): JobsListType {
     case JobsActions.JOBS_LIST_SET_PER_PAGE:
       return {
         ...changeJobsListState(state, { per_page: action.payload.per_page }),
+        refreshAll: true,
+        refreshPages: []
+      };
+    case JobsActions.JOBS_LIST_SET_SORTING:
+      return {
+        ...changeJobsListState(state, { sorting: action.payload }),
         refreshAll: true,
         refreshPages: []
       };

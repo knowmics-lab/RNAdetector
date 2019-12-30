@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 // @flow
 import axios from 'axios';
 import path from 'path';
@@ -6,6 +7,7 @@ import { api as electron } from 'electron-util';
 import Settings from './settings';
 import type { Job, JobsCollection, JobTypesCollection } from '../types/jobs';
 import * as Api from './index';
+import type { SortingSpec } from '../types/common';
 
 export default {
   async download(
@@ -93,12 +95,17 @@ export default {
   },
   async fetchJobs(
     per_page: number = 15,
+    sorting: SortingSpec = { created_at: 'desc' },
     page: number = 1
   ): Promise<JobsCollection> {
+    const order = Object.keys(sorting);
+    const order_direction = Object.values(sorting);
     const result = await axios.get(`${Settings.getApiUrl()}jobs`, {
       params: {
         page,
-        per_page
+        per_page,
+        order,
+        order_direction
       },
       ...Settings.getAxiosHeaders()
     });
@@ -112,7 +119,10 @@ export default {
           submit: x.submit
         }
       })),
-      meta
+      meta: {
+        ...meta,
+        sorting
+      }
     };
   },
   async fetchTypes(): Promise<JobTypesCollection> {

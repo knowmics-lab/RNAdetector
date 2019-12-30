@@ -17,6 +17,7 @@ const JobsTable = ConnectTable(
   }),
   {
     changeRowsPerPage: JobsActions.setPerPage,
+    changeSorting: JobsActions.setSorting,
     requestPage: JobsActions.requestPage
   }
 );
@@ -223,23 +224,25 @@ class JobsList extends React.Component<Props, State> {
               actions={this.getActions()}
               columns={[
                 {
-                  id: 'name',
+                  dataField: 'name',
                   label: 'Name'
                 },
                 {
-                  id: 'readable_type',
+                  dataField: 'readable_type',
+                  sortingField: 'job_type',
                   label: 'Type'
                 },
                 {
-                  id: 'status',
+                  dataField: 'status',
                   label: 'Status',
-                  format: row => {
-                    if (deletingJobs.includes(row.id)) return 'Deleting';
-                    return Api.Utils.capitalize(row.status);
+                  format: (v, r) => {
+                    if (deletingJobs.includes(r.id)) return 'Deleting';
+                    return Api.Utils.capitalize(v);
                   }
                 },
                 {
-                  id: 'created_at_diff',
+                  dataField: 'created_at_diff',
+                  sortingField: 'created_at',
                   label: 'Created at'
                 },
                 'actions'

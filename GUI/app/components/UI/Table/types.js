@@ -6,11 +6,12 @@ export type ReadOnlyData = { +[string]: * };
 export type TableColumn =
   | 'actions'
   | {
-      id: string,
+      dataField: string,
+      sortingField?: string,
       label: string,
       minWidth?: number,
       align?: 'left' | 'right' | 'center' | 'justify',
-      format?: ReadOnlyData => mixed
+      format?: (mixed, ReadOnlyData) => mixed
     };
 
 export type TableState = {

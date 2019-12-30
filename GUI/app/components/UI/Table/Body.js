@@ -1,5 +1,4 @@
 // @flow
-
 import React from 'react';
 import TableBody from '@material-ui/core/TableBody';
 import TableRow from '@material-ui/core/TableRow';
@@ -16,22 +15,26 @@ function Cell(
   size: string
 ) {
   if (column !== 'actions') {
-    const value = row[column.id];
+    const value = row[column.dataField];
     return (
-      <TableCell key={`${keyBase}-${column.id}`} align={column.align}>
-        {column.format ? column.format(row) : value}
+      <TableCell key={`${keyBase}-${column.dataField}`} align={column.align}>
+        {column.format ? column.format(value, row) : value}
       </TableCell>
     );
   }
   return (
     <TableCell key={`${keyBase}-actions`} align="center">
-      <RowActions actions={actions} data={row} keyField={keyField} size={size} />
+      <RowActions
+        actions={actions}
+        data={row}
+        keyField={keyField}
+        size={size}
+      />
     </TableCell>
   );
 }
 
 type Props = {
-  isLoading: boolean,
   data: ReadOnlyData[],
   keyField: string,
   columns: TableColumn[],
@@ -40,7 +43,6 @@ type Props = {
 };
 
 export default function Body({
-  isLoading,
   data,
   keyField,
   columns,
@@ -49,7 +51,8 @@ export default function Body({
 }: Props) {
   return (
     <TableBody>
-      {!isLoading &&
+      {Array.isArray(data) &&
+        data.length > 0 &&
         data.map(row => (
           <TableRow
             hover

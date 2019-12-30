@@ -5,12 +5,14 @@ import type { Action, Dispatch, GetState } from '../reducers/types';
 import type { Job, JobsCollection } from '../types/jobs';
 import * as Api from '../api';
 import { pushNotificationSimple } from './notifications';
+import type { SortingSpec } from '../types/common';
 
 export const JOBS_LIST_LOADING = 'JOBS--LIST--LOADING';
 export const JOBS_LIST_LOADED = 'JOBS--LIST--LOADED';
 export const JOBS_LIST_CACHED = 'JOBS--LIST--CACHED';
 export const JOBS_LIST_ERROR = 'JOBS--LIST--ERROR';
 export const JOBS_LIST_SET_PER_PAGE = 'JOBS--LIST--SET_PER_PAGE';
+export const JOBS_LIST_SET_SORTING = 'JOBS--LIST--SET_SORTING';
 export const JOBS_LIST_RESET_ALL = 'JOBS--LIST--RESET_ALL';
 export const JOBS_LIST_RESET_SELECTED = 'JOBS--LIST--RESET_SELECTED';
 export const JOBS_LIST_REQUEST_REFRESH = 'JOBS--LIST--REQUEST_REFRESH';
@@ -34,9 +36,15 @@ export function setPerPage(perPage: number = 15) {
     } = getState();
     if (oldPerPage !== perPage) {
       dispatch(internalSetPerPage(perPage));
-      dispatch(jobsListRequestRefresh());
       dispatch(requestPage(1));
     }
+  };
+}
+
+export function setSorting(sorting: SortingSpec = { created_at: 'desc' }) {
+  return async (dispatch: Dispatch) => {
+    dispatch(internalSetSorting(sorting));
+    dispatch(requestPage(1));
   };
 }
 
@@ -56,12 +64,12 @@ export function requestPage(page: number) {
         jobs: {
           jobsList: {
             pages,
-            state: { per_page }
+            state: { per_page, sorting }
           }
         }
       } = getState();
       if (!has(pages, page)) {
-        const jobs = await Api.Jobs.fetchJobs(per_page, page);
+        const jobs = await Api.Jobs.fetchJobs(per_page, sorting, page);
         dispatch(jobsListLoaded(jobs));
       } else {
         dispatch(jobsListCached(page));
@@ -169,12 +177,19 @@ export function deleteJob(jobId: number) {
   };
 }
 
-export function internalSetPerPage(perPage: number): Action {
+function internalSetPerPage(perPage: number): Action {
   return {
     type: JOBS_LIST_SET_PER_PAGE,
     payload: {
       per_page: perPage
     }
+  };
+}
+
+function internalSetSorting(payload: SortingSpec): Action {
+  return {
+    type: JOBS_LIST_SET_SORTING,
+    payload
   };
 }
 

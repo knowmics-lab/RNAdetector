@@ -14,7 +14,8 @@ export type MetaResponseType = {
   per_page: number,
   from: number,
   to: number,
-  total: number
+  total: number,
+  sorting?: SortingSpec
 };
 
 export type StatePaginationType = {|
@@ -22,6 +23,7 @@ export type StatePaginationType = {|
   +last_page: ?number,
   +per_page: number,
   +total: ?number,
+  +sorting?: SortingSpec,
   +fetching: boolean
 |};
 
@@ -30,3 +32,7 @@ export type LoadedCollectionMeta = {|
 |};
 
 export type MapType = { [string]: string | number | boolean | MapType };
+
+export type SortingDirection = 'asc' | 'desc';
+
+export type SortingSpec = { [string]: SortingDirection };
