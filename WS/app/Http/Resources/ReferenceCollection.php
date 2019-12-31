@@ -18,9 +18,13 @@ class ReferenceCollection extends ResourceCollection
         return $this->collection->map(
             static function ($item) {
                 return [
-                    'id'            => $item->id,
-                    'name'          => $item->name,
-                    'available_for' => $item->available_for,
+                    'id'              => $item->id,
+                    'name'            => $item->name,
+                    'available_for'   => $item->available_for,
+                    'created_at'      => $item->created_at,
+                    'created_at_diff' => $item->created_at->diffForHumans(),
+                    'updated_at'      => $item->updated_at,
+                    'updated_at_diff' => $item->updated_at->diffForHumans(),
                 ];
             }
         )->keyBy('id')->all();

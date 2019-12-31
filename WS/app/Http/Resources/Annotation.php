@@ -17,8 +17,12 @@ class Annotation extends JsonResource
     {
         return [
             'data'  => [
-                'id'   => $this->id,
-                'name' => $this->name,
+                'id'              => $this->id,
+                'name'            => $this->name,
+                'created_at'      => $this->created_at,
+                'created_at_diff' => $this->created_at->diffForHumans(),
+                'updated_at'      => $this->updated_at,
+                'updated_at_diff' => $this->updated_at->diffForHumans(),
             ],
             'links' => [
                 'self' => route('annotation.show', $this->resource),

@@ -17,9 +17,13 @@ class Reference extends JsonResource
     {
         return [
             'data'  => [
-                'id'            => $this->id,
-                'name'          => $this->name,
-                'available_for' => $this->available_for,
+                'id'              => $this->id,
+                'name'            => $this->name,
+                'available_for'   => $this->available_for,
+                'created_at'      => $this->created_at,
+                'created_at_diff' => $this->created_at->diffForHumans(),
+                'updated_at'      => $this->updated_at,
+                'updated_at_diff' => $this->updated_at->diffForHumans(),
             ],
             'links' => [
                 'self' => route('reference.show', $this->resource),
