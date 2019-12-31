@@ -8,6 +8,7 @@ export type TableColumn =
   | {
       dataField: string,
       sortingField?: string,
+      disableSorting?: boolean,
       label: string,
       minWidth?: number,
       align?: 'left' | 'right' | 'center' | 'justify',

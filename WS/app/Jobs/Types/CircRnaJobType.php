@@ -40,7 +40,7 @@ class CircRnaJobType extends AbstractJob
                     'hardTrim' => 'A boolean value to indicate if reads should be trimmed to the same size (Default true)',
                 ],
                 'genome'               => 'An optional name for a reference genome (Default human hg19)',
-                'annotation'           => 'An optional name for a genome annotation (Default human hg19)',
+                'annotation'           => 'An optional name for a GTF genome annotation (Default human hg19)',
                 'threads'              => 'Number of threads for this analysis (Default 1)',
                 'useFastqPair'         => 'A boolean value to indicate whether to use fastq_pair or bbmap repair (Default false=bbmap repair)',
                 'ciriSpanningDistance' => 'The maximum spanning distance used in CIRI (Default 200000)',
@@ -262,6 +262,9 @@ class CircRnaJobType extends AbstractJob
         $useCiri1 = (bool)$this->model->getParameter('ciriUseVersion1', false);
         $genome = Reference::whereName($genomeName)->firstOrFail();
         $annotation = Annotation::whereName($annotationName)->firstOrFail();
+        if ($annotation->type !== 'gtf') {
+            throw new ProcessingJobException('You must select only GTF annotations');
+        }
         $ciriInputFile = null;
         if ($inputType === self::BAM && $convertBam) {
             $inputType = self::FASTQ;

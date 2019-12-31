@@ -55,7 +55,7 @@ export default function Header({
               style={{ minWidth: column.minWidth }}
               className={classes.stickyStyle}
             >
-              {sortable ? (
+              {sortable && !column.disableSorting ? (
                 <TableSortLabel
                   active={has(sorting, sf(column))}
                   direction={

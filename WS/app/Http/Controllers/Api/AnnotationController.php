@@ -11,6 +11,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Annotation as AnnotationResource;
 use App\Http\Resources\AnnotationCollection;
 use App\Models\Annotation;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -35,7 +36,21 @@ class AnnotationController extends Controller
      */
     public function index(Request $request): AnnotationCollection
     {
-        return new AnnotationCollection($this->handleBuilderRequest($request, Annotation::query()));
+        return new AnnotationCollection(
+            $this->handleBuilderRequest(
+                $request,
+                Annotation::query(),
+                static function ($builder) use ($request) {
+                    if ($request->has('type')) {
+                        $type = $request->get('type');
+                        if ($type) {
+                            $builder->where('type', '=', strtolower($type));
+                        }
+                    }
+                    return $builder;
+                }
+            )
+        );
     }
 
     /**

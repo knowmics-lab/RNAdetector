@@ -43,7 +43,7 @@ class SmallRnaJobType extends AbstractJob
                 'countingAlgorithm' => 'The counting algorithm htseq, feature-counts, or salmon (Default htseq)',
                 'genome'            => 'An optional name for a reference genome (Default human hg19)',
                 'transcriptome'     => 'An optional name for a transcriptome if counting algorithm is salmon (Default human hg19)',
-                'annotation'        => 'An optional name for a genome annotation (Default human hg19)',
+                'annotation'        => 'An optional name for a GTF genome annotation (Default human hg19)',
                 'threads'           => 'Number of threads for this analysis (Default 1)',
             ]
         );
@@ -361,6 +361,9 @@ class SmallRnaJobType extends AbstractJob
         $countingAlgorithm = $this->model->getParameter('countingAlgorithm', self::HTSEQ_COUNTS);
         $genome = Reference::whereName($genomeName)->firstOrFail();
         $annotation = Annotation::whereName($annotationName)->firstOrFail();
+        if ($annotation->type !== 'gtf') {
+            throw new ProcessingJobException('You must select only GTF annotations');
+        }
         if ($inputType === self::SAM) {
             $inputType = self::BAM;
             $this->log('Converting SAM to BAM.');

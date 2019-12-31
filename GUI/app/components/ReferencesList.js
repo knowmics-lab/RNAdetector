@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
+import capitalize from '@material-ui/core/utils/capitalize';
 import { ConnectTable } from './UI/PaginatedRemoteTable';
 import * as ReferencesActions from '../actions/references';
 import type { StateType } from '../reducers/types';
@@ -111,6 +112,19 @@ class ReferencesList extends React.Component<Props, State> {
               {
                 dataField: 'name',
                 label: 'Name'
+              },
+              {
+                dataField: 'available_for',
+                label: 'Indexed for',
+                disableSorting: true,
+                format: value => {
+                  if (typeof value === 'object' && value) {
+                    return Object.keys(value)
+                      .map(capitalize)
+                      .join(', ');
+                  }
+                  return '';
+                }
               },
               {
                 dataField: 'created_at_diff',

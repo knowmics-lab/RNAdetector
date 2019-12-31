@@ -56,6 +56,7 @@ class Job extends Model
      * @var array
      */
     protected $fillable = [
+        'name',
         'job_type',
         'status',
         'job_parameters',

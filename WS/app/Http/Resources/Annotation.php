@@ -19,6 +19,7 @@ class Annotation extends JsonResource
             'data'  => [
                 'id'              => $this->id,
                 'name'            => $this->name,
+                'type'            => $this->type,
                 'created_at'      => $this->created_at,
                 'created_at_diff' => $this->created_at->diffForHumans(),
                 'updated_at'      => $this->updated_at,

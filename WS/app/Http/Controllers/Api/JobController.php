@@ -93,6 +93,7 @@ class JobController extends Controller
         $validValues = $this->validate(
             $request,
             [
+                'name'       => ['required', 'string'],
                 'type'       => ['required', 'string', Rule::in($jobTypes->pluck('id'))],
                 'parameters' => ['filled', 'array'],
             ]
@@ -105,6 +106,7 @@ class JobController extends Controller
         $validParameters = $validParameters['parameters'] ?? [];
         $job = Job::create(
             [
+                'name'           => $validValues['name'],
                 'job_type'       => $type,
                 'status'         => Job::READY,
                 'job_parameters' => [],

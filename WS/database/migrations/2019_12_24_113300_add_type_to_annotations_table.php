@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateAnnotationsTable extends Migration
+class AddTypeToAnnotationsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,13 +13,10 @@ class CreateAnnotationsTable extends Migration
      */
     public function up()
     {
-        Schema::create(
+        Schema::table(
             'annotations',
             static function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->string('name')->unique();
-                $table->string('path');
-                $table->timestamps();
+                $table->enum('type', ['gtf', 'bed'])->after('name')->default('gtf');
             }
         );
     }
@@ -31,6 +28,11 @@ class CreateAnnotationsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('annotations');
+        Schema::table(
+            'annotations',
+            static function (Blueprint $table) {
+                $table->removeColumn('type');
+            }
+        );
     }
 }

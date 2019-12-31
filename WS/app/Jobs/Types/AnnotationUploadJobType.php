@@ -11,6 +11,7 @@ namespace App\Jobs\Types;
 use App\Exceptions\ProcessingJobException;
 use App\Models\Annotation;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Storage;
 
 class AnnotationUploadJobType extends AbstractJob
@@ -24,8 +25,9 @@ class AnnotationUploadJobType extends AbstractJob
     public static function parametersSpec(): array
     {
         return [
-            'name'    => 'A name for this GTF annotation',
-            'gtfFile' => 'The GTF file for this annotation',
+            'name' => 'A name for this annotation',
+            'type' => 'The type of this annotation: gtf or bed (Default gtf)',
+            'file' => 'The file for this annotation',
         ];
     }
 
@@ -51,8 +53,9 @@ class AnnotationUploadJobType extends AbstractJob
     public static function validationSpec(Request $request): array
     {
         return [
-            'name'    => ['required', 'alpha_dash', 'max:255'],
-            'gtfFile' => ['required', 'string'],
+            'name' => ['required', 'alpha_dash', 'max:255'],
+            'type' => ['filled', Rule::in(['gtf', 'bed'])],
+            'file' => ['required', 'string'],
         ];
     }
 
@@ -64,10 +67,10 @@ class AnnotationUploadJobType extends AbstractJob
      */
     public function isInputValid(): bool
     {
-        $gtfFile = $this->model->getParameter('gtfFile');
+        $file = $this->model->getParameter('file');
         $disk = Storage::disk('public');
         $dir = $this->model->getJobDirectory() . '/';
-        if (!$disk->exists($dir . $gtfFile)) {
+        if (!$disk->exists($dir . $file)) {
             return false;
         }
 
@@ -86,9 +89,10 @@ class AnnotationUploadJobType extends AbstractJob
     {
         $this->log('Starting job.');
         $name = $this->model->getParameter('name');
-        $file = $this->model->getParameter('gtfFile');
+        $type = $this->model->getParameter('type', 'gtf');
+        $file = $this->model->getParameter('file');
         $absoluteSourceFilename = $this->model->getAbsoluteJobDirectory() . '/' . $file;
-        $annotationFileName = env('ANNOTATIONS_PATH') . '/' . $name . '.gtf';
+        $annotationFileName = env('ANNOTATIONS_PATH') . '/' . $name . '.' . $type;
         rename($absoluteSourceFilename, $annotationFileName);
         if (!file_exists($annotationFileName)) {
             throw new ProcessingJobException('Unable to create annotation file.');
@@ -96,6 +100,7 @@ class AnnotationUploadJobType extends AbstractJob
         Annotation::create(
             [
                 'name' => $name,
+                'type' => $type,
                 'path' => $annotationFileName,
             ]
         )->save();

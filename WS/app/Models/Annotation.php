@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @property int                             $id
  * @property string                          $name
+ * @property string                          $type
  * @property string                          $path
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
@@ -23,6 +24,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Annotation whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Annotation whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Annotation whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Annotation whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Annotation wherePath($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Annotation whereUpdatedAt($value)
  * @mixin \Eloquent
@@ -37,6 +39,7 @@ class Annotation extends Model
      */
     protected $fillable = [
         'name',
+        'type',
         'path',
     ];
 
