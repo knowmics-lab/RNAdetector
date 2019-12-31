@@ -89,6 +89,13 @@ class ReferencesList extends React.Component<Props, State> {
       {
         align: 'right',
         shown: true,
+        icon: 'fas fa-plus',
+        tooltip: 'Add',
+        onClick: () => console.log('TODO')
+      },
+      {
+        align: 'right',
+        shown: true,
         icon: 'fas fa-redo',
         disabled: s => s.isLoading,
         tooltip: 'Refresh',
