@@ -7,7 +7,7 @@ import configSchema from '../constants/config-schema.json';
 // eslint-disable-next-line import/no-cycle
 import Docker from './docker';
 import type { ConfigObjectType } from '../types/settings';
-import type { AxiosHeaders } from '../types/common';
+import type { AxiosHeaders, SimpleMapType } from '../types/common';
 
 export default {
   configStore: new Store({ schema: configSchema }),
@@ -50,6 +50,13 @@ export default {
   },
   getLocalPath(p: string = '', config: ConfigObjectType = this.getConfig()) {
     return `${config.dataPath}/${p ? p.replace(/^\//, '') : ''}`;
+  },
+  getAuthHeaders(
+    config: ConfigObjectType = this.getConfig()
+  ): SimpleMapType<string> {
+    return {
+      Authorization: `Bearer ${config.apiKey}`
+    };
   },
   getAxiosHeaders(config: ConfigObjectType = this.getConfig()): AxiosHeaders {
     return {

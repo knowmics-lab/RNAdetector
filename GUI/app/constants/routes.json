@@ -4,5 +4,6 @@
   "SETTINGS": "/settings",
   "ANNOTATIONS": "/annotations",
   "JOBS": "/jobs",
-  "REFERENCES": "/references"
+  "REFERENCES": "/references",
+  "CREATE_REFERENCE": "/references/new"
 }

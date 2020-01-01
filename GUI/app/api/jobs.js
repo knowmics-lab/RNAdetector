@@ -10,6 +10,15 @@ import * as Api from './index';
 import type { SortingSpec } from '../types/common';
 
 export default {
+  getUploadUrl(job: number | Job): string {
+    let jobId;
+    if (typeof job === 'object') {
+      jobId = job.id;
+    } else {
+      jobId = job;
+    }
+    return `${Settings.getApiUrl()}jobs/${jobId}/upload`;
+  },
   async download(
     jobId: number,
     onStart?: () => void,

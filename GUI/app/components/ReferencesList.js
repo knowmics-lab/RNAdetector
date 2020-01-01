@@ -7,6 +7,8 @@ import capitalize from '@material-ui/core/utils/capitalize';
 import { ConnectTable } from './UI/PaginatedRemoteTable';
 import * as ReferencesActions from '../actions/references';
 import type { StateType } from '../reducers/types';
+import { CREATE_REFERENCE } from '../constants/routes';
+import { Link } from 'react-router-dom';
 
 const ReferencesTable = ConnectTable(
   (state: StateType) => ({
@@ -35,6 +37,7 @@ const style = theme => ({
 type Props = {
   refreshPage: number => void,
   deleteReference: (number, ?number) => void,
+  push: (*) => void,
   classes: {
     root: *,
     loading: *
@@ -91,7 +94,10 @@ class ReferencesList extends React.Component<Props, State> {
         shown: true,
         icon: 'fas fa-plus',
         tooltip: 'Add',
-        onClick: () => console.log('TODO')
+        onClick: () => {
+          const { push } = this.props;
+          push(CREATE_REFERENCE);
+        }
       },
       {
         align: 'right',
@@ -126,8 +132,9 @@ class ReferencesList extends React.Component<Props, State> {
                 disableSorting: true,
                 format: value => {
                   if (typeof value === 'object' && value) {
-                    return Object.keys(value)
-                      .map(capitalize)
+                    return Object.entries(value)
+                      .filter(([, v]) => v)
+                      .map(([k]) => capitalize(k))
                       .join(', ');
                   }
                   return '';

@@ -4,8 +4,40 @@ import axios from 'axios';
 import Settings from './settings';
 import type { Reference, ReferencesCollection } from '../types/references';
 import type { SortingSpec } from '../types/common';
+import type { Job } from '../types/jobs';
 
 export default {
+  async create(
+    name: string,
+    fastaFile: string,
+    availableFor: string[]
+  ): Promise<Job> {
+    const result = await axios.post(
+      `${Settings.getApiUrl()}jobs`,
+      {
+        name: `Create and index reference ${name}`,
+        type: 'reference_upload_job_type',
+        parameters: {
+          name,
+          fastaFile,
+          index: Object.fromEntries(
+            ['bwa', 'tophat', 'hisat', 'salmon'].map(v => [
+              v,
+              availableFor.includes(v)
+            ])
+          )
+        }
+      },
+      {
+        ...Settings.getAxiosHeaders()
+      }
+    );
+    const { data, links } = result.data;
+    return {
+      ...data,
+      links
+    };
+  },
   async delete(id: number): Promise<void> {
     await axios.delete(`${Settings.getApiUrl()}references/${id}`, {
       ...Settings.getAxiosHeaders()

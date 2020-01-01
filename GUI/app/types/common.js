@@ -1,7 +1,7 @@
 // @flow
 
 export type AxiosHeaders = {|
-  headers: { [string]: string }
+  headers: { [string]: mixed }
 |};
 
 export type ModifiableStateType = {

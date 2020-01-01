@@ -55,7 +55,8 @@ export default function SelectField({
   const [
     { name, onBlur, onChange, value, multiple },
     { error, touched }
-  ] = useField(props);
+    // $FlowFixMe
+  ] = useField({ as: 'select', ...props });
   const entries = Object.entries(options).map(OPTION_MAPPER);
   if (addEmpty) {
     entries.unshift(EMPTY_OPTION(emptyText));

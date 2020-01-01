@@ -8,11 +8,13 @@ import SettingsPage from './containers/SettingsPage';
 import JobsListPage from './containers/JobsListPage';
 import AnnotationsListPage from './containers/AnnotationsListPage';
 import ReferencesListPage from './containers/ReferencesListPage';
+import CreateReferencePage from './containers/CreateReferencePage';
 
 export default () => (
   <App>
     <Switch>
       <Route path={routes.SETTINGS} component={SettingsPage} />
+      <Route path={routes.CREATE_REFERENCE} component={CreateReferencePage} />
       <Route path={routes.REFERENCES} component={ReferencesListPage} />
       <Route path={routes.JOBS} component={JobsListPage} />
       <Route path={routes.ANNOTATIONS} component={AnnotationsListPage} />
