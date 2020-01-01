@@ -11,7 +11,7 @@ class DefaultSeeder extends Seeder
      *
      * @return void
      */
-    public function run()
+    public function run(): void
     {
         Reference::create(
             [
@@ -20,6 +20,7 @@ class DefaultSeeder extends Seeder
                 'available_for' => [
                     'bwa'    => true,
                     'tophat' => true,
+                    'hisat'  => true,
                     'salmon' => false,
                 ],
             ]
@@ -31,6 +32,7 @@ class DefaultSeeder extends Seeder
                 'available_for' => [
                     'bwa'    => false,
                     'tophat' => false,
+                    'hisat'  => false,
                     'salmon' => true,
                 ],
             ]
@@ -42,6 +44,7 @@ class DefaultSeeder extends Seeder
                 'available_for' => [
                     'bwa'    => false,
                     'tophat' => false,
+                    'hisat'  => false,
                     'salmon' => true,
                 ],
             ]
@@ -53,6 +56,7 @@ class DefaultSeeder extends Seeder
                 'available_for' => [
                     'bwa'    => false,
                     'tophat' => false,
+                    'hisat'  => false,
                     'salmon' => true,
                 ],
             ]
@@ -64,6 +68,7 @@ class DefaultSeeder extends Seeder
                 'available_for' => [
                     'bwa'    => false,
                     'tophat' => false,
+                    'hisat'  => false,
                     'salmon' => true,
                 ],
             ]
@@ -71,12 +76,14 @@ class DefaultSeeder extends Seeder
         Annotation::create(
             [
                 'name' => env('HUMAN_CIRI_ANNOTATION_NAME'),
+                'type' => 'gtf',
                 'path' => env('ANNOTATIONS_PATH') . '/' . env('HUMAN_CIRI_ANNOTATION_NAME') . '.gtf',
             ]
         )->save();
         Annotation::create(
             [
                 'name' => env('HUMAN_SNCRNA_ANNOTATION_NAME'),
+                'type' => 'gtf',
                 'path' => env('ANNOTATIONS_PATH') . '/' . env('HUMAN_SNCRNA_ANNOTATION_NAME') . '.gtf',
             ]
         )->save();

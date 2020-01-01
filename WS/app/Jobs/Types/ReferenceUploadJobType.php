@@ -30,6 +30,7 @@ class ReferenceUploadJobType extends AbstractJob
                 'bwa'    => 'A boolean for enabling bwa indexing',
                 'tophat' => 'A boolean for enabling tophat indexing',
                 'salmon' => 'A boolean for enabling salmon indexing',
+                'hisat'  => 'A boolean for enabling hisat2 indexing',
             ],
         ];
     }
@@ -62,6 +63,7 @@ class ReferenceUploadJobType extends AbstractJob
             'index.bwa'    => ['required', 'boolean'],
             'index.tophat' => ['required', 'boolean'],
             'index.salmon' => ['required', 'boolean'],
+            'index.hisat'  => ['required', 'boolean'],
         ];
     }
 
@@ -175,6 +177,38 @@ class ReferenceUploadJobType extends AbstractJob
         $this->log('Reference sequence indexed for Salmon.');
     }
 
+    /**
+     * @param string $referenceFilename
+     * @param string $referenceDirname
+     *
+     * @throws \App\Exceptions\ProcessingJobException
+     */
+    private function indexHisat(string $referenceFilename, string $referenceDirname): void
+    {
+        $this->log('Indexing reference for Hisat 2.');
+        $output = self::runCommand(
+            [
+                'bash',
+                self::scriptPath('hisat_index.sh'),
+                '-f',
+                $referenceFilename,
+                '-p',
+                $referenceDirname . '/reference',
+            ],
+            $this->model->getAbsoluteJobDirectory(),
+            null,
+            null,
+            [
+                3 => 'Input file does not exist.',
+                4 => 'Output prefix must be specified.',
+                5 => 'Output directory must be writeable.',
+                6 => 'An unknown error occurred while running hisat2-build.',
+            ]
+        );
+        $this->log($output);
+        $this->log('Reference sequence indexed for Hisat 2.');
+    }
+
 
     /**
      * Handles all the computation for this job.
@@ -192,7 +226,9 @@ class ReferenceUploadJobType extends AbstractJob
         $absoluteSourceFilename = $this->model->getAbsoluteJobDirectory() . '/' . $file;
         $referenceDirname = env('REFERENCES_PATH') . '/' . $name;
         $referenceFilename = $referenceDirname . '/reference.fa';
-        mkdir($referenceDirname, 0777, true);
+        if (!mkdir($referenceDirname, 0777, true) && !is_dir($referenceDirname)) {
+            throw new ProcessingJobException(sprintf('Directory "%s" was not created', $referenceDirname));
+        }
         if (!file_exists($referenceDirname)) {
             throw new ProcessingJobException('Unable to create reference directory.');
         }
@@ -203,6 +239,7 @@ class ReferenceUploadJobType extends AbstractJob
         $bwa = (bool)($index['bwa'] ?? false);
         $tophat = (bool)($index['tophat'] ?? false);
         $salmon = (bool)($index['salmon'] ?? false);
+        $hisat = (bool)($index['hisat'] ?? false);
         if ($bwa) {
             $this->indexBWA($referenceFilename, $referenceDirname);
         }
@@ -212,6 +249,9 @@ class ReferenceUploadJobType extends AbstractJob
         if ($salmon) {
             $this->indexSalmon($referenceFilename, $referenceDirname);
         }
+        if ($hisat) {
+            $this->indexHisat($referenceFilename, $referenceDirname);
+        }
         Reference::create(
             [
                 'name'          => $name,
@@ -220,6 +260,7 @@ class ReferenceUploadJobType extends AbstractJob
                     'bwa'    => $bwa,
                     'tophat' => $tophat,
                     'salmon' => $salmon,
+                    'hisat'  => $hisat,
                 ],
             ]
         )->save();
