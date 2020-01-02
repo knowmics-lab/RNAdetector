@@ -1,4 +1,4 @@
-/* eslint-disable camelcase */
+/* eslint-disable camelcase,promise/always-return */
 // @flow
 import { has } from 'lodash';
 import type { Action, Dispatch, GetState } from '../reducers/types';
@@ -157,13 +157,14 @@ export function waitForDelete() {
       } else {
         // eslint-disable-next-line promise/catch-or-return
         Api.Jobs.processDeletedList(deleting).then(d => {
-          // eslint-disable-next-line promise/always-return
           if (d.length === 0) {
             clearInterval(waitForDeleteTimer);
             waitForDeleteTimer = null;
           }
-          dispatch(jobUpdateDeleting(d));
-          dispatch(refreshPage());
+          if (d.length !== deleting.length) {
+            dispatch(jobUpdateDeleting(d));
+            dispatch(refreshPage());
+          }
         });
       }
     }, 10000);

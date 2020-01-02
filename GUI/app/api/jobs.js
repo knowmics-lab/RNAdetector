@@ -1,13 +1,13 @@
 /* eslint-disable camelcase */
 // @flow
-import axios from 'axios';
 import path from 'path';
 import fs from 'fs-extra';
 import { api as electron } from 'electron-util';
 import Settings from './settings';
 import type { Job, JobsCollection, JobTypesCollection } from '../types/jobs';
-import * as Api from './index';
 import type { SortingSpec } from '../types/common';
+import Connector from './connector';
+import Downloader from './downloader';
 
 export default {
   getUploadUrl(job: number | Job): string {
@@ -17,39 +17,34 @@ export default {
     } else {
       jobId = job;
     }
-    return `${Settings.getApiUrl()}jobs/${jobId}/upload`;
+    return Connector.getEndpointUrl(`jobs/${jobId}/upload`);
   },
   async download(
     jobId: number,
     onStart?: () => void,
     onCompleted?: () => void
   ): Promise<void> {
-    const job = await Api.Jobs.fetchJobById(jobId);
+    const job = await this.fetchJobById(jobId);
     if (job.output && job.output.outputFile && job.output.outputFile.path) {
       const { path: outputPath } = job.output.outputFile;
       if (typeof outputPath === 'string') {
-        const outputUrl = Api.Settings.getPublicUrl(outputPath);
+        const outputUrl = Settings.getPublicUrl(outputPath);
         const outputFilename = path.basename(outputPath);
-        Api.Downloader.downloadUrl(
-          outputUrl,
-          outputFilename,
-          onStart,
-          onCompleted
-        );
+        Downloader.downloadUrl(outputUrl, outputFilename, onStart, onCompleted);
       }
     } else {
       throw new Error('Unable to find output path');
     }
   },
   async openLocalFolder(jobId: number): Promise<void> {
-    if (!Api.Settings.isLocal())
+    if (!Settings.isLocal())
       throw new Error('Unable to open folder when in remote mode');
-    const job = await Api.Jobs.fetchJobById(jobId);
+    const job = await this.fetchJobById(jobId);
     if (job.output && job.output.outputFile && job.output.outputFile.path) {
       const { path: outputPath } = job.output.outputFile;
       if (typeof outputPath === 'string') {
         const jobFolder = path.dirname(
-          Api.Settings.getLocalPath(`/public/${outputPath}`)
+          Settings.getLocalPath(`/public/${outputPath}`)
         );
         if (!(await fs.pathExists(jobFolder)))
           throw new Error('Unable to find output path');
@@ -75,17 +70,10 @@ export default {
     return deleted.filter((ignore, idx) => res[idx]);
   },
   async deleteJob(jobId: number): Promise<void> {
-    await axios.delete(`${Settings.getApiUrl()}jobs/${jobId}`, {
-      ...Settings.getAxiosHeaders()
-    });
+    await Connector.callDelete(`jobs/${jobId}`);
   },
   async submitJob(jobId: number): Promise<Job> {
-    const result = await axios.get(
-      `${Settings.getApiUrl()}jobs/${jobId}/submit`,
-      {
-        ...Settings.getAxiosHeaders()
-      }
-    );
+    const result = await Connector.callGet(`jobs/${jobId}/submit`);
     const { data, links } = result.data;
     return {
       ...data,
@@ -93,9 +81,7 @@ export default {
     };
   },
   async fetchJobById(jobId: number): Promise<Job> {
-    const result = await axios.get(`${Settings.getApiUrl()}jobs/${jobId}`, {
-      ...Settings.getAxiosHeaders()
-    });
+    const result = await Connector.callGet(`jobs/${jobId}`);
     const { data, links } = result.data;
     return {
       ...data,
@@ -109,14 +95,11 @@ export default {
   ): Promise<JobsCollection> {
     const order = Object.keys(sorting);
     const order_direction = Object.values(sorting);
-    const result = await axios.get(`${Settings.getApiUrl()}jobs`, {
-      params: {
-        page,
-        per_page,
-        order,
-        order_direction
-      },
-      ...Settings.getAxiosHeaders()
+    const result = await Connector.callGet(`jobs`, {
+      page,
+      per_page,
+      order,
+      order_direction
     });
     const { data, meta } = result.data;
     return {
@@ -135,9 +118,7 @@ export default {
     };
   },
   async fetchTypes(): Promise<JobTypesCollection> {
-    const result = await axios.get(`${Settings.getApiUrl()}job-types`, {
-      ...Settings.getAxiosHeaders()
-    });
+    const result = await Connector.callGet(`job-types`);
     const { data } = result.data;
     return data;
   }

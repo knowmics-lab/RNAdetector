@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
@@ -14,8 +14,6 @@ import * as Yup from 'yup';
 import Stepper from '@material-ui/core/Stepper';
 import Step from '@material-ui/core/Step';
 import StepLabel from '@material-ui/core/StepLabel';
-import Uppy from '@uppy/core';
-import Tus from '@uppy/tus';
 import { Dashboard } from '@uppy/react';
 import { has } from 'lodash';
 import * as Api from '../api';
@@ -75,20 +73,12 @@ type State = {
   validationErrors: *
 };
 
-class CreateReference extends Component<Props, State> {
+class CreateAnnotation extends React.Component<Props, State> {
   props: Props;
 
   constructor(props) {
     super(props);
-    this.uppy = Uppy({
-      restrictions: {
-        maxNumberOfFiles: 1,
-        allowedFileTypes: ['.fa', '.fasta']
-      },
-      allowMultipleUploads: false,
-      logger: Uppy.debugLogger,
-      autoProceed: false
-    });
+    this.uppy = Api.Uppy.initUppyInstance(['.bed']);
     this.state = {
       isSaving: false,
       activeStep: 0,
@@ -119,19 +109,17 @@ class CreateReference extends Component<Props, State> {
         .matches(/^[A-Za-z0-9\-_]+$/, {
           message: 'The field must contain only letters, numbers, and dashes.'
         }),
-      availableFor: Yup.array()
-        .of(Yup.string().oneOf(['bwa', 'tophat', 'hisat', 'salmon']))
-        .required()
+      type: Yup.string().oneOf(['gtf', 'bed'])
     });
 
-  getSteps = () => ['Choose a name', 'Choose aligners'];
+  getSteps = () => ['Choose a name', 'Choose a type'];
 
   getConnectedFields = index => {
     switch (index) {
       case 0:
         return ['name'];
       case 1:
-        return ['availableFor'];
+        return ['type'];
       default:
         return [];
     }
@@ -150,8 +138,8 @@ class CreateReference extends Component<Props, State> {
     return (
       <>
         <Typography className={classes.instructions}>
-          Choose a name fo the new reference sequence. The name should contain
-          only letters, numbers, and dashes.
+          Choose a name fo the new annotation. The name should contain only
+          letters, numbers, and dashes.
         </Typography>
         <TextField label="Name" name="name" required />
       </>
@@ -163,20 +151,15 @@ class CreateReference extends Component<Props, State> {
     return (
       <>
         <Typography className={classes.instructions}>
-          Choose which alignment algorithms will be available for this sequence.
-          Based on the selected algorithms, the appropriate indexing methods
-          will be used.
+          Choose the type of annotation (GTF or BED).
         </Typography>
         <SelectField
-          label="Indexing algorithms"
-          name="availableFor"
+          label="Annotation type"
+          name="type"
           options={{
-            bwa: 'BWA',
-            tophat: 'TopHat 2',
-            hisat: 'HISAT2',
-            salmon: 'Salmon'
+            gtf: 'GTF',
+            bed: 'BED'
           }}
-          multiple
           required
         />
       </>
@@ -188,14 +171,14 @@ class CreateReference extends Component<Props, State> {
     return (
       <>
         <Typography className={classes.instructions}>
-          Select the FASTA file you wish to use and click &quot;Save&quot; to
-          start the upload process.
+          Select the file you wish to use and click &quot;Save&quot; to start
+          the upload process.
         </Typography>
         <FormGroup row className={classes.formControl}>
           <Grid container justify="center" alignItems="center">
             <Grid item xs={12}>
               <Dashboard
-                uppy={this.uppy}
+                uppy={Api.Uppy.getInstance(this.uppy)}
                 hideUploadButton
                 proudlyDisplayPoweredByUppy={false}
                 hideRetryButton
@@ -277,51 +260,18 @@ class CreateReference extends Component<Props, State> {
     );
   }
 
-  initUppy = url => {
-    if (this.uppy.getPlugin('Tus') !== null) {
-      this.uppy.removePlugin(this.uppy.getPlugin('Tus'));
-    }
-    this.uppy.use(Tus, {
-      endpoint: url,
-      headers: {
-        ...Api.Settings.getAuthHeaders()
-      }
-    });
-  };
-
-  checkUppyResult = (uploadResult, filename) => {
-    const { pushNotification } = this.props;
-    if (
-      uploadResult.successful &&
-      Array.isArray(uploadResult.successful) &&
-      uploadResult.successful.length >= 1
-    ) {
-      if (uploadResult.successful[0].name === filename) {
-        return true;
-      }
-      pushNotification(
-        'Error during upload: the uploaded file is different from the selected one.',
-        'error'
-      );
-    } else {
-      pushNotification('Unknown error during upload!', 'error');
-    }
-    return false;
-  };
-
   formSubmit = async values => {
     const { pushNotification, redirect, refreshJobs } = this.props;
-    const file = this.uppy.getFiles()[0];
-    if (file) {
-      const filename = file.data.name;
+    if (Api.Uppy.isValid(this.uppy, pushNotification)) {
+      const filename = Api.Uppy.getFilename(this.uppy, 0);
       this.setState({
         isSaving: true
       });
       try {
-        const data = await Api.References.create(
+        const data = await Api.Annotations.create(
           values.name,
-          filename,
-          values.availableFor
+          values.type,
+          filename
         );
         if (data.validationErrors) {
           pushNotification(
@@ -337,14 +287,14 @@ class CreateReference extends Component<Props, State> {
           pushNotification(
             'A new indexing job has been created! Uploading FASTA file...'
           );
-          this.initUppy(Api.Jobs.getUploadUrl(job));
-          const uploadResult = await this.uppy.upload();
-          if (this.checkUppyResult(uploadResult, filename)) {
-            pushNotification('FASTA file uploaded! Starting indexing job...');
+          const url = Api.Jobs.getUploadUrl(job);
+          if (await Api.Uppy.upload(this.uppy, url, pushNotification)) {
+            pushNotification('Annotation file uploaded! Starting job...');
             await Api.Jobs.submitJob(job.id);
-            pushNotification('Indexing job queued!');
+            pushNotification('Job queued!');
             refreshJobs();
             redirect(JOBS);
+            Api.Uppy.clearInstance(this.uppy);
           }
           this.setState({
             isSaving: false,
@@ -355,7 +305,7 @@ class CreateReference extends Component<Props, State> {
         pushNotification(`An error occurred: ${e.message}`, 'error');
       }
     } else {
-      pushNotification('You must select a FASTA file.', 'error');
+      pushNotification('You must select a file.', 'error');
     }
   };
 
@@ -367,12 +317,12 @@ class CreateReference extends Component<Props, State> {
       <Box>
         <Paper className={classes.root}>
           <Typography variant="h5" component="h3">
-            Add reference genome/transcriptome
+            Add annotation genome/transcriptome
           </Typography>
           <Formik
             initialValues={{
               name: '',
-              availableFor: []
+              type: 'gtf'
             }}
             initialErrors={validationErrors}
             validationSchema={this.getValidationSchema()}
@@ -404,4 +354,4 @@ class CreateReference extends Component<Props, State> {
   }
 }
 
-export default withStyles(style)(CreateReference);
+export default withStyles(style)(CreateAnnotation);

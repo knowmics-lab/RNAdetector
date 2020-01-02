@@ -1,7 +1,5 @@
 /* eslint-disable camelcase */
 // @flow
-import axios from 'axios';
-import Settings from './settings';
 import Connector from './connector';
 import type { Reference, ReferencesCollection } from '../types/references';
 import type { SortingSpec, ResponseType } from '../types/common';
@@ -39,14 +37,10 @@ export default {
     };
   },
   async delete(id: number): Promise<void> {
-    await axios.delete(`${Settings.getApiUrl()}references/${id}`, {
-      ...Settings.getAxiosHeaders()
-    });
+    await Connector.callDelete(`references/${id}`);
   },
   async fetchById(id: number): Promise<Reference> {
-    const result = await axios.get(`${Settings.getApiUrl()}references/${id}`, {
-      ...Settings.getAxiosHeaders()
-    });
+    const result = await Connector.callGet(`references/${id}`);
     const { data, links } = result.data;
     return {
       ...data,
@@ -60,14 +54,11 @@ export default {
   ): Promise<ReferencesCollection> {
     const order = Object.keys(sorting);
     const order_direction = Object.values(sorting);
-    const result = await axios.get(`${Settings.getApiUrl()}references`, {
-      params: {
-        page,
-        per_page,
-        order,
-        order_direction
-      },
-      ...Settings.getAxiosHeaders()
+    const result = await Connector.callGet(`references`, {
+      page,
+      per_page,
+      order,
+      order_direction
     });
     const { data, meta } = result.data;
     return {

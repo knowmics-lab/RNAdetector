@@ -6,6 +6,7 @@ import Box from '@material-ui/core/Box';
 import { ConnectTable } from './UI/PaginatedRemoteTable';
 import * as AnnotationsActions from '../actions/annotations';
 import type { StateType } from '../reducers/types';
+import { CREATE_ANNOTATION } from '../constants/routes';
 
 const AnnotationsTable = ConnectTable(
   (state: StateType) => ({
@@ -34,6 +35,7 @@ const style = theme => ({
 type Props = {
   refreshPage: number => void,
   deleteAnnotation: (number, ?number) => void,
+  push: (*) => void,
   classes: {
     root: *,
     loading: *
@@ -90,7 +92,10 @@ class AnnotationsList extends React.Component<Props, State> {
         shown: true,
         icon: 'fas fa-plus',
         tooltip: 'Add',
-        onClick: () => console.log('TODO')
+        onClick: () => {
+          const { push } = this.props;
+          push(CREATE_ANNOTATION);
+        }
       },
       {
         align: 'right',

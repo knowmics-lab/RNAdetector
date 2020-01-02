@@ -8,7 +8,6 @@ import { ConnectTable } from './UI/PaginatedRemoteTable';
 import * as ReferencesActions from '../actions/references';
 import type { StateType } from '../reducers/types';
 import { CREATE_REFERENCE } from '../constants/routes';
-import { Link } from 'react-router-dom';
 
 const ReferencesTable = ConnectTable(
   (state: StateType) => ({
