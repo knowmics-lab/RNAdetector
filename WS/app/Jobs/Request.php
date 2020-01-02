@@ -15,6 +15,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use App\Models\Job as JobModel;
+use Throwable;
 
 class Request implements ShouldQueue
 {
@@ -69,7 +70,7 @@ class Request implements ShouldQueue
             $jobProcessor->handle();
             Auth::logout();
             $this->model->setStatus(JobModel::COMPLETED);
-        } catch (ProcessingJobException $e) {
+        } catch (Throwable $e) {
             $this->model->appendLog('Error: ' . $e);
             $this->model->setStatus(JobModel::FAILED);
             if ($jobProcessor !== null && ($jobProcessor instanceof Types\AbstractJob)) {

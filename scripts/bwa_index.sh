@@ -46,3 +46,5 @@ if ! bwa index -p "$PREFIX_OUTPUT" -a bwtsw "$FASTA_FILE"; then
 	echo "An error occurred during bwa index execution!"
 	exit 6
 fi
+
+chmod -R 777 "$(dirname "$PREFIX_OUTPUT")"

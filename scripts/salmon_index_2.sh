@@ -29,11 +29,13 @@ fi
 
 #### Indexed transcriptome ####
 if ! salmon index -t "$FASTA" -i "$INDEXED_FASTA" -k 31; then
-    echo "An error occurred during salmon index execution!"
-    exit 5
+	echo "An error occurred during salmon index execution!"
+	exit 5
 fi
 
 if [ ! -d "$INDEXED_FASTA" ]; then
 	echo "Indexed trascriptome does not exist!"
 	exit 4
 fi
+
+chmod -R 777 "$(dirname "$PREFIX_OUTPUT")"

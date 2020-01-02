@@ -70,7 +70,7 @@ const styles = theme => ({
     width: '100%'
   },
   container: {
-    maxHeight: 440
+    // maxHeight: 440
   },
   stickyStyle: {
     backgroundColor: 'white'

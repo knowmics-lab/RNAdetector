@@ -45,3 +45,5 @@ if ! bowtie2-build "$FASTA_FILE" "$PREFIX_OUTPUT"; then
 	echo "An error occurred during bowtie2-build execution!"
 	exit 6
 fi
+
+chmod -R 777 "$(dirname "$PREFIX_OUTPUT")"

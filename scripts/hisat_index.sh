@@ -10,7 +10,7 @@ while getopts ":f:p:t:" opt; do
 	case $opt in
 	f) FASTA_FILE=$OPTARG ;;
 	p) PREFIX_OUTPUT=$OPTARG ;;
-  t) THREADS=$OPTARG ;;
+	t) THREADS=$OPTARG ;;
 	\?)
 		echo "Invalid option: -$OPTARG"
 		exit 1
@@ -48,6 +48,8 @@ fi
 
 #### Genome indexing ####
 if ! hisat2-build -p "$THREADS" "$FASTA_FILE" "$PREFIX_OUTPUT"; then
-  echo "An error occurred during hisat2-build execution!"
-  exit 6
+	echo "An error occurred during hisat2-build execution!"
+	exit 6
 fi
+
+chmod -R 777 "$(dirname "$PREFIX_OUTPUT")"

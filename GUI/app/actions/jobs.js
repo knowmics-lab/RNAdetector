@@ -84,9 +84,15 @@ export function requestPage(page: number) {
 }
 
 export function refreshPage(page: ?number = null) {
-  return (dispatch: Dispatch) => {
-    dispatch(jobsListRequestRefresh(!page ? null : [page]));
-    if (page) dispatch(requestPage(page));
+  return (dispatch: Dispatch, getState: GetState) => {
+    if (page) {
+      dispatch(jobsListRequestRefresh([page]));
+      dispatch(requestPage(page));
+    } else {
+      dispatch(jobsListRequestRefreshAll());
+      const currentPage = getState().jobs.jobsList.state.current_page;
+      dispatch(requestPage(currentPage));
+    }
   };
 }
 
@@ -147,11 +153,15 @@ export function waitForDelete() {
       } = state;
       if (deleting.length === 0) {
         clearInterval(waitForDeleteTimer);
+        waitForDeleteTimer = null;
       } else {
         // eslint-disable-next-line promise/catch-or-return
         Api.Jobs.processDeletedList(deleting).then(d => {
           // eslint-disable-next-line promise/always-return
-          if (d.length === 0) clearInterval(waitForDeleteTimer);
+          if (d.length === 0) {
+            clearInterval(waitForDeleteTimer);
+            waitForDeleteTimer = null;
+          }
           dispatch(jobUpdateDeleting(d));
           dispatch(refreshPage());
         });
@@ -235,11 +245,21 @@ export function jobsListResetSelected(pages: number[]): Action {
   };
 }
 
-export function jobsListRequestRefresh(pages: ?(number[]) = null): Action {
+export function jobsListRequestRefreshAll(): Action {
   return {
     type: JOBS_LIST_REQUEST_REFRESH,
     payload: {
-      all: pages !== null,
+      all: true,
+      pages: null
+    }
+  };
+}
+
+export function jobsListRequestRefresh(pages: number[]): Action {
+  return {
+    type: JOBS_LIST_REQUEST_REFRESH,
+    payload: {
+      all: false,
       pages
     }
   };

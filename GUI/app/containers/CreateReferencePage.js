@@ -1,13 +1,16 @@
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { push } from 'connected-react-router';
-import * as ReferencesActions from '../actions/references';
+import { refreshPage } from '../actions/jobs';
 import CreateReference from '../components/CreateReference';
+import { pushNotificationSimple } from '../actions/notifications';
 
 function mapDispatchToProps(dispatch) {
   return bindActionCreators(
     {
-      push
+      pushNotification: pushNotificationSimple,
+      redirect: push,
+      refreshJobs: refreshPage
     },
     dispatch
   );

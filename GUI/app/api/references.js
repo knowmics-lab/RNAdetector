@@ -2,8 +2,9 @@
 // @flow
 import axios from 'axios';
 import Settings from './settings';
+import Connector from './connector';
 import type { Reference, ReferencesCollection } from '../types/references';
-import type { SortingSpec } from '../types/common';
+import type { SortingSpec, ResponseType } from '../types/common';
 import type { Job } from '../types/jobs';
 
 export default {
@@ -11,31 +12,30 @@ export default {
     name: string,
     fastaFile: string,
     availableFor: string[]
-  ): Promise<Job> {
-    const result = await axios.post(
-      `${Settings.getApiUrl()}jobs`,
-      {
-        name: `Create and index reference ${name}`,
-        type: 'reference_upload_job_type',
-        parameters: {
-          name,
-          fastaFile,
-          index: Object.fromEntries(
-            ['bwa', 'tophat', 'hisat', 'salmon'].map(v => [
-              v,
-              availableFor.includes(v)
-            ])
-          )
-        }
-      },
-      {
-        ...Settings.getAxiosHeaders()
+  ): Promise<ResponseType<Job>> {
+    const result = await Connector.callPost('jobs', {
+      name: `Create and index reference ${name}`,
+      type: 'reference_upload_job_type',
+      parameters: {
+        name,
+        fastaFile,
+        index: Object.fromEntries(
+          ['bwa', 'tophat', 'hisat', 'salmon'].map(v => [
+            v,
+            availableFor.includes(v)
+          ])
+        )
       }
-    );
+    });
+    if (result.validationErrors) {
+      return result;
+    }
     const { data, links } = result.data;
     return {
-      ...data,
-      links
+      data: {
+        ...data,
+        links
+      }
     };
   },
   async delete(id: number): Promise<void> {

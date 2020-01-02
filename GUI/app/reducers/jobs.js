@@ -43,7 +43,10 @@ function resetJobsListSelected(
   return {
     ...state,
     refreshPages: [],
-    pages: Api.Utils.filterByKey(state.pages, key => !pages.includes(key))
+    pages: Api.Utils.filterByKey(
+      state.pages,
+      key => !pages.includes(parseInt(key, 10))
+    )
   };
 }
 

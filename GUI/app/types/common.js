@@ -33,8 +33,15 @@ export type LoadedCollectionMeta = {|
 
 export type SimpleMapType<T> = { [string]: T };
 
+export type RecursiveMapType<T> = { [string]: T | RecursiveMapType<T> };
+
 export type MapType = { [string]: string | number | boolean | MapType };
 
 export type SortingDirection = 'asc' | 'desc';
 
 export type SortingSpec = { [string]: SortingDirection };
+
+export type ResponseType<T> = {
+  validationErrors?: RecursiveMapType<string>,
+  data?: T
+};

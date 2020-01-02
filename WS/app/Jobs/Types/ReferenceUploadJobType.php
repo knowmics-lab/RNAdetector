@@ -229,10 +229,12 @@ class ReferenceUploadJobType extends AbstractJob
         if (!mkdir($referenceDirname, 0777, true) && !is_dir($referenceDirname)) {
             throw new ProcessingJobException(sprintf('Directory "%s" was not created', $referenceDirname));
         }
+        @chmod($referenceDirname, 0777);
         if (!file_exists($referenceDirname)) {
             throw new ProcessingJobException('Unable to create reference directory.');
         }
         rename($absoluteSourceFilename, $referenceFilename);
+        @chmod($referenceFilename, 0777);
         if (!file_exists($referenceFilename)) {
             throw new ProcessingJobException('Unable to create source fasta file.');
         }

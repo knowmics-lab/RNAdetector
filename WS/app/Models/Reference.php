@@ -117,8 +117,8 @@ class Reference extends Model
      */
     public function delete()
     {
-        if (file_exists($this->path)) {
-            self::_deletePath($this->path);
+        if (file_exists($this->basedir())) {
+            self::_deletePath($this->basedir());
         }
 
         return parent::delete();

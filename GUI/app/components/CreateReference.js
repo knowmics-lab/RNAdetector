@@ -18,13 +18,19 @@ import Step from '@material-ui/core/Step';
 import StepLabel from '@material-ui/core/StepLabel';
 import Uppy from '@uppy/core';
 import Tus from '@uppy/tus';
-import { DragDrop, Dashboard, StatusBar } from '@uppy/react';
+import { Dashboard } from '@uppy/react';
 import * as Api from '../api';
-
+import { JOBS } from '../constants/routes';
 import SelectField from './Form/SelectField';
 import TextField from './Form/TextField';
 
 type Props = {
+  refreshJobs: () => void,
+  redirect: mixed => void,
+  pushNotification: (
+    string,
+    ?('success' | 'warning' | 'error' | 'info')
+  ) => void,
   classes: {
     root: *,
     formControl: *,
@@ -66,7 +72,8 @@ const style = theme => ({
 
 type State = {
   isSaving: boolean,
-  activeStep: number
+  activeStep: number,
+  validationErrors: *
 };
 
 class CreateReference extends Component<Props, State> {
@@ -85,7 +92,8 @@ class CreateReference extends Component<Props, State> {
     });
     this.state = {
       isSaving: false,
-      activeStep: 0
+      activeStep: 0,
+      validationErrors: {}
     };
   }
 
@@ -172,6 +180,8 @@ class CreateReference extends Component<Props, State> {
                 uppy={this.uppy}
                 hideUploadButton
                 proudlyDisplayPoweredByUppy={false}
+                hideRetryButton
+                disableStatusBar
                 width="100%"
                 height="100%"
               />
@@ -248,34 +258,91 @@ class CreateReference extends Component<Props, State> {
     );
   }
 
-  formSubmit = values => {
+  initUppy = url => {
+    if (this.uppy.getPlugin('Tus') !== null) {
+      this.uppy.removePlugin(this.uppy.getPlugin('Tus'));
+    }
+    this.uppy.use(Tus, {
+      endpoint: url,
+      headers: {
+        ...Api.Settings.getAuthHeaders()
+      }
+    });
+  };
+
+  checkUppyResult = (uploadResult, filename) => {
+    const { pushNotification } = this.props;
+    if (
+      uploadResult.successful &&
+      Array.isArray(uploadResult.successful) &&
+      uploadResult.successful.length >= 1
+    ) {
+      if (uploadResult.successful[0].name === filename) {
+        return true;
+      }
+      pushNotification(
+        'Error during upload: the uploaded file is different from the selected one.',
+        'error'
+      );
+    } else {
+      pushNotification('Unknown error during upload!', 'error');
+    }
+    return false;
+  };
+
+  formSubmit = async values => {
+    const { pushNotification, redirect, refreshJobs } = this.props;
     const file = this.uppy.getFiles()[0];
     if (file) {
       const filename = file.data.name;
-      Api.References.create(values.name, filename, values.availableFor)
-        .then(data => {
-          this.uppy.use(Tus, {
-            endpoint: Api.Jobs.getUploadUrl(data),
-            headers: {
-              ...Api.Settings.getAuthHeaders()
-            }
+      this.setState({
+        isSaving: true
+      });
+      try {
+        const data = await Api.References.create(
+          values.name,
+          filename,
+          values.availableFor
+        );
+        if (data.validationErrors) {
+          pushNotification(
+            'Errors occurred during validation of input parameters. Please review the form!',
+            'warning'
+          );
+          this.setState({
+            isSaving: false,
+            validationErrors: data.validationErrors
           });
-          this.uppy
-            .upload()
-            .then(result => {
-              console.log(result);
-              return result;
-            })
-            .catch(e => console.log(e));
-          return data;
-        })
-        .catch(e => console.log(e));
+        } else {
+          const { data: job } = data;
+          pushNotification(
+            'A new indexing job has been created! Uploading FASTA file...'
+          );
+          this.initUppy(Api.Jobs.getUploadUrl(job));
+          const uploadResult = await this.uppy.upload();
+          if (this.checkUppyResult(uploadResult, filename)) {
+            pushNotification('FASTA file uploaded! Starting indexing job...');
+            await Api.Jobs.submitJob(job.id);
+            pushNotification('Indexing job queued!');
+            refreshJobs();
+            redirect(JOBS);
+          }
+          this.setState({
+            isSaving: false,
+            validationErrors: {}
+          });
+        }
+      } catch (e) {
+        pushNotification(`An error occurred: ${e.message}`, 'error');
+      }
+    } else {
+      pushNotification('You must select a FASTA file.', 'error');
     }
   };
 
   render() {
     const { classes } = this.props;
-    const { activeStep } = this.state;
+    const { activeStep, validationErrors } = this.state;
     const steps = this.getSteps();
     return (
       <Box>
@@ -288,8 +355,11 @@ class CreateReference extends Component<Props, State> {
               name: '',
               availableFor: []
             }}
+            initialErrors={validationErrors}
             validationSchema={this.getValidationSchema()}
-            onSubmit={this.formSubmit}
+            onSubmit={v => {
+              this.formSubmit(v).catch(() => false);
+            }}
           >
             {({ values }) => (
               <Form>

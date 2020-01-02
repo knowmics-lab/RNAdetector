@@ -94,6 +94,7 @@ class AnnotationUploadJobType extends AbstractJob
         $absoluteSourceFilename = $this->model->getAbsoluteJobDirectory() . '/' . $file;
         $annotationFileName = env('ANNOTATIONS_PATH') . '/' . $name . '.' . $type;
         rename($absoluteSourceFilename, $annotationFileName);
+        @chmod($annotationFileName, 0777);
         if (!file_exists($annotationFileName)) {
             throw new ProcessingJobException('Unable to create annotation file.');
         }
