@@ -45,7 +45,7 @@
     },
     {
       "icon": "fas fa-table",
-      "text": "GTF Annotations",
+      "text": "Annotations",
       "collapsible": false,
       "key": "main-menu-gtf-annotations",
       "to": "/annotations"

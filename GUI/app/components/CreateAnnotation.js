@@ -78,7 +78,7 @@ class CreateAnnotation extends React.Component<Props, State> {
 
   constructor(props) {
     super(props);
-    this.uppy = Api.Uppy.initUppyInstance(['.bed']);
+    this.uppy = Api.Uppy.initUppyInstance(['.bed', '.gtf', '.gff']);
     this.state = {
       isSaving: false,
       activeStep: 0,
@@ -112,7 +112,7 @@ class CreateAnnotation extends React.Component<Props, State> {
       type: Yup.string().oneOf(['gtf', 'bed'])
     });
 
-  getSteps = () => ['Choose a name', 'Choose a type'];
+  getSteps = () => ['Choose a name', 'Select a type', 'Select a file'];
 
   getConnectedFields = index => {
     switch (index) {
@@ -166,7 +166,7 @@ class CreateAnnotation extends React.Component<Props, State> {
     );
   }
 
-  getStepFinal() {
+  getStep2() {
     const { classes } = this.props;
     return (
       <>
@@ -201,7 +201,7 @@ class CreateAnnotation extends React.Component<Props, State> {
       case 1:
         return this.getStep1();
       case 2:
-        return this.getStepFinal();
+        return this.getStep2();
       default:
         return 'Unknown step';
     }
@@ -226,7 +226,7 @@ class CreateAnnotation extends React.Component<Props, State> {
             </div>
           </Grid>
           <Grid item xs="auto">
-            {activeStep === steps.length ? (
+            {activeStep === steps.length - 1 ? (
               <div className={classes.buttonWrapper}>
                 <Button
                   type="submit"

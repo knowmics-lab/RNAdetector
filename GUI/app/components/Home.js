@@ -10,7 +10,7 @@ export default class Home extends Component<Props> {
   render() {
     return (
       <div>
-        <Typography paragraph>Hello World</Typography>
+        <Typography paragraph>TODO</Typography>
       </div>
     );
   }

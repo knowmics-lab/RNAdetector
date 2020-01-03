@@ -124,7 +124,7 @@ class CreateReference extends Component<Props, State> {
         .required()
     });
 
-  getSteps = () => ['Choose a name', 'Choose aligners'];
+  getSteps = () => ['Choose a name', 'Select aligners', 'Select a file'];
 
   getConnectedFields = index => {
     switch (index) {
@@ -183,7 +183,7 @@ class CreateReference extends Component<Props, State> {
     );
   }
 
-  getStepFinal() {
+  getStep2() {
     const { classes } = this.props;
     return (
       <>
@@ -218,7 +218,7 @@ class CreateReference extends Component<Props, State> {
       case 1:
         return this.getStep1();
       case 2:
-        return this.getStepFinal();
+        return this.getStep2();
       default:
         return 'Unknown step';
     }
@@ -243,7 +243,7 @@ class CreateReference extends Component<Props, State> {
             </div>
           </Grid>
           <Grid item xs="auto">
-            {activeStep === steps.length ? (
+            {activeStep === steps.length - 1 ? (
               <div className={classes.buttonWrapper}>
                 <Button
                   type="submit"
