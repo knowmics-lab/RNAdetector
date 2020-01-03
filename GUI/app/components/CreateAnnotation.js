@@ -11,15 +11,12 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import { green } from '@material-ui/core/colors';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
-import Stepper from '@material-ui/core/Stepper';
-import Step from '@material-ui/core/Step';
-import StepLabel from '@material-ui/core/StepLabel';
 import { Dashboard } from '@uppy/react';
-import { has } from 'lodash';
 import * as Api from '../api';
 import { JOBS } from '../constants/routes';
 import SelectField from './Form/SelectField';
 import TextField from './Form/TextField';
+import Wizard from './UI/Wizard';
 
 type Props = {
   refreshJobs: () => void,
@@ -69,7 +66,6 @@ const style = theme => ({
 
 type State = {
   isSaving: boolean,
-  activeStep: number,
   validationErrors: *
 };
 
@@ -81,26 +77,11 @@ class CreateAnnotation extends React.Component<Props, State> {
     this.uppy = Api.Uppy.initUppyInstance(['.bed', '.gtf', '.gff']);
     this.state = {
       isSaving: false,
-      activeStep: 0,
       validationErrors: {}
     };
   }
 
   uppy;
-
-  handleNext = e => {
-    this.setState(prev => ({
-      activeStep: prev.activeStep + 1
-    }));
-    e.preventDefault();
-  };
-
-  handleBack = e => {
-    this.setState(prev => ({
-      activeStep: prev.activeStep - 1
-    }));
-    e.preventDefault();
-  };
 
   getValidationSchema = () =>
     Yup.object().shape({
@@ -125,15 +106,7 @@ class CreateAnnotation extends React.Component<Props, State> {
     }
   };
 
-  hasErrors = (index, errors, touched) => {
-    return this.getConnectedFields(index)
-      .map(
-        f => has(touched, f) && touched[f] && has(errors, f) && errors[f] !== ''
-      )
-      .reduce((a, v) => a || v, false);
-  };
-
-  getStep0() {
+  getStep0 = () => {
     const { classes } = this.props;
     return (
       <>
@@ -144,9 +117,9 @@ class CreateAnnotation extends React.Component<Props, State> {
         <TextField label="Name" name="name" required />
       </>
     );
-  }
+  };
 
-  getStep1() {
+  getStep1 = () => {
     const { classes } = this.props;
     return (
       <>
@@ -164,9 +137,9 @@ class CreateAnnotation extends React.Component<Props, State> {
         />
       </>
     );
-  }
+  };
 
-  getStep2() {
+  getStep2 = () => {
     const { classes } = this.props;
     return (
       <>
@@ -192,81 +165,40 @@ class CreateAnnotation extends React.Component<Props, State> {
         </FormGroup>
       </>
     );
-  }
+  };
 
-  getStepContent(index) {
-    switch (index) {
-      case 0:
-        return this.getStep0();
-      case 1:
-        return this.getStep1();
-      case 2:
-        return this.getStep2();
-      default:
-        return 'Unknown step';
-    }
-  }
-
-  getBottomNavigator() {
+  getSubmitButton = () => {
     const { classes } = this.props;
-    const { isSaving, activeStep } = this.state;
-    const steps = this.getSteps();
+    const { isSaving } = this.state;
     return (
-      <FormGroup row className={classes.formControl}>
-        <Grid container justify="flex-start">
-          <Grid item xs="auto">
-            <div className={classes.buttonWrapper}>
-              <Button
-                disabled={activeStep === 0}
-                onClick={this.handleBack}
-                className={classes.backButton}
-              >
-                Previous
-              </Button>
-            </div>
-          </Grid>
-          <Grid item xs="auto">
-            {activeStep === steps.length - 1 ? (
-              <div className={classes.buttonWrapper}>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  disabled={isSaving}
-                >
-                  Save
-                </Button>
-                {isSaving && (
-                  <CircularProgress
-                    size={24}
-                    className={classes.buttonProgress}
-                  />
-                )}
-              </div>
-            ) : (
-              <div className={classes.buttonWrapper}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={this.handleNext}
-                >
-                  Next
-                </Button>
-              </div>
-            )}
-          </Grid>
-        </Grid>
-      </FormGroup>
+      <>
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          disabled={isSaving}
+        >
+          Save
+        </Button>
+        {isSaving && (
+          <CircularProgress size={24} className={classes.buttonProgress} />
+        )}
+      </>
     );
-  }
+  };
+
+  setSaving = (isSaving, validationErrors = {}) => {
+    this.setState({
+      isSaving,
+      validationErrors
+    });
+  };
 
   formSubmit = async values => {
     const { pushNotification, redirect, refreshJobs } = this.props;
     if (Api.Uppy.isValid(this.uppy, pushNotification)) {
       const filename = Api.Uppy.getFilename(this.uppy, 0);
-      this.setState({
-        isSaving: true
-      });
+      this.setSaving(true);
       try {
         const data = await Api.Annotations.create(
           values.name,
@@ -278,10 +210,7 @@ class CreateAnnotation extends React.Component<Props, State> {
             'Errors occurred during validation of input parameters. Please review the form!',
             'warning'
           );
-          this.setState({
-            isSaving: false,
-            validationErrors: data.validationErrors
-          });
+          this.setSaving(false, data.validationErrors);
         } else {
           const { data: job } = data;
           pushNotification(
@@ -293,16 +222,16 @@ class CreateAnnotation extends React.Component<Props, State> {
             await Api.Jobs.submitJob(job.id);
             pushNotification('Job queued!');
             refreshJobs();
-            redirect(JOBS);
             Api.Uppy.clearInstance(this.uppy);
+            this.setSaving(false);
+            redirect(JOBS);
+          } else {
+            this.setSaving(false);
           }
-          this.setState({
-            isSaving: false,
-            validationErrors: {}
-          });
         }
       } catch (e) {
         pushNotification(`An error occurred: ${e.message}`, 'error');
+        this.setSaving(false);
       }
     } else {
       pushNotification('You must select a file.', 'error');
@@ -311,13 +240,13 @@ class CreateAnnotation extends React.Component<Props, State> {
 
   render() {
     const { classes } = this.props;
-    const { activeStep, validationErrors } = this.state;
+    const { validationErrors } = this.state;
     const steps = this.getSteps();
     return (
       <Box>
         <Paper className={classes.root}>
           <Typography variant="h5" component="h3">
-            Add annotation genome/transcriptome
+            Add annotation
           </Typography>
           <Formik
             initialValues={{
@@ -332,19 +261,17 @@ class CreateAnnotation extends React.Component<Props, State> {
           >
             {({ errors, touched }) => (
               <Form>
-                <Stepper activeStep={activeStep} alternativeLabel>
-                  {steps.map((label, i) => (
-                    <Step key={label}>
-                      <StepLabel error={this.hasErrors(i, errors, touched)}>
-                        {label}
-                      </StepLabel>
-                    </Step>
-                  ))}
-                </Stepper>
-                <div>
-                  {this.getStepContent(activeStep)}
-                  {this.getBottomNavigator()}
-                </div>
+                <Wizard
+                  fieldsErrors={errors}
+                  fieldsTouched={touched}
+                  connectedFields={this.getConnectedFields}
+                  steps={steps}
+                  submitButton={this.getSubmitButton}
+                >
+                  <div>{this.getStep0()}</div>
+                  <div>{this.getStep1()}</div>
+                  <div>{this.getStep2()}</div>
+                </Wizard>
               </Form>
             )}
           </Formik>
