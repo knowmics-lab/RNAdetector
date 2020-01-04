@@ -9,11 +9,14 @@ import Stepper from '@material-ui/core/Stepper';
 import Step from '@material-ui/core/Step';
 import StepLabel from '@material-ui/core/StepLabel';
 import { has } from 'lodash';
+import { connect } from 'formik';
+import type { FormikContext } from 'formik';
 
 export type WizardProps = {
   steps: string[] | (() => string[]),
   children: React.ChildrenArray<*> | (number => React.Node),
   connectedFields?: string[][] | (number => string[]),
+  formik?: FormikContext<*>,
   fieldsErrors?: { [string]: string },
   fieldsTouched?: { [string]: boolean },
   hasErrors?: number => boolean,
@@ -75,6 +78,7 @@ class Wizard extends React.Component<WizardProps, State> {
     connectedFields: [],
     fieldsErrors: [],
     fieldsTouched: [],
+    formik: null,
     hasErrors: null,
     prevButton: 'Back',
     nextButton: 'Next',
@@ -132,23 +136,35 @@ class Wizard extends React.Component<WizardProps, State> {
     return connectedFields[index] || [];
   }
 
-  hasErrors(index: number): boolean {
-    const {
-      hasErrors,
-      fieldsErrors: errors,
-      fieldsTouched: touched
-    } = this.props;
-    if (hasErrors && typeof hasErrors === 'function') {
-      return hasErrors(index);
-    }
+  internalHasErrors(connectedFields, errors, touched) {
     if (!errors || !touched) return false;
-    const connectedFields = this.getConnectedFields(index);
     if (!connectedFields) return false;
     return connectedFields
       .map(
         f => has(touched, f) && touched[f] && has(errors, f) && errors[f] !== ''
       )
       .reduce((a, v) => a || v, false);
+  }
+
+  hasErrors(index: number): boolean {
+    const {
+      hasErrors,
+      fieldsErrors: errors,
+      fieldsTouched: touched,
+      formik
+    } = this.props;
+    if (hasErrors && typeof hasErrors === 'function') {
+      return hasErrors(index);
+    }
+    const connectedFields = this.getConnectedFields(index);
+    if (formik) {
+      return this.internalHasErrors(
+        connectedFields,
+        formik.errors,
+        formik.touched
+      );
+    }
+    return this.internalHasErrors(connectedFields, errors, touched);
   }
 
   getBackButton(): React.Node {
@@ -260,11 +276,14 @@ Wizard.defaultProps = {
   connectedFields: [],
   fieldsErrors: [],
   fieldsTouched: [],
+  formik: null,
   hasErrors: null,
-  prevButton: 'Previous',
+  prevButton: 'Back',
   nextButton: 'Next',
   submitButton: 'Save',
   onChangeActiveStep: null
 };
 
-export default withStyles(styles)(Wizard);
+export const StyledWizard = withStyles(styles)(Wizard);
+
+export default connect(StyledWizard);

@@ -266,21 +266,17 @@ class CreateReference extends Component<Props, State> {
               this.formSubmit(v).catch(() => false);
             }}
           >
-            {({ errors, touched }) => (
-              <Form>
-                <Wizard
-                  fieldsErrors={errors}
-                  fieldsTouched={touched}
-                  connectedFields={this.getConnectedFields}
-                  steps={steps}
-                  submitButton={this.getSubmitButton}
-                >
-                  <div>{this.getStep0()}</div>
-                  <div>{this.getStep1()}</div>
-                  <div>{this.getStep2()}</div>
-                </Wizard>
-              </Form>
-            )}
+            <Form>
+              <Wizard
+                connectedFields={[['name'], ['availableFor'], []]}
+                steps={steps}
+                submitButton={this.getSubmitButton}
+              >
+                <div>{this.getStep0()}</div>
+                <div>{this.getStep1()}</div>
+                <div>{this.getStep2()}</div>
+              </Wizard>
+            </Form>
           </Formik>
         </Paper>
       </Box>
