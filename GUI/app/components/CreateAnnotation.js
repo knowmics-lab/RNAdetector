@@ -249,11 +249,7 @@ class CreateAnnotation extends React.Component<Props, State> {
             }}
           >
             <Form>
-              <Wizard
-                connectedFields={[['name'], ['type'], []]}
-                steps={steps}
-                submitButton={this.getSubmitButton}
-              >
+              <Wizard steps={steps} submitButton={this.getSubmitButton}>
                 <div>{this.getStep0()}</div>
                 <div>{this.getStep1()}</div>
                 <div>{this.getStep2()}</div>

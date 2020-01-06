@@ -74,6 +74,22 @@ type State = {
 class Wizard extends React.Component<WizardProps, State> {
   props: WizardProps;
 
+  static findFieldNames(component: *): string[] {
+    if (!React.isValidElement(component)) return [];
+
+    // $FlowFixMe: React.isValidElement checks that the input is a React Component
+    const { props } = component;
+
+    if (has(props, 'name')) return [props.name];
+    let res = [];
+    if (has(props, 'children')) {
+      res = React.Children.toArray(props.children).flatMap(
+        Wizard.findFieldNames
+      );
+    }
+    return res;
+  }
+
   static defaultProps = {
     connectedFields: [],
     fieldsErrors: [],
@@ -93,7 +109,7 @@ class Wizard extends React.Component<WizardProps, State> {
     };
   }
 
-  uppy;
+  connectedFields = null;
 
   handleNext = e => {
     this.setState(prev => ({
@@ -127,16 +143,29 @@ class Wizard extends React.Component<WizardProps, State> {
     return steps;
   }
 
+  findConnectedFields(index: number) {
+    if (this.connectedFields === null) {
+      const steps = this.getSteps();
+      this.connectedFields = [];
+      for (let i = 0, l = steps.length; i < l; i += 1) {
+        this.connectedFields.push(
+          Wizard.findFieldNames(this.getStepContent(i))
+        );
+      }
+    }
+    return this.connectedFields[index] || [];
+  }
+
   getConnectedFields(index: number): ?(string[]) {
     const { connectedFields } = this.props;
     if (!connectedFields) return null;
     if (typeof connectedFields === 'function') {
       return connectedFields(index);
     }
-    return connectedFields[index] || [];
+    return connectedFields[index] || this.findConnectedFields(index);
   }
 
-  internalHasErrors(connectedFields, errors, touched) {
+  internalHasErrors = (connectedFields, errors, touched) => {
     if (!errors || !touched) return false;
     if (!connectedFields) return false;
     return connectedFields
@@ -144,7 +173,7 @@ class Wizard extends React.Component<WizardProps, State> {
         f => has(touched, f) && touched[f] && has(errors, f) && errors[f] !== ''
       )
       .reduce((a, v) => a || v, false);
-  }
+  };
 
   hasErrors(index: number): boolean {
     const {
