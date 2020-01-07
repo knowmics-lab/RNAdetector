@@ -10,11 +10,22 @@ namespace App\Jobs\Types;
 
 use App\Exceptions\CommandException;
 use App\Exceptions\ProcessingJobException;
+use App\Models\Job;
 use App\Models\Job as JobModel;
 use App\Utils;
 use Illuminate\Http\Request;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 
+/**
+ * Class AbstractJob
+ *
+ * @method string getJobTempFile(string $prefix = '', string $suffix = '')
+ * @method string absoluteJobPath(string $path)
+ * @method string getAbsoluteJobDirectory()
+ * @method mixed getParameter($parameter = null, $default = null)
+ * @method \App\Models\Job setOutput($parameter, $value = null)
+ * @package App\Jobs\Types
+ */
 abstract class AbstractJob
 {
 
@@ -181,4 +192,20 @@ abstract class AbstractJob
             throw Utils::mapCommandException($e, $errorCodeMap);
         }
     }
+
+    /**
+     * @param string $name
+     * @param array  $arguments
+     *
+     * @return mixed
+     */
+    public function __call($name, $arguments)
+    {
+        if (method_exists($this->model, $name)) {
+            return $this->model->$name(...$arguments);
+        }
+        throw new \RuntimeException('Undefined method ' . $name);
+    }
+
+
 }

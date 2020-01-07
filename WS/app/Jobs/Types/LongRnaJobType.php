@@ -33,8 +33,12 @@ class LongRnaJobType extends AbstractJob
         return array_merge(
             self::commonParametersSpec(),
             [
-                'transcriptome' => 'An optional transcriptome to employ for annotation (Not needed for human hg19 mRNAs and lncRNAs)',
-                'threads'       => 'Number of threads for this analysis (Default 1)',
+                'algorithm'         => 'The name of the alignment algorithm: salmon, tophat, hisat (Default: salmon)',
+                'countingAlgorithm' => 'The counting algorithm if tophat or hisat are chosen: htseq, feature-counts, or salmon (Default feature-counts)',
+                'genome'            => 'An optional genome for usage with tophat or hisat (Default: human hg19)',
+                'annotation'        => 'An optional annotation file for counting (Default: human hg19 mRNAs and lncRNAs)',
+                'transcriptome'     => 'An optional transcriptome to employ for annotation (Default: human hg19 mRNAs and lncRNAs)',
+                'threads'           => 'Number of threads for this analysis (Default 1)',
             ]
         );
     }
