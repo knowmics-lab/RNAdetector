@@ -12,8 +12,10 @@ import { green } from '@material-ui/core/colors';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import { Dashboard } from '@uppy/react';
+import Breadcrumbs from '@material-ui/core/Breadcrumbs';
+import Link from '@material-ui/core/Link';
 import * as Api from '../api';
-import { JOBS } from '../constants/routes';
+import { JOBS, REFERENCES } from '../constants/routes';
 import SelectField from './Form/SelectField';
 import TextField from './Form/TextField';
 import Wizard from './UI/Wizard';
@@ -96,17 +98,6 @@ class CreateReference extends Component<Props, State> {
     });
 
   getSteps = () => ['Choose a name', 'Select aligners', 'Select a file'];
-
-  getConnectedFields = index => {
-    switch (index) {
-      case 0:
-        return ['name'];
-      case 1:
-        return ['availableFor'];
-      default:
-        return [];
-    }
-  };
 
   getStep0 = () => {
     const { classes } = this.props;
@@ -245,37 +236,51 @@ class CreateReference extends Component<Props, State> {
     }
   };
 
+  redirectReference = event => {
+    const { redirect } = this.props;
+    event.preventDefault();
+    redirect(REFERENCES);
+  };
+
   render() {
     const { classes } = this.props;
     const { validationErrors } = this.state;
     const steps = this.getSteps();
     return (
-      <Box>
-        <Paper className={classes.root}>
-          <Typography variant="h5" component="h3">
-            Add reference genome/transcriptome
-          </Typography>
-          <Formik
-            initialValues={{
-              name: '',
-              availableFor: []
-            }}
-            initialErrors={validationErrors}
-            validationSchema={this.getValidationSchema()}
-            onSubmit={v => {
-              this.formSubmit(v).catch(() => false);
-            }}
-          >
-            <Form>
-              <Wizard steps={steps} submitButton={this.getSubmitButton}>
-                <div>{this.getStep0()}</div>
-                <div>{this.getStep1()}</div>
-                <div>{this.getStep2()}</div>
-              </Wizard>
-            </Form>
-          </Formik>
-        </Paper>
-      </Box>
+      <>
+        <Breadcrumbs aria-label="breadcrumb">
+          <Link color="inherit" href="#" onClick={this.redirectReference}>
+            References
+          </Link>
+          <Typography color="textPrimary">Add Reference</Typography>
+        </Breadcrumbs>
+        <Box>
+          <Paper className={classes.root}>
+            <Typography variant="h5" component="h3">
+              Add reference genome/transcriptome
+            </Typography>
+            <Formik
+              initialValues={{
+                name: '',
+                availableFor: []
+              }}
+              initialErrors={validationErrors}
+              validationSchema={this.getValidationSchema()}
+              onSubmit={v => {
+                this.formSubmit(v).catch(() => false);
+              }}
+            >
+              <Form>
+                <Wizard steps={steps} submitButton={this.getSubmitButton}>
+                  <div>{this.getStep0()}</div>
+                  <div>{this.getStep1()}</div>
+                  <div>{this.getStep2()}</div>
+                </Wizard>
+              </Form>
+            </Formik>
+          </Paper>
+        </Box>
+      </>
     );
   }
 }

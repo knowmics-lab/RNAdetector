@@ -12,8 +12,10 @@ import { green } from '@material-ui/core/colors';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import { Dashboard } from '@uppy/react';
+import Breadcrumbs from '@material-ui/core/Breadcrumbs';
+import Link from '@material-ui/core/Link';
 import * as Api from '../api';
-import { JOBS } from '../constants/routes';
+import { JOBS, ANNOTATIONS } from '../constants/routes';
 import SelectField from './Form/SelectField';
 import TextField from './Form/TextField';
 import Wizard from './UI/Wizard';
@@ -183,6 +185,12 @@ class CreateAnnotation extends React.Component<Props, State> {
     });
   };
 
+  redirectAnnotation = event => {
+    const { redirect } = this.props;
+    event.preventDefault();
+    redirect(ANNOTATIONS);
+  };
+
   formSubmit = async values => {
     const { pushNotification, redirect, refreshJobs } = this.props;
     if (Api.Uppy.isValid(this.uppy, pushNotification)) {
@@ -232,32 +240,40 @@ class CreateAnnotation extends React.Component<Props, State> {
     const { validationErrors } = this.state;
     const steps = this.getSteps();
     return (
-      <Box>
-        <Paper className={classes.root}>
-          <Typography variant="h5" component="h3">
-            Add annotation
-          </Typography>
-          <Formik
-            initialValues={{
-              name: '',
-              type: 'gtf'
-            }}
-            initialErrors={validationErrors}
-            validationSchema={this.getValidationSchema()}
-            onSubmit={v => {
-              this.formSubmit(v).catch(() => false);
-            }}
-          >
-            <Form>
-              <Wizard steps={steps} submitButton={this.getSubmitButton}>
-                <div>{this.getStep0()}</div>
-                <div>{this.getStep1()}</div>
-                <div>{this.getStep2()}</div>
-              </Wizard>
-            </Form>
-          </Formik>
-        </Paper>
-      </Box>
+      <>
+        <Breadcrumbs aria-label="breadcrumb">
+          <Link color="inherit" href="#" onClick={this.redirectAnnotation}>
+            Annotations
+          </Link>
+          <Typography color="textPrimary">Add Annotation</Typography>
+        </Breadcrumbs>
+        <Box>
+          <Paper className={classes.root}>
+            <Typography variant="h5" component="h3">
+              Add annotation
+            </Typography>
+            <Formik
+              initialValues={{
+                name: '',
+                type: 'gtf'
+              }}
+              initialErrors={validationErrors}
+              validationSchema={this.getValidationSchema()}
+              onSubmit={v => {
+                this.formSubmit(v).catch(() => false);
+              }}
+            >
+              <Form>
+                <Wizard steps={steps} submitButton={this.getSubmitButton}>
+                  <div>{this.getStep0()}</div>
+                  <div>{this.getStep1()}</div>
+                  <div>{this.getStep2()}</div>
+                </Wizard>
+              </Form>
+            </Formik>
+          </Paper>
+        </Box>
+      </>
     );
   }
 }
