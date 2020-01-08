@@ -12,6 +12,7 @@ use App\Models\Job as JobModel;
 use Cache;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use ReflectionException;
 use Symfony\Component\Finder\Finder;
 
 /**
@@ -43,17 +44,40 @@ class Factory
         }
         try {
             $r = new \ReflectionClass($jobClass);
-            if ($r->isSubclassOf(AbstractJob::class) && !$r->isAbstract() && $r->getConstructor(
-                )->getNumberOfRequiredParameters() === 1) {
+            if ($r->isSubclassOf(AbstractJob::class) && !$r->isAbstract() && $r->getConstructor()->getNumberOfRequiredParameters() === 1) {
                 /** @var \App\Jobs\Types\AbstractJob $obj */
                 $obj = $r->newInstance($jobModel);
 
                 return $obj;
             }
-        } catch (\ReflectionException $e) {
+        } catch (ReflectionException $e) {
             throw new ProcessingJobException('An error occurred during type class instantiation', 0, $e);
         }
         throw new ProcessingJobException('The type of job ' . $jobModel->id . ' is not valid!');
+    }
+
+    /**
+     * Checks if a job type exists
+     *
+     * @param string $type
+     *
+     * @return bool
+     */
+    public static function has(string $type): bool
+    {
+        $jobClass = '\App\Jobs\Types\\' . Str::studly($type);
+        if (class_exists($jobClass)) {
+            try {
+                $r = new \ReflectionClass($jobClass);
+            } catch (ReflectionException $ignore) {
+                return false;
+            }
+            if ($r->isSubclassOf(AbstractJob::class) && !$r->isAbstract()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -125,14 +149,14 @@ class Factory
                 $class = $ns . '\\' . $file->getBasename('.php');
                 try {
                     $r = new \ReflectionClass($class);
-                    if ($r->isSubclassOf(AbstractJob::class) && !$r->isAbstract() && $r->getConstructor(
-                        )->getNumberOfRequiredParameters() === 1) {
+                    if ($r->isSubclassOf(AbstractJob::class) && !$r->isAbstract() && $r->getConstructor()->getNumberOfRequiredParameters(
+                        ) === 1) {
                         $list[] = [
                             'id'          => Str::snake($file->getBasename('.php')),
                             'description' => call_user_func([$class, 'description']),
                         ];
                     }
-                } catch (\ReflectionException $ignore) {
+                } catch (ReflectionException $ignore) {
                     continue;
                 }
             }
