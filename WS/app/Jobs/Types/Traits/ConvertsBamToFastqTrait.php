@@ -30,6 +30,7 @@ trait ConvertsBamToFastqTrait
         bool $paired,
         string $firstInputFile
     ): array {
+        $model->appendLog('Converting BAM to FASTQ.');
         $firstFastQ = $model->getJobTempFileAbsolute('bam2fastq_', '.fastq');
         $secondFastQ = ($paired) ? $model->getJobTempFileAbsolute('bam2fastq_', '.fastq') : null;
         $command = [
@@ -56,15 +57,16 @@ trait ConvertsBamToFastqTrait
                 6 => 'Output directory for second output is not writable.',
             ]
         );
-
         if (!$paired && !file_exists($firstFastQ)) {
             throw new ProcessingJobException('Unable to convert bam to fastq.');
         }
         if ($paired && !file_exists($firstFastQ) && !file_exists($secondFastQ)) {
             throw new ProcessingJobException('Unable to convert bam to fastq.');
         }
+        $model->appendLog($output);
+        $model->appendLog('BAM converted to FASTQ.');
 
-        return [$firstFastQ, $secondFastQ, $output];
+        return [$firstFastQ, $secondFastQ];
     }
 
 }

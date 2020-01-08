@@ -14,6 +14,9 @@ use App\Jobs\Types\Traits\ConvertsBamToFastqTrait;
 use App\Jobs\Types\Traits\ConvertsSamToBamTrait;
 use App\Jobs\Types\Traits\HasCommonParameters;
 use App\Jobs\Types\Traits\RunTrimGaloreTrait;
+use App\Jobs\Types\Traits\UseAlignmentTrait;
+use App\Jobs\Types\Traits\UseCountingTrait;
+use App\Models\Annotation;
 use App\Models\Reference;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -21,7 +24,7 @@ use Storage;
 
 class LongRnaJobType extends AbstractJob
 {
-    use HasCommonParameters, ConvertsBamToFastqTrait, ConvertsSamToBamTrait, RunTrimGaloreTrait;
+    use HasCommonParameters, ConvertsSamToBamTrait, RunTrimGaloreTrait, UseAlignmentTrait, UseCountingTrait;
 
     /**
      * Returns an array containing for each input parameter an help detailing its content and use.
@@ -92,104 +95,19 @@ class LongRnaJobType extends AbstractJob
      */
     public function isInputValid(): bool
     {
-        return $this->validateCommonParameters($this->model, self::VALID_INPUT_TYPES, self::FASTQ);
-    }
+        if (!$this->validateCommonParameters($this->model, self::VALID_INPUT_TYPES, self::FASTQ)) {
+            return false;
+        }
+        $algorithm = $this->model->getParameter('algorithm', self::HISAT2);
+        if (!in_array($algorithm, self::VALID_ALIGN_QUANT_METHODS, true)) {
+            return false;
+        }
+        $countingAlgorithm = $this->model->getParameter('countingAlgorithm', self::FEATURECOUNTS_COUNTS);
+        if (!in_array($countingAlgorithm, self::VALID_COUNTING_METHODS, true)) {
+            return false;
+        }
 
-    /**
-     * @param bool                  $paired
-     * @param string                $firstInputFile
-     * @param string|null           $secondInputFile
-     * @param string                $inputType
-     * @param \App\Models\Reference $transcriptome
-     * @param int                   $threads
-     *
-     * @return array
-     * @throws \App\Exceptions\ProcessingJobException
-     */
-    private function runSalmon(
-        bool $paired,
-        string $firstInputFile,
-        ?string $secondInputFile,
-        string $inputType,
-        Reference $transcriptome,
-        int $threads = 1
-    ): array {
-        if (!$transcriptome->isAvailableFor('salmon')) {
-            throw new ProcessingJobException('The specified reference sequence is not indexed for salmon analysis.');
-        }
-        $this->log('Computing counts using Salmon.');
-        $salmonOutputRelative = $this->model->getJobTempFile('salmon_output', '_sa.txt');
-        $salmonOutput = $this->model->absoluteJobPath($salmonOutputRelative);
-        $salmonOutputUrl = Storage::disk('public')->url($salmonOutputRelative);
-        switch ($inputType) {
-            case self::FASTQ:
-                $command = [
-                    'bash',
-                    self::scriptPath('salmon_counting.sh'),
-                    '-i',
-                    $transcriptome->basename(),
-                    '-f',
-                    $firstInputFile,
-                    '-t',
-                    $threads,
-                    '-o',
-                    $salmonOutput,
-                ];
-                if ($paired) {
-                    $command[] = '-s';
-                    $command[] = $secondInputFile;
-                }
-                $output = self::runCommand(
-                    $command,
-                    $this->model->getAbsoluteJobDirectory(),
-                    null,
-                    null,
-                    [
-                        3 => 'Input file does not exist.',
-                        4 => 'Second input file does not exist.',
-                        5 => 'Output file must be specified.',
-                        6 => 'Output directory is not writable.',
-                        7 => 'Indexed transcriptome does not exist.',
-                        8 => 'Unable to find output file.',
-                    ]
-                );
-                break;
-            case self::BAM:
-                $output = self::runCommand(
-                    [
-                        'bash',
-                        self::scriptPath('salmon_counting_bam.sh'),
-                        '-r',
-                        $transcriptome->path,
-                        '-i',
-                        $firstInputFile,
-                        '-t',
-                        $threads,
-                        '-o',
-                        $salmonOutput,
-                    ],
-                    $this->model->getAbsoluteJobDirectory(),
-                    null,
-                    null,
-                    [
-                        3 => 'Input file does not exist.',
-                        4 => 'FASTA transcriptome file does not exist.',
-                        5 => 'Output directory must be specified.',
-                        6 => 'Output directory is not writable.',
-                        7 => 'Unable to find output file.',
-                    ]
-                );
-                break;
-            default:
-                throw new ProcessingJobException('Unsupported input type');
-        }
-        $this->log($output);
-        if (!file_exists($salmonOutput)) {
-            throw new ProcessingJobException('Unable to create Salmon output file');
-        }
-        $this->log('Count computation completed.');
-
-        return [$salmonOutputRelative, $salmonOutputUrl];
+        return true;
     }
 
     /**
@@ -210,51 +128,92 @@ class LongRnaJobType extends AbstractJob
         $trimGaloreEnable = (bool)$this->model->getParameter('trimGalore.enable', $inputType === self::FASTQ);
         $trimGaloreQuality = (int)$this->model->getParameter('trimGalore.quality', 20);
         $trimGaloreLength = (int)$this->model->getParameter('trimGalore.length', 14);
-        $transcriptomeName = $this->model->getParameter('transcriptome', env('HUMAN_TRANSCRIPTOME_NAME'));
+        $genomeName = $this->getParameter('genome', env('HUMAN_GENOME_NAME'));
+        $annotationName = $this->getParameter('annotation', env('HUMAN_RNA_ANNOTATION_NAME'));
+        $transcriptomeName = $this->getParameter('transcriptome', env('HUMAN_TRANSCRIPTOME_NAME'));
+        $threads = (int)$this->getParameter('threads', 1);
+        $algorithm = $this->getParameter('algorithm', self::HISAT2);
+        $countingAlgorithm = $this->getParameter('countingAlgorithm', self::FEATURECOUNTS_COUNTS);
         $transcriptome = Reference::whereName($transcriptomeName)->firstOrFail();
-        $threads = (int)$this->model->getParameter('threads', 1);
+        $genome = Reference::whereName($genomeName)->firstOrFail();
+        $annotation = Annotation::whereName($annotationName)->firstOrFail();
         if ($inputType === self::SAM) {
+            $firstInputFile = self::convertSamToBam($this->model, $firstInputFile);
             $inputType = self::BAM;
-            $this->log('Converting SAM to BAM.');
-            [$firstInputFile, $bashOutput] = self::convertSamToBam($this->model, $firstInputFile);
-            $this->log($bashOutput);
-            $this->log('SAM converted to BAM.');
         }
         if ($inputType === self::BAM && $convertBam) {
-            $this->log('Converting BAM to FASTQ.');
             [$firstInputFile, $secondInputFile] = self::convertBamToFastq($this->model, $paired, $firstInputFile);
             $inputType = self::FASTQ;
-            $this->log('BAM converted to FASTQ.');
-
         }
-        [$firstTrimmedFastq, $secondTrimmedFastq] = [$firstInputFile, $secondInputFile];
-        if ($inputType === self::FASTQ && $trimGaloreEnable) {
-            $this->log('Trimming reads using TrimGalore.');
-            [$firstTrimmedFastq, $secondTrimmedFastq] = self::runTrimGalore(
-                $this->model,
-                $paired,
-                $firstInputFile,
-                $secondInputFile,
-                $trimGaloreQuality,
-                $trimGaloreLength,
-                false,
-                $threads
-            );
-            $this->log('Trimming completed.');
+        $outputFile = '';
+        $outputUrl = '';
+        $countingInputFile = '';
+        $count = true;
+        if ($inputType === self::FASTQ) {
+            [$firstTrimmedFastq, $secondTrimmedFastq] = [$firstInputFile, $secondInputFile];
+            if ($trimGaloreEnable) {
+                [$firstTrimmedFastq, $secondTrimmedFastq] = self::runTrimGalore(
+                    $this->model,
+                    $paired,
+                    $firstInputFile,
+                    $secondInputFile,
+                    $trimGaloreQuality,
+                    $trimGaloreLength,
+                    false,
+                    $threads
+                );
+            }
+            switch ($algorithm) {
+                case self::TOPHAT:
+                    $countingInputFile = $this->runTophat(
+                        $this->model,
+                        $paired,
+                        $firstTrimmedFastq,
+                        $secondTrimmedFastq,
+                        $genome,
+                        $annotation,
+                        $threads
+                    );
+                    break;
+                case self::HISAT2:
+                    $countingInputFile = $this->runHisat($this->model, $paired, $firstTrimmedFastq, $secondTrimmedFastq, $genome, $threads);
+                    break;
+                case self::SALMON:
+                    [$outputFile, $outputUrl] = $this->runSalmon(
+                        $this->model,
+                        $paired,
+                        $firstTrimmedFastq,
+                        $secondTrimmedFastq,
+                        $inputType,
+                        $transcriptome,
+                        $threads
+                    );
+                    $count = false;
+                    break;
+            }
+        } else {
+            $countingInputFile = $firstInputFile;
         }
-        [$salmonOutput, $salmonOutputUrl] = $this->runSalmon(
-            $paired,
-            $firstTrimmedFastq,
-            $secondTrimmedFastq,
-            $inputType,
-            $transcriptome,
-            $threads
-        );
+        if ($count && $countingInputFile) {
+            switch ($countingAlgorithm) {
+                case self::HTSEQ_COUNTS:
+                    [$outputFile, $outputUrl] = $this->runHTSEQ($this->model, $countingInputFile, $annotation, $threads);
+                    break;
+                case self::FEATURECOUNTS_COUNTS:
+                    [$outputFile, $outputUrl] = $this->runFeatureCount($this->model, $countingInputFile, $annotation, $threads);
+                    break;
+                case self::SALMON:
+                    [$outputFile, $outputUrl] = $this->runSalmonCount($this->model, $paired, $countingInputFile, $transcriptome, $threads);
+                    break;
+                default:
+                    throw new ProcessingJobException('Invalid counting algorithm');
+            }
+        }
         $this->model->setOutput(
             [
                 'outputFile' => [
-                    'path' => $salmonOutput,
-                    'url'  => $salmonOutputUrl,
+                    'path' => $outputFile,
+                    'url'  => $outputUrl,
                 ],
             ]
         );

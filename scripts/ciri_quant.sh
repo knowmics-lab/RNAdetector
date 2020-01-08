@@ -14,8 +14,8 @@ while getopts ":t:f:s:c:b:o:" opt; do
 	t) THREADS=$OPTARG ;;
 	f) INPUT_1=$OPTARG ;;
 	s) INPUT_2=$OPTARG ;;
-  c) CONFIG_FILE=$OPTARG ;;
-  b) BED_FILE=$OPTARG ;;
+	c) CONFIG_FILE=$OPTARG ;;
+	b) BED_FILE=$OPTARG ;;
 	o) OUTPUT=$OPTARG ;;
 	\?)
 		echo "Invalid option: -$OPTARG"
@@ -52,14 +52,14 @@ fi
 
 # Check config file
 if [ -z "$CONFIG_FILE" ] || [ ! -f "$CONFIG_FILE" ]; then
-  echo "Configuration file does not exist!"
-  exit 5
+	echo "Configuration file does not exist!"
+	exit 5
 fi
 
 # Check BED file
 if [ -z "$BED_FILE" ] || [ ! -f "$BED_FILE" ]; then
-  echo "BED file with Back-Spliced Junction Site does not exist!"
-  exit 6
+	echo "BED file with Back-Spliced Junction Site does not exist!"
+	exit 6
 fi
 
 # Check output
@@ -76,8 +76,8 @@ fi
 
 #### Run CIRIquant ####
 if ! CIRIquant -t "$THREADS" --bed "$BED_FILE" -o "$OUTPUT" --config "$CONFIG_FILE" -1 "$INPUT_1" -2 "$INPUT_2"; then
-  echo "An error occurred during CIRIquant execution!"
-  exit 9
+	echo "An error occurred during CIRIquant execution!"
+	exit 9
 fi
 
 # Check output file

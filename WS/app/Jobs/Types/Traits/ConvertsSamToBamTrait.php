@@ -21,13 +21,14 @@ trait ConvertsSamToBamTrait
      * @param \App\Models\Job $model
      * @param string          $samFile
      *
-     * @return array
+     * @return string
      * @throws \App\Exceptions\ProcessingJobException
      */
     private static function convertSamToBam(
         Job $model,
         string $samFile
-    ): array {
+    ): string {
+        $model->appendLog('Converting SAM to BAM.');
         $bamFile = $model->getJobTempFileAbsolute('sam2bam_', '.bam');
         $output = AbstractJob::runCommand(
             [
@@ -51,8 +52,10 @@ trait ConvertsSamToBamTrait
         if (!file_exists($bamFile)) {
             throw new ProcessingJobException('Unable to convert sam to bam.');
         }
+        $model->appendLog($output);
+        $model->appendLog('SAM converted to BAM.');
 
-        return [$bamFile, $output];
+        return $bamFile;
     }
 
 }

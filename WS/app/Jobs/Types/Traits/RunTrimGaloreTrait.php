@@ -39,6 +39,7 @@ trait RunTrimGaloreTrait
         bool $hardTrim = false,
         int $threads = 1
     ): array {
+        $model->appendLog('Trimming reads using TrimGalore');
         $outputDirectory = $model->getJobTempFileAbsolute('trim_galore_');
         $command = [
             'bash',
@@ -89,7 +90,9 @@ trait RunTrimGaloreTrait
                 throw new ProcessingJobException('Unable to create output files');
             }
         }
+        $model->appendLog($output);
+        $model->appendLog('Trimming completed');
 
-        return [$firstOutput, $secondOutput, $output];
+        return [$firstOutput, $secondOutput];
     }
 }

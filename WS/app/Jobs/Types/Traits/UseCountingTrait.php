@@ -36,6 +36,7 @@ trait UseCountingTrait
         if (!$annotation->isGtf()) {
             throw new ProcessingJobException('The selected annotation must be in GTF format.');
         }
+        $model->appendLog('Counting with HTseq-count.');
         $htseqOutputRelative = $model->getJobTempFile('htseq_output', '_ht.txt');
         $htseqOutput = $model->absoluteJobPath($htseqOutputRelative);
         $htseqOutputUrl = \Storage::disk('public')->url($htseqOutputRelative);
@@ -60,13 +61,17 @@ trait UseCountingTrait
                 4 => 'Input file does not exist.',
                 5 => 'Output file must be specified.',
                 6 => 'Output directory is not writable.',
+                7 => 'Unable to find output file.',
+                8 => 'Error running htseq-count.',
             ]
         );
         if (!file_exists($htseqOutput)) {
             throw new ProcessingJobException('Unable to create HTseq-count output file');
         }
+        $model->appendLog($output);
+        $model->appendLog('Counting completed.');
 
-        return [$htseqOutputRelative, $htseqOutputUrl, $output];
+        return [$htseqOutputRelative, $htseqOutputUrl];
     }
 
     /**
@@ -85,13 +90,14 @@ trait UseCountingTrait
         if (!$annotation->isGtf()) {
             throw new ProcessingJobException('The selected annotation must be in GTF format.');
         }
+        $model->appendLog('Counting with Feature-Count.');;
         $relativeOutput = $model->getJobTempFile('featurecount_output', '_fc.txt');
         $absoluteOutput = $model->absoluteJobPath($relativeOutput);
         $outputUrl = \Storage::disk('public')->url($relativeOutput);
         $output = AbstractJob::runCommand(
             [
                 'bash',
-                AbstractJob::scriptPath('htseqcount.bash'),
+                AbstractJob::scriptPath('featurecounts.bash'),
                 '-a',
                 $annotation->path,
                 '-b',
@@ -109,18 +115,24 @@ trait UseCountingTrait
                 4 => 'Input file does not exist.',
                 5 => 'Output file must be specified.',
                 6 => 'Output directory is not writable.',
+                7 => 'Unable to find output file.',
+                8 => 'An error occurred during featureCounts execution.',
             ]
         );
         if (!file_exists($absoluteOutput)) {
             throw new ProcessingJobException('Unable to create FeatureCount output file');
         }
+        $model->appendLog($output);
+        $model->appendLog('Counting completed.');
 
-        return [$relativeOutput, $outputUrl, $output];
+
+        return [$relativeOutput, $outputUrl];
     }
 
     /**
-     * Run salmon for SmallRNA counting
+     * Run salmon for counting
      *
+     * @param \App\Models\Job       $model
      * @param bool                  $paired
      * @param string                $topHatInputFile
      * @param \App\Models\Reference $transcriptome
@@ -134,11 +146,8 @@ trait UseCountingTrait
         if (!$transcriptome->isAvailableFor('salmon')) {
             throw new ProcessingJobException('The specified reference sequence is not indexed for salmon analysis.');
         }
-        $model->appendLog('Converting TopHat output to FastQ');
-        [$firstTempFastQ, $secondTempFastQ, $output] = self::convertBamToFastq($model, $paired, $topHatInputFile);
-        $model->appendLog($output);
-        $model->appendLog('TopHat output converted to FastQ');
-        $model->appendLog('Running salmon');
+        [$firstTempFastQ, $secondTempFastQ] = self::convertBamToFastq($model, $paired, $topHatInputFile);
+        $model->appendLog('Quantifying with salmon');
         $salmonOutputRelative = $model->getJobTempFile('salmon_output', '_sa.txt');
         $salmonOutput = $model->absoluteJobPath($salmonOutputRelative);
         $salmonOutputUrl = \Storage::disk('public')->url($salmonOutputRelative);
@@ -177,7 +186,7 @@ trait UseCountingTrait
         if (!file_exists($salmonOutput)) {
             throw new ProcessingJobException('Unable to create Salmon output file');
         }
-        $model->appendLog('Count computation completed.');
+        $model->appendLog('Counts computation completed.');
         if (file_exists($firstTempFastQ)) {
             @unlink($firstTempFastQ);
         }

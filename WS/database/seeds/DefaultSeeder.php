@@ -39,30 +39,6 @@ class DefaultSeeder extends Seeder
         )->save();
         Reference::create(
             [
-                'name'          => env('HUMAN_TRANSCRIPTOME_MRNA_NAME'),
-                'path'          => env('REFERENCES_PATH') . '/' . env('HUMAN_TRANSCRIPTOME_MRNA_NAME') . '/reference.fa',
-                'available_for' => [
-                    'bwa'    => false,
-                    'tophat' => false,
-                    'hisat'  => false,
-                    'salmon' => true,
-                ],
-            ]
-        )->save();
-        Reference::create(
-            [
-                'name'          => env('HUMAN_TRANSCRIPTOME_LNCRNA_NAME'),
-                'path'          => env('REFERENCES_PATH') . '/' . env('HUMAN_TRANSCRIPTOME_LNCRNA_NAME') . '/reference.fa',
-                'available_for' => [
-                    'bwa'    => false,
-                    'tophat' => false,
-                    'hisat'  => false,
-                    'salmon' => true,
-                ],
-            ]
-        )->save();
-        Reference::create(
-            [
                 'name'          => env('HUMAN_TRANSCRIPTOME_SNCRNA_NAME'),
                 'path'          => env('REFERENCES_PATH') . '/' . env('HUMAN_TRANSCRIPTOME_SNCRNA_NAME') . '/reference.fa',
                 'available_for' => [
@@ -85,6 +61,13 @@ class DefaultSeeder extends Seeder
                 'name' => env('HUMAN_SNCRNA_ANNOTATION_NAME'),
                 'type' => 'gtf',
                 'path' => env('ANNOTATIONS_PATH') . '/' . env('HUMAN_SNCRNA_ANNOTATION_NAME') . '.gtf',
+            ]
+        )->save();
+        Annotation::create(
+            [
+                'name' => env('HUMAN_RNA_ANNOTATION_NAME'),
+                'type' => 'gtf',
+                'path' => env('ANNOTATIONS_PATH') . '/' . env('HUMAN_RNA_ANNOTATION_NAME') . '.gtf',
             ]
         )->save();
     }

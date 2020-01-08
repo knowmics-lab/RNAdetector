@@ -29,7 +29,7 @@ trait UseAlignmentTrait
      * @param \App\Models\Annotation $annotation
      * @param int                    $threads
      *
-     * @return array
+     * @return string
      * @throws \App\Exceptions\ProcessingJobException
      */
     private function runTophat(
@@ -40,13 +40,14 @@ trait UseAlignmentTrait
         Reference $genome,
         Annotation $annotation,
         int $threads = 1
-    ): array {
+    ): string {
         if ($genome->isAvailableFor('tophat')) {
             throw new ProcessingJobException('The selected reference has not been indexed for tophat.');
         }
         if (!$annotation->isGtf()) {
             throw new ProcessingJobException('The selected annotation must be in GTF format.');
         }
+        $model->appendLog('Aligning reads using TopHat.');
         $bamOutput = $model->getJobTempFileAbsolute('tophat_output', '.bam');
         $command = [
             'bash',
@@ -84,21 +85,23 @@ trait UseAlignmentTrait
         if (!file_exists($bamOutput)) {
             throw new ProcessingJobException('Unable to create TopHat output file');
         }
+        $model->appendLog($output);
+        $model->appendLog('Alignment completed.');
 
-        return [$bamOutput, $output];
+        return $bamOutput;
     }
 
     /**
      * Runs TopHat
      *
-     * @param \App\Models\Job        $model
-     * @param bool                   $paired
-     * @param string                 $firstInputFile
-     * @param string|null            $secondInputFile
-     * @param \App\Models\Reference  $genome
-     * @param int                    $threads
+     * @param \App\Models\Job       $model
+     * @param bool                  $paired
+     * @param string                $firstInputFile
+     * @param string|null           $secondInputFile
+     * @param \App\Models\Reference $genome
+     * @param int                   $threads
      *
-     * @return array
+     * @return string
      * @throws \App\Exceptions\ProcessingJobException
      */
     private function runHisat(
@@ -108,10 +111,11 @@ trait UseAlignmentTrait
         ?string $secondInputFile,
         Reference $genome,
         int $threads = 1
-    ): array {
+    ): string {
         if ($genome->isAvailableFor('hisat')) {
             throw new ProcessingJobException('The selected reference has not been indexed for HISAT.');
         }
+        $model->appendLog('Aligning with HISAT.');
         $bamOutput = $model->getJobTempFileAbsolute('hisat_output', '.bam');
         $command = [
             'bash',
@@ -146,8 +150,10 @@ trait UseAlignmentTrait
         if (!file_exists($bamOutput)) {
             throw new ProcessingJobException('Unable to create HISAT output file');
         }
+        $model->appendLog($output);
+        $model->appendLog('Alignment completed.');
 
-        return [$bamOutput, $output];
+        return $bamOutput;
     }
 
     /**
@@ -176,6 +182,7 @@ trait UseAlignmentTrait
         if (!$transcriptome->isAvailableFor('salmon')) {
             throw new ProcessingJobException('The specified reference sequence is not indexed for salmon.');
         }
+        $model->appendLog('Quantifying with Salmon.');
         $salmonOutputRelative = $model->getJobTempFile('salmon_output', '_sa.txt');
         $salmonOutput = $model->absoluteJobPath($salmonOutputRelative);
         $salmonOutputUrl = Storage::disk('public')->url($salmonOutputRelative);
@@ -246,8 +253,10 @@ trait UseAlignmentTrait
         if (!file_exists($salmonOutput)) {
             throw new ProcessingJobException('Unable to create Salmon output file');
         }
+        $model->appendLog($output);
+        $model->appendLog('Transcripts quantification completed.');
 
-        return [$salmonOutputRelative, $salmonOutputUrl, $output];
+        return [$salmonOutputRelative, $salmonOutputUrl];
     }
 
 }

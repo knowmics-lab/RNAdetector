@@ -268,14 +268,11 @@ class CircRnaJobType extends AbstractJob
         $ciriInputFile = null;
         if ($inputType === self::BAM && $convertBam) {
             $inputType = self::FASTQ;
-            $this->log('Converting BAM to FASTQ.');
-            [$firstInputFile, $secondInputFile, $bashOutput] = self::convertBamToFastq(
+            [$firstInputFile, $secondInputFile] = self::convertBamToFastq(
                 $this->model,
                 $paired,
                 $firstInputFile
             );
-            $this->log($bashOutput);
-            $this->log('BAM converted to FASTQ.');
         }
         if ($inputType === self::FASTQ) {
             [$firstTrimmedFastq, $secondTrimmedFastq] = [$firstInputFile, $secondInputFile];
