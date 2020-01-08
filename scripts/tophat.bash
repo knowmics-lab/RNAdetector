@@ -74,12 +74,12 @@ TEMP_DIR=$(mktemp -d)
 if [ $PAIRED = "true" ]; then
 	if ! tophat2 -G "$GTF_FILE" -o "$TEMP_DIR" -p "$THREADS" "$REF_GENOME" "$INPUT_1" "$INPUT_2"; then
 		echo "An error occurred during tophat2 execution!"
-		exit 7
+		exit 8
 	fi
 else
 	if ! tophat2 -G "$GTF_FILE" -o "$TEMP_DIR" -p "$THREADS" "$REF_GENOME" "$INPUT_1"; then
 		echo "An error occurred during tophat2 execution!"
-		exit 7
+		exit 8
 	fi
 fi
 
@@ -88,7 +88,7 @@ BAM="$TEMP_DIR/accepted_hits.bam"
 # Check BAM file
 if [ ! -f "$BAM" ]; then
 	echo "Unable to find output bam file!"
-	exit 8
+	exit 9
 fi
 
 # Move BAM file from tmp directory to output directory

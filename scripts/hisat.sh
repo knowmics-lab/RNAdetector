@@ -6,7 +6,7 @@
 # 	-t NUMBER OF THREADS
 # 	-f FIRST INPUT FASTQ (trimmed FASTQ file)
 # 	-s OPTIONAL SECOND INPUT FASTQ (FOR PAIRED) (trimmed FASTQ file)
-# 	-o OUTPUT SAM FILE
+# 	-o OUTPUT BAM FILE
 ##############################################################################
 while getopts ":g:t:f:s:o:" opt; do
 	case $opt in
@@ -61,13 +61,14 @@ if [ ! -w "$(dirname "$OUTPUT")" ]; then
 fi
 
 #### Alignment ####
+# | samtools view -Sbh > hisat2_output.bam
 if [ $PAIRED = "true" ]; then
-  if ! hisat2 -p "$THREADS" -x "$REF_GENOME" -1 "$INPUT_1" -2 "$INPUT_2"  -S "$OUTPUT"; then
+  if ! hisat2 -p "$THREADS" -x "$REF_GENOME" -1 "$INPUT_1" -2 "$INPUT_2" | samtools view -Sbh >"$OUTPUT" ; then
     echo "An error occurred during HISAT 2 execution!"
     exit 7
   fi
 else
-  if ! hisat2 -p "$THREADS" -x "$REF_GENOME"  -U "$INPUT_1" -S "$OUTPUT"; then
+  if ! hisat2 -p "$THREADS" -x "$REF_GENOME"  -U "$INPUT_1" | samtools view -Sbh >"$OUTPUT"; then
     echo "An error occurred during HISAT 2 execution!"
     exit 7
   fi

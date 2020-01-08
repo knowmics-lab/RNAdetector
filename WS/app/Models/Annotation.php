@@ -32,6 +32,9 @@ use Illuminate\Database\Eloquent\Model;
 class Annotation extends Model
 {
 
+    const GTF = 'gtf';
+    const BED = 'bed';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -42,6 +45,26 @@ class Annotation extends Model
         'type',
         'path',
     ];
+
+    /**
+     * Checks if this annotation is in GTF format
+     *
+     * @return bool
+     */
+    public function isGtf()
+    {
+        return $this->type === self::GTF;
+    }
+
+    /**
+     * Checks if this annotation is in BED format
+     *
+     * @return bool
+     */
+    public function isBed()
+    {
+        return $this->type === self::BED;
+    }
 
     /**
      * @inheritDoc

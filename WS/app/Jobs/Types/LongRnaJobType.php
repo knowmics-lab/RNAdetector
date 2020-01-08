@@ -33,11 +33,11 @@ class LongRnaJobType extends AbstractJob
         return array_merge(
             self::commonParametersSpec(),
             [
-                'algorithm'         => 'The name of the alignment algorithm: salmon, tophat, hisat (Default: salmon)',
-                'countingAlgorithm' => 'The counting algorithm if tophat or hisat are chosen: htseq, feature-counts, or salmon (Default feature-counts)',
-                'genome'            => 'An optional genome for usage with tophat or hisat (Default: human hg19)',
+                'algorithm'         => 'Alignment/quantification algorithm: salmon, tophat, hisat2 (Default: salmon)',
+                'countingAlgorithm' => 'Counting algorithm in case of alignment: htseq, feature-counts, or salmon (Default feature-counts)',
+                'genome'            => 'An optional genome for tophat or hisat (Default: human hg19)',
                 'annotation'        => 'An optional annotation file for counting (Default: human hg19 mRNAs and lncRNAs)',
-                'transcriptome'     => 'An optional transcriptome to employ for annotation (Default: human hg19 mRNAs and lncRNAs)',
+                'transcriptome'     => 'An optional transcriptome for quantification with salmon (Default: human hg19 mRNAs and lncRNAs)',
                 'threads'           => 'Number of threads for this analysis (Default 1)',
             ]
         );
@@ -51,7 +51,7 @@ class LongRnaJobType extends AbstractJob
     public static function outputSpec(): array
     {
         return [
-            'outputFile' => 'Formatted read counts files (If multiple files a zip archive is returned)',
+            'outputFile' => 'Formatted read counts file',
         ];
     }
 
@@ -64,11 +64,22 @@ class LongRnaJobType extends AbstractJob
      */
     public static function validationSpec(Request $request): array
     {
+        $parameters = (array)$request->get('parameters', []);
+        $requiredAlignment = static function () use ($parameters) {
+            $algorithm = data_get($parameters, 'algorithm', self::SALMON);
+
+            return $algorithm === self::TOPHAT || $algorithm === self::HISAT2;
+        };
+
         return array_merge(
             self::commonParametersValidation($request),
             [
-                'transcriptome' => ['filled', 'alpha_dash', Rule::exists('references', 'name')],
-                'threads'       => ['filled', 'integer'],
+                'algorithm'         => ['filled', Rule::in(self::VALID_ALIGN_QUANT_METHODS)],
+                'countingAlgorithm' => [Rule::requiredIf($requiredAlignment), Rule::in(self::VALID_COUNTING_METHODS)],
+                'genome'            => ['filled', 'alpha_dash', Rule::exists('references', 'name')],
+                'annotation'        => ['filled', 'alpha_dash', Rule::exists('annotations', 'name')],
+                'transcriptome'     => ['filled', 'alpha_dash', Rule::exists('references', 'name')],
+                'threads'           => ['filled', 'integer'],
             ]
         );
     }

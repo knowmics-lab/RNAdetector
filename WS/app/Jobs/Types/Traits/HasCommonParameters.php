@@ -21,7 +21,7 @@ trait HasCommonParameters
      *
      * @return array
      */
-    private static function commonParametersSpec()
+    private static function commonParametersSpec(): array
     {
         return [
             'paired'          => 'A boolean value to indicate whether sequencing strategy is paired-ended or not (Default false)',
@@ -44,7 +44,7 @@ trait HasCommonParameters
      *
      * @return array
      */
-    private static function commonParametersValidation(Request $request)
+    private static function commonParametersValidation(Request $request): array
     {
         $parameters = (array)$request->get('parameters', []);
 
@@ -77,7 +77,7 @@ trait HasCommonParameters
      *
      * @return bool
      */
-    private function validateCommonParameters(Job $model, array $validInputTypes, string $fastQType)
+    private function validateCommonParameters(Job $model, array $validInputTypes, string $fastQType): bool
     {
         $paired = (bool)$model->getParameter('paired', false);
         $inputType = $model->getParameter('inputType');

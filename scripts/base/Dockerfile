@@ -36,7 +36,8 @@ RUN /bin/bash /usr/local/bin/setup.sh
 RUN ln -s /usr/local/bin/bootstrap.sh /
 
 RUN DEBIAN_FRONTEND=noninteractive /usr/bin/apt autoclean && \ 
-    DEBIAN_FRONTEND=noninteractive /usr/bin/apt clean
+    DEBIAN_FRONTEND=noninteractive /usr/bin/apt clean && \ 
+    rm -rf /var/lib/apt/lists/*
 
 
 EXPOSE 80

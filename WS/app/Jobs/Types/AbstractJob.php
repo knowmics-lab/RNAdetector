@@ -34,6 +34,15 @@ abstract class AbstractJob
     protected const SAM               = 'SAM';
     protected const VALID_INPUT_TYPES = [self::FASTQ, self::BAM, self::SAM];
 
+    protected const HTSEQ_COUNTS         = 'htseq';
+    protected const FEATURECOUNTS_COUNTS = 'feature-counts';
+    protected const SALMON               = 'salmon';
+    protected const VALID_COUNTING_METHODS = [self::HTSEQ_COUNTS, self::FEATURECOUNTS_COUNTS, self::SALMON];
+
+    protected const TOPHAT = 'tophat';
+    protected const HISAT2 = 'hisat2';
+    protected const VALID_ALIGN_QUANT_METHODS = [self::SALMON, self::TOPHAT, self::HISAT2];
+
     /**
      * @var \App\Models\Job
      */
