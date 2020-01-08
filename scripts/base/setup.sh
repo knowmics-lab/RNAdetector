@@ -21,7 +21,7 @@ chmod 755 /usr/local/bin/
 
 # Install latest version of salmon
 cd /rnadetector/tmp || exit 100
-curl -fsSL https://github.com/COMBINE-lab/salmon/releases/download/v1.0.0/salmon-1.0.0_linux_x86_64.tar.gz -o salmon.tar.gz
+curl -fsSL https://github.com/COMBINE-lab/salmon/releases/download/v1.1.0/salmon-1.1.0_linux_x86_64.tar.gz -o salmon.tar.gz
 tar -zxvf salmon.tar.gz
 mv salmon-latest_linux_x86_64/ /opt/salmon/
 ln -s /opt/salmon/bin/salmon /usr/bin/salmon

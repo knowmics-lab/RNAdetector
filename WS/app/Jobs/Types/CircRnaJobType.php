@@ -255,7 +255,7 @@ class CircRnaJobType extends AbstractJob
         $trimGaloreLength = (int)$this->model->getParameter('trimGalore.length', 40);
         $trimGaloreHardTrim = (bool)$this->model->getParameter('trimGalore.hardTrim', true);
         $genomeName = $this->model->getParameter('genome', env('HUMAN_GENOME_NAME'));
-        $annotationName = $this->model->getParameter('annotation', env('HUMAN_CIRI_ANNOTATION_NAME'));
+        $annotationName = $this->model->getParameter('annotation', env('HUMAN_CIRC_ANNOTATION_NAME'));
         $threads = (int)$this->model->getParameter('threads', 1);
         $ciriSpanningDistance = (int)$this->model->getParameter('ciriSpanningDistance', 200000);
         $useFastqPair = (bool)$this->model->getParameter('useFastqPair', false);

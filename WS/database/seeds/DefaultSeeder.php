@@ -51,9 +51,9 @@ class DefaultSeeder extends Seeder
         )->save();
         Annotation::create(
             [
-                'name' => env('HUMAN_CIRI_ANNOTATION_NAME'),
+                'name' => env('HUMAN_CIRC_ANNOTATION_NAME'),
                 'type' => 'gtf',
-                'path' => env('ANNOTATIONS_PATH') . '/' . env('HUMAN_CIRI_ANNOTATION_NAME') . '.gtf',
+                'path' => env('ANNOTATIONS_PATH') . '/' . env('HUMAN_CIRC_ANNOTATION_NAME') . '.gtf',
             ]
         )->save();
         Annotation::create(
