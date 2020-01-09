@@ -9,7 +9,9 @@ namespace App\Console\Commands;
 
 use App\Models\Annotation;
 use App\Models\Reference;
+use DirectoryIterator;
 use Illuminate\Console\Command;
+use ZipArchive;
 
 class ImportReference extends Command
 {
@@ -18,7 +20,7 @@ class ImportReference extends Command
      *
      * @var string
      */
-    protected $signature = 'reference:import {name}';
+    protected $signature = 'reference:import {filename : A zip archive containing the reference and its annotations}';
 
     /**
      * The console command description.
@@ -40,34 +42,40 @@ class ImportReference extends Command
     }
 
     /**
-     * Execute the console command.
+     * Import a reference genome and its annotations
      *
-     * @return mixed
+     * @param string $name
+     *
+     * @return int
      */
-    public function handle()
+    private function import(string $name): int
     {
-        $name = $this->argument('name');
         if (!$this->isValidFilename($name)) {
             $this->error('Reference sequence name is not valid!');
 
             return 1;
         }
+        if (Reference::whereName($name)->count() > 0) {
+            $this->error('Another reference sequence with this name already exists!');
+
+            return 2;
+        }
         $genomePath = env('REFERENCES_PATH') . '/' . $name . '/';
-        $configFile = $genomePath . '/spec.json';
+        $configFile = $genomePath . 'spec.json';
         if (!file_exists($genomePath) && !is_dir($genomePath)) {
             $this->error('Reference sequence directory not found!');
 
-            return 2;
+            return 3;
         }
         if (!file_exists($configFile)) {
             $this->error('Invalid reference sequence: config file not found.');
 
-            return 3;
+            return 4;
         }
         if (!file_exists($genomePath . 'reference.fa')) {
             $this->error('Invalid reference sequence: fasta file not found.');
 
-            return 4;
+            return 5;
         }
 
         $config = json_decode(file_get_contents($configFile), true);
@@ -76,7 +84,7 @@ class ImportReference extends Command
         Reference::create(
             [
                 'name'          => $name,
-                'path'          => $genomePath . 'reference.fa',
+                'path'          => realpath($genomePath . 'reference.fa'),
                 'available_for' => [
                     'bwa'    => $indexedFor['bwa'] ?? false,
                     'tophat' => $indexedFor['tophat'] ?? false,
@@ -89,6 +97,11 @@ class ImportReference extends Command
         $annotations = (array)($config['annotations'] ?? []);
         foreach ($annotations as $annotationSpec) {
             $annotation = $annotationSpec['name'];
+            if (Annotation::whereName($annotation)->count() > 0) {
+                $this->error('Another reference sequence with this name already exists!');
+
+                return 2;
+            }
             $type = $annotationSpec['type'] ?? Annotation::GTF;
             if ($type !== Annotation::BED && $type !== Annotation::GTF) {
                 $this->warn('Found invalid annotation type for ' . $annotation . ': ' . $type . '.');
@@ -111,9 +124,9 @@ class ImportReference extends Command
             }
             Annotation::create(
                 [
-                    'name' => $name,
+                    'name' => $annotation,
                     'type' => $type,
-                    'path' => $annotationDestinationFile,
+                    'path' => realpath($annotationDestinationFile),
                 ]
             )->save();
         }
@@ -121,5 +134,55 @@ class ImportReference extends Command
         $this->info('Reference sequence imported correctly!');
 
         return 0;
+    }
+
+    /**
+     * Extract a ZIP file
+     *
+     * @param string $filename
+     *
+     * @return void
+     */
+    private function extract(string $filename): void
+    {
+        $zip = new ZipArchive();
+        $zip->open($filename);
+        $zip->extractTo(env('REFERENCES_PATH'));
+        $zip->close();
+    }
+
+    /**
+     * Recursively apply chmod to a folder
+     *
+     * @param string $path
+     * @param int    $mode
+     */
+    private function recursiveChmod(string $path, int $mode): void
+    {
+        $files = new DirectoryIterator(realpath($path));
+        foreach ($files as $file) {
+            @chmod($file->getRealPath(), $mode);
+            if ($file->isDir() && !$file->isDot()) {
+                $this->recursiveChmod($file->getRealPath(), $mode);
+            }
+        }
+    }
+
+    /**
+     * Execute the console command.
+     *
+     * @return mixed
+     */
+    public function handle()
+    {
+        $filename = $this->argument('filename');
+        $ext = pathinfo($filename, PATHINFO_EXTENSION);
+        $name = basename($filename, '.' . $ext);
+        $this->info('Extracting reference archive...');
+        $this->extract(env('REFERENCES_PATH') . '/' . $filename);
+        $this->recursiveChmod(env('REFERENCES_PATH') . '/' . $name, 0777);
+        $this->info('Importing reference sequence...');
+
+        return $this->import($name);
     }
 }

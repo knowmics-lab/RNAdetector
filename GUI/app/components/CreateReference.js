@@ -221,7 +221,6 @@ class CreateReference extends Component<Props, State> {
             pushNotification('Indexing job queued!');
             refreshJobs();
             Api.Uppy.clearInstance(this.uppy);
-            this.setSaving(false);
             redirect(JOBS);
           } else {
             this.setSaving(false);
