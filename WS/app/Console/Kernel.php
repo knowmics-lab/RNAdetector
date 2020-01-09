@@ -15,6 +15,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         Commands\GenerateAuthToken::class,
         Commands\ImportReference::class,
+        Commands\ExportReference::class,
     ];
 
     /**

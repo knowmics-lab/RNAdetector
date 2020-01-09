@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-php /rnadetector/ws/artisan import:reference "$@"
+php /rnadetector/ws/artisan reference:import "$@"
