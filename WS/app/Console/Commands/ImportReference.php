@@ -9,8 +9,10 @@ namespace App\Console\Commands;
 
 use App\Models\Annotation;
 use App\Models\Reference;
+use App\Utils;
 use DirectoryIterator;
 use Illuminate\Console\Command;
+use Symfony\Component\Process\Process;
 use ZipArchive;
 
 class ImportReference extends Command
@@ -145,10 +147,20 @@ class ImportReference extends Command
      */
     private function extract(string $filename): void
     {
-        $zip = new ZipArchive();
-        $zip->open($filename);
-        $zip->extractTo(env('REFERENCES_PATH'));
-        $zip->close();
+        Utils::runCommand(
+            [
+                'tar',
+                '-jxvf',
+                $filename,
+            ],
+            env('REFERENCES_PATH'),
+            null,
+            function ($type, $buffer) {
+                if ($type === Process::OUT) {
+                    $this->info(trim($buffer));
+                }
+            }
+        );
     }
 
     /**

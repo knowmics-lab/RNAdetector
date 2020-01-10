@@ -15,8 +15,10 @@ RUN DEBIAN_FRONTEND=noninteractive /usr/bin/apt install -y nginx php7.3-cli php7
                                                            git composer python-setuptools python3-setuptools \ 
                                                            python-dev curl tophat bwa samtools python-pip \ 
                                                            subread cutadapt fastqc r-base-dev cmake \ 
-                                                           libxml2-dev libcurl4-openssl-dev hisat2
-RUN systemctl enable nginx && systemctl enable php7.3-fpm && systemctl enable supervisor
+                                                           libxml2-dev libcurl4-openssl-dev hisat2 mysql-server
+RUN systemctl enable nginx && systemctl enable php7.3-fpm && systemctl enable supervisor && systemctl enable mysql
+
+RUN rm -rf /var/log/mysql && rm -rf /var/lib/mysql
 
 COPY bootstrap.sh        /usr/local/bin/
 COPY installPackages.R   /usr/local/bin/

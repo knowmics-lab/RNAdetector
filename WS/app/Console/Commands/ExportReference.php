@@ -9,9 +9,9 @@ namespace App\Console\Commands;
 
 use App\Models\Annotation;
 use App\Models\Reference;
-use DirectoryIterator;
+use App\Utils;
 use Illuminate\Console\Command;
-use ZipArchive;
+use Symfony\Component\Process\Process;
 
 class ExportReference extends Command
 {
@@ -91,30 +91,6 @@ class ExportReference extends Command
     }
 
     /**
-     * Recursively add files to a zip archive
-     *
-     * @param \ZipArchive $zip
-     * @param string      $dirName
-     * @param string      $baseDir
-     */
-    private function recursiveAddToZip(ZipArchive $zip, string $dirName, string $baseDir): void
-    {
-        $files = new DirectoryIterator(realpath($dirName . '/' . $baseDir));
-        foreach ($files as $file) {
-            if (!$file->isDot()) {
-                if (!$file->isDir()) {
-                    $filePath = $file->getRealPath();
-                    $relativePath = $baseDir . '/' . $file->getBasename();
-                    $this->info('Adding ' . $relativePath . '...', 'v');
-                    $zip->addFile($filePath, $relativePath);
-                } else {
-                    $this->recursiveAddToZip($zip, $dirName, $baseDir . '/' . $file->getBasename());
-                }
-            }
-        }
-    }
-
-    /**
      * Execute the console command.
      *
      * @return mixed
@@ -136,7 +112,8 @@ class ExportReference extends Command
             },
             $annotations
         );
-        $outputFile = $outputDir . '/' . $reference . '.zip';
+        //$outputFile = $outputDir . '/' . $reference . '.zip';
+        $outputFile = $outputDir . '/' . $reference . '.tar.bz2';
         $baseDir = realpath($refModel->basedir());
         $this->info('Creating config file...');
         $configFile = $this->makeConfigFile($refModel, $annModel, $baseDir);
@@ -147,11 +124,22 @@ class ExportReference extends Command
         }
         $this->info('Copying annotations...');
         $annFiles = $this->copyAnnotations($annModel, $baseDir);
-        $this->info('Building zip archive...');
-        $zip = new ZipArchive();
-        $zip->open($outputFile, ZipArchive::CREATE | ZipArchive::OVERWRITE);
-        $this->recursiveAddToZip($zip, dirname($baseDir), basename($baseDir));
-        $zip->close();
+        $this->info('Building archive...');
+        Utils::runCommand(
+            [
+                'tar',
+                '-jcvf',
+                $outputFile,
+                basename($baseDir),
+            ],
+            dirname($baseDir),
+            null,
+            function ($type, $buffer) {
+                if ($type === Process::OUT) {
+                    $this->info(trim($buffer));
+                }
+            }
+        );
         $this->info('Cleaning up...');
         @unlink($configFile);
         foreach ($annFiles as $file) {

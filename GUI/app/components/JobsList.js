@@ -117,7 +117,9 @@ class JobsList extends React.Component<Props, State> {
     e.preventDefault();
   };
 
-  handlePageChange = (currentPage: number) => this.setState({ currentPage });
+  handlePageChange = (currentPage: number) => {
+    this.setState({ currentPage });
+  };
 
   handleSubmitJob = (e, row) => {
     const { submitJob } = this.props;

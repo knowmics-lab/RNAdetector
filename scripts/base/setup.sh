@@ -82,6 +82,22 @@ if [ -f "/var/log/php7.3-fpm.log" ]; then
 fi
 ln -s /dev/stdout /var/log/php7.3-fpm.log
 
+apply_configuration_fixes() {
+    sed 's/^log_error/# log_error/' -i /etc/mysql/mysql.conf.d/mysqld.cnf
+    sed 's/^datadir\(.*\)=.*/datadir = \/rnadetector\/ws\/storage\/app\/database/' -i /etc/mysql/mysql.conf.d/mysqld.cnf
+    cat >/etc/mysql/conf.d/mysql-skip-name-resolv.cnf <<EOF
+[mysqld]
+skip_name_resolve
+EOF
+}
+
+remove_debian_system_maint_password() {
+    sed 's/password = .*/password = /g' -i /etc/mysql/debian.cnf
+}
+
+apply_configuration_fixes
+remove_debian_system_maint_password
+
 # Set folder permission
 chmod 755 /usr/local/bin/bootstrap.sh
 chmod 755 /usr/local/bin/CIRI1.pl

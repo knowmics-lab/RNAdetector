@@ -95,6 +95,14 @@ class PaginatedRemoteTable extends React.Component<TableProps> {
     actions: []
   };
 
+  componentDidMount(): void {
+    const {
+      paginationState: { current_page: currentPage },
+      onPageChange
+    } = this.props;
+    if (currentPage) onPageChange(currentPage);
+  }
+
   // noinspection JSCheckFunctionSignatures
   componentDidUpdate(prevProps: TableProps) {
     const {
