@@ -16,7 +16,11 @@ export default {
   getBootedFile(config: ConfigObjectType = Settings.getConfig()): string {
     return `${config.dataPath}/booted`;
   },
+  getDbReadyFile(config: ConfigObjectType = Settings.getConfig()): string {
+    return `${config.dataPath}/database/ready`;
+  },
   async waitContainerBooted(config: ConfigObjectType = Settings.getConfig()) {
+    await Utils.waitExists(this.getDbReadyFile(config));
     await Utils.waitExists(this.getBootedFile(config));
   },
   async cleanupBootedFile(config: ConfigObjectType = Settings.getConfig()) {

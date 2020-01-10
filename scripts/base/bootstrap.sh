@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+set -e
+
+[[ $DEBUG == true ]] && set -x
 
 MYSQL_DATA_DIR="/rnadetector/ws/storage/app/database/"
 MYSQL_USER="mysql"
@@ -30,9 +33,9 @@ initialize_mysql_database() {
     # initialize MySQL data directory
     if [ ! -d ${MYSQL_DATA_DIR}/mysql ]; then
         echo "Installing database..."
-        mysqld --initialize-insecure --user=mysql >/dev/null 2>&1
+        mysqld --initialize-insecure --user=mysql >/dev/stdout 2>&1
         echo "Starting MySQL server..."
-        /usr/bin/mysqld_safe >/dev/null 2>&1 &
+        /usr/bin/mysqld_safe >/dev/stdout 2>&1 &
         timeout=30
         echo -n "Waiting for database server to accept connections"
         while ! /usr/bin/mysqladmin -u root status >/dev/null 2>&1; do
@@ -54,7 +57,7 @@ initialize_mysql_database() {
 
 create_users_and_databases() {
     if [ ! -d ${MYSQL_DATA_DIR}/${DB_NAME} ]; then
-        /usr/bin/mysqld_safe >/dev/null 2>&1 &
+        /usr/bin/mysqld_safe >/dev/stdout 2>&1 &
         timeout=30
         while ! /usr/bin/mysqladmin -u root status >/dev/null 2>&1; do
             timeout=$(($timeout - 1))
@@ -70,8 +73,8 @@ create_users_and_databases() {
         echo "Granting access to database \"${DB_NAME}\" for user \"${DB_USER}\"..."
         mysql --defaults-file=/etc/mysql/debian.cnf \
             -e "GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO '${DB_USER}' IDENTIFIED BY '${DB_PASS}';"
-        /usr/bin/mysqladmin --defaults-file=/etc/mysql/debian.cnf shutdown
         php /rnadetector/ws/artisan migrate --seed --force
+        /usr/bin/mysqladmin --defaults-file=/etc/mysql/debian.cnf shutdown
     fi
 }
 

@@ -13,7 +13,7 @@ class DefaultSeeder extends Seeder
      */
     public function run(): void
     {
-        Reference::create(
+        /*Reference::create(
             [
                 'name'          => env('HUMAN_GENOME_NAME'),
                 'path'          => env('REFERENCES_PATH') . '/' . env('HUMAN_GENOME_NAME') . '/reference.fa',
@@ -69,6 +69,11 @@ class DefaultSeeder extends Seeder
                 'type' => 'gtf',
                 'path' => env('ANNOTATIONS_PATH') . '/' . env('HUMAN_RNA_ANNOTATION_NAME') . '.gtf',
             ]
-        )->save();
+        )->save();*/
+        $dbReadyFile = storage_path('app/database/ready');
+        if (!file_exists($dbReadyFile)) {
+            @touch($dbReadyFile);
+            @chmod($dbReadyFile, 0777);
+        }
     }
 }
