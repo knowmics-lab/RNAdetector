@@ -91,8 +91,6 @@ class InstallPackage extends Command
             function ($type, $buffer) {
                 if ($type === Process::OUT) {
                     $this->info(trim($buffer));
-                } else {
-                    $this->error(trim($buffer));
                 }
             }
         );
