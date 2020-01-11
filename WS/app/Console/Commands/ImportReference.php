@@ -22,7 +22,7 @@ class ImportReference extends Command
      *
      * @var string
      */
-    protected $signature = 'reference:import {filename : A zip archive containing the reference and its annotations}';
+    protected $signature = 'reference:import {name : The name of the reference sequence to import}';
 
     /**
      * The console command description.
@@ -55,29 +55,29 @@ class ImportReference extends Command
         if (!$this->isValidFilename($name)) {
             $this->error('Reference sequence name is not valid!');
 
-            return 1;
+            return 11;
         }
         if (Reference::whereName($name)->count() > 0) {
             $this->error('Another reference sequence with this name already exists!');
 
-            return 2;
+            return 12;
         }
         $genomePath = env('REFERENCES_PATH') . '/' . $name . '/';
         $configFile = $genomePath . 'spec.json';
         if (!file_exists($genomePath) && !is_dir($genomePath)) {
             $this->error('Reference sequence directory not found!');
 
-            return 3;
+            return 13;
         }
         if (!file_exists($configFile)) {
             $this->error('Invalid reference sequence: config file not found.');
 
-            return 4;
+            return 14;
         }
         if (!file_exists($genomePath . 'reference.fa')) {
             $this->error('Invalid reference sequence: fasta file not found.');
 
-            return 5;
+            return 15;
         }
 
         $config = json_decode(file_get_contents($configFile), true);
@@ -102,7 +102,7 @@ class ImportReference extends Command
             if (Annotation::whereName($annotation)->count() > 0) {
                 $this->error('Another reference sequence with this name already exists!');
 
-                return 2;
+                return 16;
             }
             $type = $annotationSpec['type'] ?? Annotation::GTF;
             if ($type !== Annotation::BED && $type !== Annotation::GTF) {
@@ -171,7 +171,8 @@ class ImportReference extends Command
      */
     private function recursiveChmod(string $path, int $mode): void
     {
-        $files = new DirectoryIterator(realpath($path));
+        $this->info('Changing permissions on ' . $path . '...', 'v');
+        $files = new DirectoryIterator($path);
         foreach ($files as $file) {
             @chmod($file->getRealPath(), $mode);
             if ($file->isDir() && !$file->isDot()) {
@@ -187,11 +188,15 @@ class ImportReference extends Command
      */
     public function handle()
     {
-        $filename = $this->argument('filename');
-        $ext = pathinfo($filename, PATHINFO_EXTENSION);
-        $name = basename($filename, '.' . $ext);
+        $name = $this->argument('name');
+        $filename = env('REFERENCES_PATH') . '/' . $name . '.tar.bz2';
+        if (!file_exists($filename)) {
+            $this->error('Unable to find the reference archive.');
+
+            return 1;
+        }
         $this->info('Extracting reference archive...');
-        $this->extract(env('REFERENCES_PATH') . '/' . $filename);
+        $this->extract($filename);
         $this->recursiveChmod(env('REFERENCES_PATH') . '/' . $name, 0777);
         $this->info('Importing reference sequence...');
 
