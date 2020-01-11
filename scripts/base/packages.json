@@ -1,0 +1,39 @@
+{
+  "packages": [
+    {
+      "name": "Human_hg19_genome",
+      "title": "Human hg19 genome",
+      "description": "Human genome hg19 indexed for BWA, Tophat, and HISAT. It includes all transcripts annotations (mRNAs and lncRNAs) from gencode v. 19 and v. 32 lifted to hg19. It also includes circRNAs and small non-coding RNAs annotations.",
+      "url": "https://rnadetector.atlas.dmi.unict.it/repo/packages/h/Human_hg19_genome.tar.bz2",
+      "md5": "https://rnadetector.atlas.dmi.unict.it/repo/packages/h/Human_hg19_genome.tar.bz2.md5"
+    },
+    {
+      "name": "Human_hg19_transcriptome",
+      "title": "Human hg19 transcriptome",
+      "description": "Human hg19 transcriptome indexed for Salmon (generated from mRNAs and lncRNAs annotations of gencode v. 19).",
+      "url": "https://rnadetector.atlas.dmi.unict.it/repo/packages/h/Human_hg19_transcriptome.tar.bz2",
+      "md5": "https://rnadetector.atlas.dmi.unict.it/repo/packages/h/Human_hg19_transcriptome.tar.bz2.md5"
+    },
+    {
+      "name": "Human_hg19_gencode_32lift_transcriptome",
+      "title": "Human hg19 gencode 32 transcriptome",
+      "description": "Human hg19 transcriptome indexed for Salmon (generated from mRNAs and lncRNAs annotations of gencode v. 32 lifted to hg19).",
+      "url": "https://rnadetector.atlas.dmi.unict.it/repo/packages/h/Human_hg19_gencode_32lift_transcriptome.tar.bz2",
+      "md5": "https://rnadetector.atlas.dmi.unict.it/repo/packages/h/Human_hg19_gencode_32lift_transcriptome.tar.bz2.md5"
+    },
+    {
+      "name": "Human_hg38_genome",
+      "title": "Human hg38 genome",
+      "description": "Human genome hg38 indexed for BWA, Tophat, and HISAT. It includes all transcripts annotations (mRNAs and lncRNAs) from gencode v. 32. It also includes circRNAs and small non-coding RNAs annotations lifted from hg19.",
+      "url": "https://rnadetector.atlas.dmi.unict.it/repo/packages/h/Human_hg38_genome.tar.bz2",
+      "md5": "https://rnadetector.atlas.dmi.unict.it/repo/packages/h/Human_hg38_genome.tar.bz2.md5"
+    },
+    {
+      "name": "Human_hg38_gencode_32_transcriptome",
+      "title": "Human hg38 gencode 32 transcriptome",
+      "description": "Human hg38 transcriptome indexed for Salmon (generated from mRNAs and lncRNAs annotations of gencode v. 32).",
+      "url": "https://rnadetector.atlas.dmi.unict.it/repo/packages/h/Human_hg38_gencode_32_transcriptome.tar.bz2",
+      "md5": "https://rnadetector.atlas.dmi.unict.it/repo/packages/h/Human_hg38_gencode_32_transcriptome.tar.bz2.md5"
+    }
+  ]
+}
