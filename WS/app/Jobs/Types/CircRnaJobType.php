@@ -16,7 +16,6 @@ use App\Models\Annotation;
 use App\Models\Reference;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Storage;
 
 class CircRnaJobType extends AbstractJob
 {

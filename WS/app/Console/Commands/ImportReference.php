@@ -13,7 +13,6 @@ use App\Utils;
 use DirectoryIterator;
 use Illuminate\Console\Command;
 use Symfony\Component\Process\Process;
-use ZipArchive;
 
 class ImportReference extends Command
 {

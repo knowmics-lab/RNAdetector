@@ -52,10 +52,12 @@ else
     fi
 fi
 
-echo "Downloading package checksum file..."
-if ! curl -fSL "$MD5" -o "$MD5_FILE"; then
-    echo "Unable to download MD5 checksum of the package"
-    exit 6
+if [ ! -f "$MD5_FILE" ]; then
+    echo "Downloading package checksum file..."
+    if ! curl -fSL "$MD5" -o "$MD5_FILE"; then
+        echo "Unable to download MD5 checksum of the package"
+        exit 6
+    fi
 fi
 
 CURR_PWD=$(pwd)
@@ -64,6 +66,8 @@ cd $REF_DIR
 echo "Checking package integrity..."
 if ! md5sum -c "$MD5_FILE"; then
     echo "Checksum control failed."
+    rm $FILENAME
+    rm $MD5_FILE
     exit 7
 fi
 
@@ -77,3 +81,4 @@ rm $FILENAME
 rm $MD5_FILE
 
 echo "Package installed!"
+cd "$CURR_PWD"

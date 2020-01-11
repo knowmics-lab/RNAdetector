@@ -16,6 +16,8 @@ class Kernel extends ConsoleKernel
         Commands\GenerateAuthToken::class,
         Commands\ImportReference::class,
         Commands\ExportReference::class,
+        Commands\ListPackages::class,
+        Commands\InstallPackage::class,
     ];
 
     /**

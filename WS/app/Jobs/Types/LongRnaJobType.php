@@ -10,7 +10,6 @@ namespace App\Jobs\Types;
 
 
 use App\Exceptions\ProcessingJobException;
-use App\Jobs\Types\Traits\ConvertsBamToFastqTrait;
 use App\Jobs\Types\Traits\ConvertsSamToBamTrait;
 use App\Jobs\Types\Traits\HasCommonParameters;
 use App\Jobs\Types\Traits\RunTrimGaloreTrait;
@@ -20,7 +19,6 @@ use App\Models\Annotation;
 use App\Models\Reference;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Storage;
 
 class LongRnaJobType extends AbstractJob
 {

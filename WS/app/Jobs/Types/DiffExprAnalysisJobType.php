@@ -12,12 +12,8 @@ namespace App\Jobs\Types;
 
 use App\Exceptions\ProcessingJobException;
 use App\Jobs\Types\Traits\HasCommonParameters;
-use App\Models\Annotation;
-use App\Models\Reference;
-use App\Utils;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Storage;
 
 class DiffExprAnalysisJobType extends AbstractJob
 {

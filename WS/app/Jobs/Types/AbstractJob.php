@@ -8,8 +8,6 @@
 namespace App\Jobs\Types;
 
 
-use App\Exceptions\CommandException;
-use App\Exceptions\ProcessingJobException;
 use App\Models\Job;
 use App\Models\Job as JobModel;
 use App\Utils;
