@@ -11,7 +11,6 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import { green } from '@material-ui/core/colors';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
-import { Dashboard } from '@uppy/react';
 import Breadcrumbs from '@material-ui/core/Breadcrumbs';
 import Link from '@material-ui/core/Link';
 import * as Api from '../api';
@@ -19,9 +18,13 @@ import { JOBS, ANNOTATIONS } from '../constants/routes';
 import SelectField from './Form/SelectField';
 import TextField from './Form/TextField';
 import Wizard from './UI/Wizard';
+import type { File } from './UI/FileSelector';
+import FileSelector from './UI/FileSelector';
+import UploadProgress from './UI/UploadProgress';
 
 type Props = {
   refreshJobs: () => void,
+  refreshAnnotations: () => void,
   redirect: mixed => void,
   pushNotification: (
     string,
@@ -68,6 +71,12 @@ const style = theme => ({
 
 type State = {
   isSaving: boolean,
+  isUploading: boolean,
+  uploadFile: string,
+  uploadedBytes: number,
+  uploadedPercent: number,
+  uploadTotal: number,
+  files: File[],
   validationErrors: *
 };
 
@@ -76,14 +85,17 @@ class CreateAnnotation extends React.Component<Props, State> {
 
   constructor(props) {
     super(props);
-    this.uppy = Api.Uppy.initUppyInstance(['.bed', '.gtf', '.gff']);
     this.state = {
       isSaving: false,
+      isUploading: false,
+      uploadFile: '',
+      uploadedBytes: 0,
+      uploadedPercent: 0,
+      uploadTotal: 0,
+      files: [],
       validationErrors: {}
     };
   }
-
-  uppy;
 
   getValidationSchema = () =>
     Yup.object().shape({
@@ -130,8 +142,31 @@ class CreateAnnotation extends React.Component<Props, State> {
     );
   };
 
-  getStep2 = () => {
+  handleFileAdd = f =>
+    this.setState(oldState => ({
+      files: [...oldState.files, ...f]
+    }));
+
+  handleFileRemove = f =>
+    this.setState(oldState => ({
+      files: oldState.files.filter(o => o.path !== f.path)
+    }));
+
+  getStep2 = values => {
     const { classes } = this.props;
+    const {
+      isUploading,
+      uploadFile,
+      uploadedBytes,
+      uploadedPercent,
+      uploadTotal
+    } = this.state;
+    const filters = [];
+    if (values.type === 'bed') {
+      filters.push({ name: 'BED files', extensions: ['bed'] });
+    } else {
+      filters.push({ name: 'GTF files', extensions: ['gtf'] });
+    }
     return (
       <>
         <Typography className={classes.instructions}>
@@ -140,20 +175,21 @@ class CreateAnnotation extends React.Component<Props, State> {
         </Typography>
         <FormGroup row className={classes.formControl}>
           <Grid container justify="center" alignItems="center">
-            <Grid item xs={12}>
-              <Dashboard
-                uppy={Api.Uppy.getInstance(this.uppy)}
-                hideUploadButton
-                proudlyDisplayPoweredByUppy={false}
-                hideRetryButton
-                disableStatusBar
-                showLinkToFileUploadResult={false}
-                width="100%"
-                height="100%"
-              />
-            </Grid>
+            <FileSelector
+              onFileRemove={this.handleFileRemove}
+              onFileAdd={this.handleFileAdd}
+              filters={filters}
+              disabled={isUploading}
+            />
           </Grid>
         </FormGroup>
+        <UploadProgress
+          isUploading={isUploading}
+          uploadFile={uploadFile}
+          uploadedBytes={uploadedBytes}
+          uploadedPercent={uploadedPercent}
+          uploadTotal={uploadTotal}
+        />
       </>
     );
   };
@@ -192,15 +228,23 @@ class CreateAnnotation extends React.Component<Props, State> {
   };
 
   formSubmit = async values => {
-    const { pushNotification, redirect, refreshJobs } = this.props;
-    if (Api.Uppy.isValid(this.uppy, pushNotification)) {
-      const filename = Api.Uppy.getFilename(this.uppy, 0);
+    const {
+      pushNotification,
+      redirect,
+      refreshJobs,
+      refreshAnnotations
+    } = this.props;
+    const { files } = this.state;
+    if (files.length !== 1) {
+      pushNotification('You must select a file.', 'error');
+    } else {
+      const file = files[0];
       this.setSaving(true);
       try {
         const data = await Api.Annotations.create(
           values.name,
           values.type,
-          filename
+          file.name
         );
         if (data.validationErrors) {
           pushNotification(
@@ -210,27 +254,38 @@ class CreateAnnotation extends React.Component<Props, State> {
           this.setSaving(false, data.validationErrors);
         } else {
           const { data: job } = data;
-          pushNotification(
-            'A new indexing job has been created! Uploading FASTA file...'
-          );
+          pushNotification('Job created! Uploading FASTA file...');
           const url = Api.Jobs.getUploadUrl(job);
-          if (await Api.Uppy.upload(this.uppy, url, pushNotification)) {
-            pushNotification('Annotation file uploaded! Starting job...');
-            await Api.Jobs.submitJob(job.id);
-            pushNotification('Job queued!');
-            refreshJobs();
-            Api.Uppy.clearInstance(this.uppy);
-            redirect(JOBS);
-          } else {
-            this.setSaving(false);
-          }
+          this.setState({
+            isUploading: true,
+            uploadFile: file.name
+          });
+          await Api.Upload.upload(
+            url,
+            file.path,
+            file.name,
+            file.type,
+            (uploadedPercent, uploadedBytes, uploadTotal) =>
+              this.setState({
+                uploadedPercent,
+                uploadedBytes,
+                uploadTotal
+              })
+          );
+          this.setState({
+            isUploading: false
+          });
+          pushNotification('Annotation file uploaded! Starting job...');
+          await Api.Jobs.submitJob(job.id);
+          pushNotification('Job queued!');
+          refreshJobs();
+          refreshAnnotations();
+          redirect(JOBS);
         }
       } catch (e) {
         pushNotification(`An error occurred: ${e.message}`, 'error');
         this.setSaving(false);
       }
-    } else {
-      pushNotification('You must select a file.', 'error');
     }
   };
 
@@ -262,13 +317,15 @@ class CreateAnnotation extends React.Component<Props, State> {
                 this.formSubmit(v).catch(() => false);
               }}
             >
-              <Form>
-                <Wizard steps={steps} submitButton={this.getSubmitButton}>
-                  <div>{this.getStep0()}</div>
-                  <div>{this.getStep1()}</div>
-                  <div>{this.getStep2()}</div>
-                </Wizard>
-              </Form>
+              {({ values }) => (
+                <Form>
+                  <Wizard steps={steps} submitButton={this.getSubmitButton}>
+                    <div>{this.getStep0()}</div>
+                    <div>{this.getStep1()}</div>
+                    <div>{this.getStep2(values)}</div>
+                  </Wizard>
+                </Form>
+              )}
             </Formik>
           </Paper>
         </Box>

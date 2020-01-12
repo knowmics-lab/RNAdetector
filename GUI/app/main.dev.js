@@ -16,6 +16,8 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { download } from 'electron-dl';
+import tus from 'tus-js-client';
+import fs from 'fs';
 import MenuBuilder from './menu';
 import { Settings, Docker } from './api';
 
@@ -125,6 +127,66 @@ app.on('ready', async () => {
       }
     });
   });
+
+  ipcMain.on(
+    'upload-file',
+    async (event, { id, filePath, fileName, fileType, endpoint }) => {
+      const file = fs.createReadStream(filePath);
+      const { size } = fs.statSync(filePath);
+      const upload = new tus.Upload(file, {
+        endpoint,
+        retryDelays: [0, 3000, 5000, 10000, 20000],
+        headers: {
+          ...Settings.getAuthHeaders()
+        },
+        chunkSize: 5 * 1024 * 1024, // 5Mb per chunk
+        resume: true,
+        metadata: {
+          filename: fileName,
+          filetype: fileType
+        },
+        uploadSize: size,
+        onError(error) {
+          event.reply('upload-message', {
+            id,
+            isDone: false,
+            isProgress: false,
+            isError: true,
+            percentage: 0,
+            bytesUploaded: 0,
+            bytesTotal: 0,
+            error: error.message
+          });
+        },
+        onProgress(bytesUploaded, bytesTotal) {
+          const percentage = Math.round((bytesUploaded / bytesTotal) * 100);
+          event.reply('upload-message', {
+            id,
+            isDone: false,
+            isProgress: true,
+            isError: false,
+            error: null,
+            percentage,
+            bytesUploaded,
+            bytesTotal
+          });
+        },
+        onSuccess() {
+          event.reply('upload-message', {
+            id,
+            isDone: true,
+            isProgress: false,
+            isError: false,
+            error: null,
+            percentage: 0,
+            bytesUploaded: 0,
+            bytesTotal: 0
+          });
+        }
+      });
+      upload.start();
+    }
+  );
 
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line

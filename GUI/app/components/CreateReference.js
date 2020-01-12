@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
@@ -11,7 +11,6 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import { green } from '@material-ui/core/colors';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
-import { Dashboard } from '@uppy/react';
 import Breadcrumbs from '@material-ui/core/Breadcrumbs';
 import Link from '@material-ui/core/Link';
 import * as Api from '../api';
@@ -19,9 +18,13 @@ import { JOBS, REFERENCES } from '../constants/routes';
 import SelectField from './Form/SelectField';
 import TextField from './Form/TextField';
 import Wizard from './UI/Wizard';
+import FileSelector from './UI/FileSelector';
+import type { File } from './UI/FileSelector';
+import UploadProgress from './UI/UploadProgress';
 
 type Props = {
   refreshJobs: () => void,
+  refreshReferences: () => void,
   redirect: mixed => void,
   pushNotification: (
     string,
@@ -68,22 +71,31 @@ const style = theme => ({
 
 type State = {
   isSaving: boolean,
+  isUploading: boolean,
+  uploadFile: string,
+  uploadedBytes: number,
+  uploadedPercent: number,
+  uploadTotal: number,
+  files: File[],
   validationErrors: *
 };
 
-class CreateReference extends Component<Props, State> {
+class CreateReference extends React.Component<Props, State> {
   props: Props;
 
   constructor(props) {
     super(props);
-    this.uppy = Api.Uppy.initUppyInstance(['.fa', '.fasta']);
     this.state = {
       isSaving: false,
+      isUploading: false,
+      uploadFile: '',
+      uploadedBytes: 0,
+      uploadedPercent: 0,
+      uploadTotal: 0,
+      files: [],
       validationErrors: {}
     };
   }
-
-  uppy;
 
   getValidationSchema = () =>
     Yup.object().shape({
@@ -137,8 +149,25 @@ class CreateReference extends Component<Props, State> {
     );
   };
 
+  handleFileAdd = f =>
+    this.setState(oldState => ({
+      files: [...oldState.files, ...f]
+    }));
+
+  handleFileRemove = f =>
+    this.setState(oldState => ({
+      files: oldState.files.filter(o => o.path !== f.path)
+    }));
+
   getStep2 = () => {
     const { classes } = this.props;
+    const {
+      isUploading,
+      uploadFile,
+      uploadedBytes,
+      uploadedPercent,
+      uploadTotal
+    } = this.state;
     return (
       <>
         <Typography className={classes.instructions}>
@@ -147,20 +176,21 @@ class CreateReference extends Component<Props, State> {
         </Typography>
         <FormGroup row className={classes.formControl}>
           <Grid container justify="center" alignItems="center">
-            <Grid item xs={12}>
-              <Dashboard
-                uppy={Api.Uppy.getInstance(this.uppy)}
-                hideUploadButton
-                proudlyDisplayPoweredByUppy={false}
-                hideRetryButton
-                disableStatusBar
-                showLinkToFileUploadResult={false}
-                width="100%"
-                height="100%"
-              />
-            </Grid>
+            <FileSelector
+              onFileRemove={this.handleFileRemove}
+              onFileAdd={this.handleFileAdd}
+              filters={[{ name: 'FASTA files', extensions: ['fa', 'fasta'] }]}
+              disabled={isUploading}
+            />
           </Grid>
         </FormGroup>
+        <UploadProgress
+          isUploading={isUploading}
+          uploadFile={uploadFile}
+          uploadedBytes={uploadedBytes}
+          uploadedPercent={uploadedPercent}
+          uploadTotal={uploadTotal}
+        />
       </>
     );
   };
@@ -193,14 +223,17 @@ class CreateReference extends Component<Props, State> {
   };
 
   formSubmit = async values => {
-    const { pushNotification, redirect, refreshJobs } = this.props;
-    if (Api.Uppy.isValid(this.uppy, pushNotification)) {
-      const filename = Api.Uppy.getFilename(this.uppy, 0);
+    const { pushNotification, redirect, refreshJobs, refreshReferences } = this.props;
+    const { files } = this.state;
+    if (files.length !== 1) {
+      pushNotification('You must select a FASTA file.', 'error');
+    } else {
+      const file = files[0];
       this.setSaving(true);
       try {
         const data = await Api.References.create(
           values.name,
-          filename,
+          file.name,
           values.availableFor
         );
         if (data.validationErrors) {
@@ -215,23 +248,36 @@ class CreateReference extends Component<Props, State> {
             'A new indexing job has been created! Uploading FASTA file...'
           );
           const url = Api.Jobs.getUploadUrl(job);
-          if (await Api.Uppy.upload(this.uppy, url, pushNotification)) {
-            pushNotification('FASTA file uploaded! Starting indexing job...');
-            await Api.Jobs.submitJob(job.id);
-            pushNotification('Indexing job queued!');
-            refreshJobs();
-            Api.Uppy.clearInstance(this.uppy);
-            redirect(JOBS);
-          } else {
-            this.setSaving(false);
-          }
+          this.setState({
+            isUploading: true,
+            uploadFile: file.name
+          });
+          await Api.Upload.upload(
+            url,
+            file.path,
+            file.name,
+            file.type,
+            (uploadedPercent, uploadedBytes, uploadTotal) =>
+              this.setState({
+                uploadedPercent,
+                uploadedBytes,
+                uploadTotal
+              })
+          );
+          this.setState({
+            isUploading: false
+          });
+          pushNotification('FASTA file uploaded! Starting indexing job...');
+          await Api.Jobs.submitJob(job.id);
+          pushNotification('Indexing job queued!');
+          refreshJobs();
+          refreshReferences();
+          redirect(JOBS);
         }
       } catch (e) {
         pushNotification(`An error occurred: ${e.message}`, 'error');
         this.setSaving(false);
       }
-    } else {
-      pushNotification('You must select a FASTA file.', 'error');
     }
   };
 

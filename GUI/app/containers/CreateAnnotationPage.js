@@ -1,7 +1,8 @@
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { push } from 'connected-react-router';
-import { refreshPage } from '../actions/jobs';
+import { refreshPage as refreshJobs } from '../actions/jobs';
+import { refreshPage as refreshAnnotations } from '../actions/annotations';
 import { pushNotificationSimple } from '../actions/notifications';
 import CreateAnnotation from '../components/CreateAnnotation';
 
@@ -10,7 +11,8 @@ function mapDispatchToProps(dispatch) {
     {
       pushNotification: pushNotificationSimple,
       redirect: push,
-      refreshJobs: refreshPage
+      refreshJobs,
+      refreshAnnotations
     },
     dispatch
   );

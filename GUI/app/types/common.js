@@ -1,5 +1,18 @@
 // @flow
 
+export type FileFilter = {
+  name: string,
+  extensions: string[]
+};
+
+export type DialogOptions = {
+  title?: string,
+  buttonLabel?: string,
+  filters?: FileFilter[],
+  message?: string,
+  properties?: Array<'openFile' | 'openDirectory' | 'multiSelections'>
+};
+
 export type AxiosHeaders = {|
   headers: { [string]: mixed }
 |};

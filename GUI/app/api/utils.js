@@ -15,6 +15,9 @@ export default {
         };
       }, {});
   },
+  toArray(list: *) {
+    return Array.prototype.slice.call(list || [], 0);
+  },
   async waitExists(filePath: string, timeout: number = 0): Promise<*> {
     return new Promise((resolve, reject) => {
       let timer = null;

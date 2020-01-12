@@ -6,5 +6,5 @@ export { default as Downloader } from './downloader';
 export { default as Jobs } from './jobs';
 export { default as References } from './references';
 export { default as Settings } from './settings';
-export { default as Uppy } from './uppy';
+export { default as Upload } from './upload';
 export { default as Utils } from './utils';

@@ -3,7 +3,3 @@
  *        See https://github.com/webpack-contrib/sass-loader#imports
  */
 @import '~@fortawesome/fontawesome-free/css/all.css';
-@import '~@uppy/core/dist/style.css';
-@import '~@uppy/dashboard/dist/style.css';
-@import '~@uppy/drag-drop/dist/style.css';
-@import '~@uppy/progress-bar/dist/style.css';
