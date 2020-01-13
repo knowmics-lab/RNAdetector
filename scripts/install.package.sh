@@ -42,20 +42,32 @@ REF_DIR="/rnadetector/ws/storage/app/references/"
 FILENAME="${REF_DIR}/${NAME}.tar.bz2"
 MD5_FILE="${REF_DIR}/${NAME}.tar.bz2.md5"
 
+cleanup() {
+    if [ -f "$FILENAME" ]; then
+        rm "$FILENAME"
+    fi
+    if [ -f "$MD5_FILE" ]; then
+        rm "$MD5_FILE"
+    fi
+}
+
+
 if [ -f "$FILENAME" ]; then
     echo "Package file already exists!"
 else
     echo "Downloading package..."
-    if ! curl -fSL "$URL" -o "$FILENAME"; then
+    if ! wget "$URL" -O "$FILENAME"; then
         echo "Unable to download the package"
+        cleanup
         exit 5
     fi
 fi
 
 if [ ! -f "$MD5_FILE" ]; then
     echo "Downloading package checksum file..."
-    if ! curl -fSL "$MD5" -o "$MD5_FILE"; then
+    if ! wget "$MD5" -O "$MD5_FILE"; then
         echo "Unable to download MD5 checksum of the package"
+        cleanup
         exit 6
     fi
 fi
@@ -66,19 +78,18 @@ cd $REF_DIR
 echo "Checking package integrity..."
 if ! md5sum -c "$MD5_FILE"; then
     echo "Checksum control failed."
-    rm $FILENAME
-    rm $MD5_FILE
+    cleanup
     exit 7
 fi
 
 echo "Installing package..."
 if ! php /rnadetector/ws/artisan reference:import "$NAME"; then
     echo "Unable to install package."
+    cleanup
     exit 8
 fi
 
-rm $FILENAME
-rm $MD5_FILE
+cleanup
 
 echo "Package installed!"
 cd "$CURR_PWD"
