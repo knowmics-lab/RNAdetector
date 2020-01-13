@@ -1,4 +1,5 @@
 /* eslint-disable import/no-cycle */
+export { default as Analysis } from './analysis';
 export { default as Annotations } from './annotations';
 export { default as Connector } from './connector';
 export { default as Docker } from './docker';
