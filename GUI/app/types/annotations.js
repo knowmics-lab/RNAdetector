@@ -1,8 +1,11 @@
 // @flow
 import type { MetaResponseType, StatePaginationType } from './common';
 
+export type AnnotationType = 'gtf' | 'bed';
+
 export type Annotation = {
   id: number,
+  type: AnnotationType,
   name: string,
   created_at: string,
   created_at_diff: string,

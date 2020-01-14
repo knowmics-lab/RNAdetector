@@ -13,19 +13,20 @@ import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import Breadcrumbs from '@material-ui/core/Breadcrumbs';
 import Link from '@material-ui/core/Link';
-import * as Api from '../api';
-import { JOBS, REFERENCES } from '../constants/routes';
-import SelectField from './Form/SelectField';
-import TextField from './Form/TextField';
-import Wizard from './UI/Wizard';
-import FileSelector from './UI/FileSelector';
-import type { File } from './UI/FileSelector';
-import UploadProgress from './UI/UploadProgress';
-import type { UsesUpload } from '../types/ui';
+import Backdrop from '@material-ui/core/Backdrop';
+import * as Api from '../../api';
+import { JOBS, REFERENCES } from '../../constants/routes';
+import SelectField from '../Form/SelectField';
+import TextField from '../Form/TextField';
+import Wizard from '../UI/Wizard';
+import FileSelector from '../UI/FileSelector';
+import type { File } from '../UI/FileSelector';
+import UploadProgress from '../UI/UploadProgress';
+import type { UsesUpload } from '../../types/ui';
+import SwitchField from '../Form/SwitchField';
 
 type Props = {
   refreshJobs: () => void,
-  refreshReferences: () => void,
   redirect: mixed => void,
   pushNotification: (
     string,
@@ -72,11 +73,12 @@ const style = theme => ({
 
 type State = {
   isSaving: boolean,
-  files: File[],
+  firstFiles: File[],
+  secondFiles: File[],
   validationErrors: *
 } & UsesUpload;
 
-class CreateReference extends React.Component<Props, State> {
+class LongRNA extends React.Component<Props, State> {
   props: Props;
 
   constructor(props) {
@@ -84,59 +86,99 @@ class CreateReference extends React.Component<Props, State> {
     this.state = {
       isSaving: false,
       ...Api.Upload.ui.initUploadState(),
-      files: [],
+      firstFiles: [],
+      secondFiles: [],
       validationErrors: {}
     };
   }
 
   getValidationSchema = () =>
     Yup.object().shape({
-      name: Yup.string()
-        .required()
-        .matches(/^[A-Za-z0-9\-_]+$/, {
-          message: 'The field must contain only letters, numbers, and dashes.'
-        }),
-      availableFor: Yup.array()
-        .of(Yup.string().oneOf(['bwa', 'tophat', 'hisat', 'salmon']))
-        .required()
+      // @TODO
     });
 
-  getSteps = () => ['Choose a name', 'Select aligners', 'Select a file'];
+  getSteps = () => [
+    'Choose type',
+    'Set pipeline preferences',
+    'Select references',
+    'Upload files'
+  ];
 
   getStep0 = () => {
     const { classes } = this.props;
     return (
       <>
         <Typography className={classes.instructions}>
-          Choose a name fo the new reference sequence. The name should contain
-          only letters, numbers, and dashes.
+          Choose the type of input files and sequencing strategy (single or
+          paired-end).
         </Typography>
-        <TextField label="Name" name="name" required />
+        <SelectField
+          label="Input Type"
+          name="inputType"
+          options={Api.Utils.supportedAnalysisFileTypes()}
+          required
+        />
+        <SwitchField label="Are reads paired-end?" name="paired" />
       </>
     );
   };
 
-  getStep1 = () => {
+  getStep1 = values => {
     const { classes } = this.props;
+    const {
+      inputType,
+      algorithm,
+      convertBam,
+      trimGalore: { enable }
+    } = values;
     return (
       <>
         <Typography className={classes.instructions}>
-          Choose which alignment algorithms will be available for this sequence.
-          Based on the selected algorithms, the appropriate indexing methods
-          will be used.
+          Choose which steps will be included in the analysis: trimming, BAM to
+          FASTQ conversion, alignment and counting, or quantification.
         </Typography>
+        {(inputType === 'bam' || inputType === 'sam') && (
+          <SwitchField label="Convert BAM/SAM to FASTQ?" name="convertBam" />
+        )}
+        {(inputType === 'bam' || convertBam) && (
+          <>
+            <SwitchField label="Enable Trimming?" name="trimGalore.enable" />
+            {enable && (
+              <>
+                <TextField
+                  label="Min PHREAD quality"
+                  name="trimGalore.quality"
+                  type="number"
+                />
+                <TextField
+                  label="Min reads length"
+                  name="trimGalore.length"
+                  type="number"
+                />
+              </>
+            )}
+          </>
+        )}
         <SelectField
-          label="Indexing algorithms"
-          name="availableFor"
+          label="Aligment/Quantification Algorithm"
+          name="algorithm"
           options={{
-            bwa: 'BWA',
-            tophat: 'TopHat 2',
-            hisat: 'HISAT2',
-            salmon: 'Salmon'
+            salmon: 'Salmon',
+            tophat: 'Tophat',
+            hisat2: 'Hisat 2'
           }}
-          multiple
-          required
         />
+        {(algorithm === 'tophat' || algorithm === 'hisat2') && (
+          <SelectField
+            label="Counting Algorithm"
+            name="countingAlgorithm"
+            options={{
+              htseq: 'HT-seq',
+              'feature-counts': 'Feature Counts',
+              salmon: 'Salmon'
+            }}
+          />
+        )}
       </>
     );
   };
@@ -245,15 +287,25 @@ class CreateReference extends React.Component<Props, State> {
             'A new indexing job has been created! Uploading FASTA file...'
           );
           const url = Api.Jobs.getUploadUrl(job);
-          Api.Upload.ui.uploadStart(this.setState, file.name);
+          this.setState({
+            isUploading: true,
+            uploadFile: file.name
+          });
           await Api.Upload.upload(
             url,
             file.path,
             file.name,
             file.type,
-            Api.Upload.ui.makeOnProgress(this.setState)
+            (uploadedPercent, uploadedBytes, uploadTotal) =>
+              this.setState({
+                uploadedPercent,
+                uploadedBytes,
+                uploadTotal
+              })
           );
-          Api.Upload.ui.uploadEnd(this.setState);
+          this.setState({
+            isUploading: false
+          });
           pushNotification('FASTA file uploaded! Starting indexing job...');
           await Api.Jobs.submitJob(job.id);
           pushNotification('Indexing job queued!');
@@ -280,16 +332,10 @@ class CreateReference extends React.Component<Props, State> {
     const steps = this.getSteps();
     return (
       <>
-        <Breadcrumbs aria-label="breadcrumb">
-          <Link color="inherit" href="#" onClick={this.redirectReference}>
-            References
-          </Link>
-          <Typography color="textPrimary">Add Reference</Typography>
-        </Breadcrumbs>
         <Box>
           <Paper className={classes.root}>
             <Typography variant="h5" component="h3">
-              Add reference genome/transcriptome
+              New Long RNAs Analysis
             </Typography>
             <Formik
               initialValues={{
@@ -302,13 +348,15 @@ class CreateReference extends React.Component<Props, State> {
                 this.formSubmit(v).catch(() => false);
               }}
             >
-              <Form>
-                <Wizard steps={steps} submitButton={this.getSubmitButton}>
-                  <div>{this.getStep0()}</div>
-                  <div>{this.getStep1()}</div>
-                  <div>{this.getStep2()}</div>
-                </Wizard>
-              </Form>
+              {({ values }) => (
+                <Form>
+                  <Wizard steps={steps} submitButton={this.getSubmitButton}>
+                    <div>{this.getStep0()}</div>
+                    <div>{this.getStep1(values)}</div>
+                    <div>{this.getStep2()}</div>
+                  </Wizard>
+                </Form>
+              )}
             </Formik>
           </Paper>
         </Box>
@@ -317,4 +365,4 @@ class CreateReference extends React.Component<Props, State> {
   }
 }
 
-export default withStyles(style)(CreateReference);
+export default withStyles(style)(LongRNA);

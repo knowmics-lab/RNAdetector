@@ -1,10 +1,35 @@
 // @flow
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
+import type { FileFilter } from '../types/common';
+import type { AnalysisFileTypes } from '../types/analysis';
 
 let watcher = null;
 
 export default {
+  cpuCount() {
+    return os.cpus().length;
+  },
+  supportedAnalysisFileTypes() {
+    return {
+      fastq: 'FASTQ',
+      bam: 'BAM',
+      sam: 'SAM'
+    };
+  },
+  analysisFileExtensions(type: AnalysisFileTypes): FileFilter[] {
+    switch (type) {
+      case 'fastq':
+        return [{ name: 'FASTQ files', extensions: ['fq', 'fastq'] }];
+      case 'bam':
+        return [{ name: 'BAM files', extensions: ['bam'] }];
+      case 'sam':
+        return [{ name: 'SAM files', extensions: ['sam'] }];
+      default:
+        return [];
+    }
+  },
   filterByKey(raw: {}, callback: string => boolean) {
     return Object.keys(raw)
       .filter(callback)

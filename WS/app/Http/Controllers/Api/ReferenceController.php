@@ -11,6 +11,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Reference as ReferenceResource;
 use App\Http\Resources\ReferenceCollection;
 use App\Models\Reference;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -35,7 +36,22 @@ class ReferenceController extends Controller
      */
     public function index(Request $request): ReferenceCollection
     {
-        return new ReferenceCollection($this->handleBuilderRequest($request, Reference::query()));
+        return new ReferenceCollection(
+            $this->handleBuilderRequest(
+                $request,
+                Reference::query(),
+                static function (Builder $builder) use ($request) {
+                    if ($request->has('indexed_for')) {
+                        $algo = $request->get('indexed_for');
+                        if ($algo) {
+                            $builder->whereRaw('JSON_CONTAINS(`available_for`, "true", ?)', ['$.' . $algo]);
+                        }
+                    }
+
+                    return $builder;
+                }
+            )
+        );
     }
 
     /**

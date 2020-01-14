@@ -1,14 +1,18 @@
 /* eslint-disable camelcase */
 // @flow
 import Connector from './connector';
-import type { Annotation, AnnotationsCollection } from '../types/annotations';
-import type { ResponseType, SortingSpec } from '../types/common';
+import type {
+  Annotation,
+  AnnotationsCollection,
+  AnnotationType
+} from '../types/annotations';
+import type { ResponseType, SimpleMapType, SortingSpec } from '../types/common';
 import type { Job } from '../types/jobs';
 
 export default {
   async create(
     name: string,
-    type: 'gtf' | 'bed',
+    type: AnnotationType,
     file: string
   ): Promise<ResponseType<Job>> {
     const result = await Connector.callPost('jobs', {
@@ -63,5 +67,16 @@ export default {
         sorting
       }
     };
+  },
+  async fetchAllByType(type: AnnotationType): Promise<SimpleMapType<string>> {
+    const result = await Connector.callGet(`annotations`, {
+      per_page: 0,
+      type
+    });
+    const { data } = result.data;
+    return Object.fromEntries(
+      // $FlowFixMe: data is of type Annotation[]
+      data.map(({ name }) => [name, name])
+    );
   }
 };

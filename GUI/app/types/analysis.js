@@ -1,5 +1,7 @@
 // @flow
 
+export type AnalysisFileTypes = 'fastq' | 'bam' | 'sam';
+
 export type TrimGaloreConfig = {|
   enable?: boolean,
   quality?: number,
@@ -11,7 +13,7 @@ export type LongRNAAnalysisConfig = {|
   paired?: boolean,
   firstInputFile: string,
   secondInputFile: string,
-  inputType: 'fastq' | 'bam' | 'sam',
+  inputType: AnalysisFileTypes,
   convertBam?: boolean,
   trimGalore?: TrimGaloreConfig,
   algorithm?: 'salmon' | 'tophat' | 'hisat2',

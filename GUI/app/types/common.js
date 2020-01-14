@@ -58,3 +58,5 @@ export type ResponseType<T> = {
   validationErrors?: RecursiveMapType<string>,
   data?: T
 };
+
+export type UploadProgressFunction = (number, number, number) => void;

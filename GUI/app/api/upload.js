@@ -2,6 +2,9 @@
 import uniqid from 'uniqid';
 import { is } from 'electron-util';
 import { ipcRenderer } from 'electron';
+import type { UsesUpload } from '../types/ui';
+import type { UploadProgressFunction } from '../types/common';
+import { Upload } from './index';
 
 const registeredCallbacks = new Map();
 
@@ -43,7 +46,7 @@ export default {
     filePath: string,
     fileName: string,
     fileType: string,
-    onProgress: ?(number, number, number) => void
+    onProgress: ?UploadProgressFunction
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       const id = uniqid();
@@ -62,5 +65,36 @@ export default {
         endpoint
       });
     });
+  },
+  ui: {
+    initUploadState(): UsesUpload {
+      return {
+        isUploading: false,
+        uploadFile: '',
+        uploadedBytes: 0,
+        uploadedPercent: 0,
+        uploadTotal: 0
+      };
+    },
+    uploadStart(setState: (*) => void, uploadFile: string): void {
+      setState({
+        isUploading: true,
+        uploadFile
+      });
+    },
+    uploadEnd(setState: (*) => void): void {
+      setState({
+        isUploading: false,
+        uploadFile: ''
+      });
+    },
+    makeOnProgress(setState: (*) => void): UploadProgressFunction {
+      return (uploadedPercent, uploadedBytes, uploadTotal) =>
+        setState({
+          uploadedPercent,
+          uploadedBytes,
+          uploadTotal
+        });
+    }
   }
 };

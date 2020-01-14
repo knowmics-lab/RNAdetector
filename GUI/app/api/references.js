@@ -1,9 +1,14 @@
 /* eslint-disable camelcase */
 // @flow
 import Connector from './connector';
-import type { Reference, ReferencesCollection } from '../types/references';
-import type { SortingSpec, ResponseType } from '../types/common';
+import type {
+  IndexingAlgorithm,
+  Reference,
+  ReferencesCollection
+} from '../types/references';
+import type { SortingSpec, ResponseType, SimpleMapType } from '../types/common';
 import type { Job } from '../types/jobs';
+import type { AnnotationType } from '../types/annotations';
 
 export default {
   async create(
@@ -68,5 +73,18 @@ export default {
         sorting
       }
     };
+  },
+  async fetchAllByAlgorithm(
+    algorithm: IndexingAlgorithm
+  ): Promise<SimpleMapType<string>> {
+    const result = await Connector.callGet(`references`, {
+      per_page: 0,
+      indexed_for: algorithm
+    });
+    const { data } = result.data;
+    return Object.fromEntries(
+      // $FlowFixMe: data is of type Reference[]
+      data.map(({ name }) => [name, name])
+    );
   }
 };

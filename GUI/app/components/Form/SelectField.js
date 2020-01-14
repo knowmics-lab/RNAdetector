@@ -7,6 +7,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
+import type { SimpleMapType } from '../../types/common';
 
 const useStyles = makeStyles(theme => ({
   formControl: {
@@ -29,7 +30,7 @@ const EMPTY_OPTION = emptyText => (
 type SelectFieldProp = {
   label: string,
   name: string,
-  options: {},
+  options: SimpleMapType<string>,
   emptyText?: string,
   addEmpty?: boolean,
   required?: boolean,
