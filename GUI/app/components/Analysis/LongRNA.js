@@ -11,8 +11,6 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import { green } from '@material-ui/core/colors';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
-import Breadcrumbs from '@material-ui/core/Breadcrumbs';
-import Link from '@material-ui/core/Link';
 import Backdrop from '@material-ui/core/Backdrop';
 import * as Api from '../../api';
 import { JOBS, REFERENCES } from '../../constants/routes';
@@ -25,6 +23,7 @@ import UploadProgress from '../UI/UploadProgress';
 import type { UsesUpload } from '../../types/ui';
 import SwitchField from '../Form/SwitchField';
 import type { AnalysisFileTypes, TrimGaloreConfig } from '../../types/analysis';
+import type { SimpleMapType } from '../../types/common';
 
 type Props = {
   refreshJobs: () => void,
@@ -39,7 +38,8 @@ type Props = {
     buttonWrapper: *,
     buttonProgress: *,
     backButton: *,
-    instructions: *
+    instructions: *,
+    backdrop: *
   }
 };
 
@@ -69,13 +69,26 @@ const style = theme => ({
   instructions: {
     marginTop: theme.spacing(1),
     marginBottom: theme.spacing(1)
+  },
+  backdrop: {
+    zIndex: theme.zIndex.drawer + 1,
+    color: '#fff'
   }
 });
 
+const ALGORITHMS = {
+  salmon: 'Salmon',
+  tophat: 'Tophat',
+  hisat2: 'Hisat 2'
+};
+
 type State = {
+  isLoading: boolean,
   isSaving: boolean,
   firstFiles: File[],
   secondFiles: File[],
+  genomes: SimpleMapType<SimpleMapType<string>>,
+  annotations: SimpleMapType<string>,
   validationErrors: *
 } & UsesUpload;
 
@@ -85,12 +98,45 @@ class LongRNA extends React.Component<Props, State> {
   constructor(props) {
     super(props);
     this.state = {
+      isLoading: false,
       isSaving: false,
       ...Api.Upload.ui.initUploadState(),
       firstFiles: [],
       secondFiles: [],
-      validationErrors: {}
+      validationErrors: {},
+      genomes: {},
+      annotations: {}
     };
+  }
+
+  componentDidMount(): void {
+    const { pushNotification } = this.props;
+    Object.keys(ALGORITHMS).forEach((a: string) => {
+      this.setState({ isLoading: true });
+      Api.References.fetchAllByAlgorithm(a === 'hisat2' ? 'hisat' : a)
+        .then(v =>
+          this.setState(prevState => ({
+            isLoading: false,
+            genomes: { ...prevState.genomes, [a]: v }
+          }))
+        )
+        .catch(e => {
+          pushNotification(`An error occurred: ${e.message}!`, 'error');
+          this.setState({ isLoading: false });
+        });
+    });
+    this.setState({ isLoading: true });
+    Api.Annotations.fetchAllByType('gtf')
+      .then(v =>
+        this.setState({
+          isLoading: false,
+          annotations: v
+        })
+      )
+      .catch(e => {
+        pushNotification(`An error occurred: ${e.message}!`, 'error');
+        this.setState({ isLoading: false });
+      });
   }
 
   getValidationSchema = () =>
@@ -113,6 +159,7 @@ class LongRNA extends React.Component<Props, State> {
           Choose the type of input files and sequencing strategy (single or
           paired-end).
         </Typography>
+        <TextField label="Analysis Name" name="name" required />
         <SelectField
           label="Input Type"
           name="inputType"
@@ -146,7 +193,12 @@ class LongRNA extends React.Component<Props, State> {
             <SwitchField label="Enable Trimming?" name="trimGalore.enable" />
             {enable && (
               <FormGroup row className={classes.formControl}>
-                <Grid container justify="center" alignItems="center" spacing={1}>
+                <Grid
+                  container
+                  justify="center"
+                  alignItems="center"
+                  spacing={1}
+                >
                   <Grid item xs={6}>
                     <TextField
                       label="Min PHREAD quality"
@@ -169,11 +221,7 @@ class LongRNA extends React.Component<Props, State> {
         <SelectField
           label="Aligment/Quantification Algorithm"
           name="algorithm"
-          options={{
-            salmon: 'Salmon',
-            tophat: 'Tophat',
-            hisat2: 'Hisat 2'
-          }}
+          options={ALGORITHMS}
         />
         {(algorithm === 'tophat' || algorithm === 'hisat2') && (
           <SelectField
@@ -190,18 +238,55 @@ class LongRNA extends React.Component<Props, State> {
     );
   };
 
-  handleFileAdd = f =>
-    this.setState(oldState => ({
-      files: [...oldState.files, ...f]
-    }));
-
-  handleFileRemove = f =>
-    this.setState(oldState => ({
-      files: oldState.files.filter(o => o.path !== f.path)
-    }));
-
-  getStep2 = () => {
+  getStep2 = values => {
     const { classes } = this.props;
+    const { genomes, annotations } = this.state;
+    const { algorithm, countingAlgorithm } = values;
+    return (
+      <>
+        <Typography className={classes.instructions}>
+          Choose reference genome/transcriptome, and genome annotations if
+          required.
+        </Typography>
+        {(algorithm === 'tophat' || algorithm === 'hisat2') && (
+          <SelectField
+            label="Reference Genome"
+            name="genome"
+            options={genomes[algorithm]}
+          />
+        )}
+        {(algorithm === 'salmon' || countingAlgorithm === 'salmon') && (
+          <SelectField
+            label="Reference Transcriptome"
+            name="transcriptome"
+            options={genomes.salmon}
+          />
+        )}
+        {((algorithm !== 'salmon' && countingAlgorithm !== 'salmon') ||
+          algorithm === 'tophat') && (
+          <SelectField
+            label="Genome Annotation"
+            name="annotation"
+            options={annotations}
+          />
+        )}
+      </>
+    );
+  };
+
+  makeHandleFileAdd = (field: string) => f =>
+    this.setState(oldState => ({
+      [field]: [...oldState[field], ...f]
+    }));
+
+  makeHandleFileRemove = (field: string) => f =>
+    this.setState(oldState => ({
+      [field]: oldState[field].filter(o => o.path !== f.path)
+    }));
+
+  getStep3 = values => {
+    const { classes } = this.props;
+    const { inputType, paired } = values;
     const {
       isUploading,
       uploadFile,
@@ -216,13 +301,23 @@ class LongRNA extends React.Component<Props, State> {
           start the upload process.
         </Typography>
         <FormGroup row className={classes.formControl}>
-          <Grid container justify="center" alignItems="center">
+          <Grid container justify="space-around" alignItems="flex-start">
             <FileSelector
-              onFileRemove={this.handleFileRemove}
-              onFileAdd={this.handleFileAdd}
-              filters={[{ name: 'FASTA files', extensions: ['fa', 'fasta'] }]}
+              onFileRemove={this.makeHandleFileRemove('firstFiles')}
+              onFileAdd={this.makeHandleFileAdd('firstFiles')}
+              filters={Api.Utils.analysisFileExtensions(inputType)}
               disabled={isUploading}
+              multiple
             />
+            {paired && (
+              <FileSelector
+                onFileRemove={this.makeHandleFileRemove('secondFiles')}
+                onFileAdd={this.makeHandleFileAdd('secondFiles')}
+                filters={Api.Utils.analysisFileExtensions(inputType)}
+                disabled={isUploading}
+                multiple
+              />
+            )}
           </Grid>
         </FormGroup>
         <UploadProgress
@@ -264,11 +359,10 @@ class LongRNA extends React.Component<Props, State> {
   };
 
   formSubmit = async values => {
-    const {
+    /* const {
       pushNotification,
       redirect,
-      refreshJobs,
-      refreshReferences
+      refreshJobs
     } = this.props;
     const { files } = this.state;
     if (files.length !== 1) {
@@ -324,18 +418,12 @@ class LongRNA extends React.Component<Props, State> {
         pushNotification(`An error occurred: ${e.message}`, 'error');
         this.setSaving(false);
       }
-    }
-  };
-
-  redirectReference = event => {
-    const { redirect } = this.props;
-    event.preventDefault();
-    redirect(REFERENCES);
+    } */
   };
 
   render() {
     const { classes } = this.props;
-    const { validationErrors } = this.state;
+    const { validationErrors, isLoading } = this.state;
     const steps = this.getSteps();
     return (
       <>
@@ -346,6 +434,7 @@ class LongRNA extends React.Component<Props, State> {
             </Typography>
             <Formik
               initialValues={{
+                name: '',
                 paired: false,
                 inputType: 'fastq',
                 convertBam: false,
@@ -356,9 +445,9 @@ class LongRNA extends React.Component<Props, State> {
                 },
                 algorithm: 'salmon',
                 countingAlgorithm: 'feature-counts',
-                genome: '',
-                transcriptome: '',
-                annotation: '',
+                genome: 'Human_hg19_genome',
+                transcriptome: 'Human_hg19_transcriptome',
+                annotation: 'Human_hg19_gencode_19_gtf',
                 threads: 1
               }}
               initialErrors={validationErrors}
@@ -372,13 +461,17 @@ class LongRNA extends React.Component<Props, State> {
                   <Wizard steps={steps} submitButton={this.getSubmitButton}>
                     <div>{this.getStep0()}</div>
                     <div>{this.getStep1(values)}</div>
-                    <div>{this.getStep2()}</div>
+                    <div>{this.getStep2(values)}</div>
+                    <div>{this.getStep3(values)}</div>
                   </Wizard>
                 </Form>
               )}
             </Formik>
           </Paper>
         </Box>
+        <Backdrop className={classes.backdrop} open={isLoading}>
+          <CircularProgress color="inherit" />
+        </Backdrop>
       </>
     );
   }

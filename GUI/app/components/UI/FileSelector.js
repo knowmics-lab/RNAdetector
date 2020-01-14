@@ -102,10 +102,17 @@ export default function FileSelector({
     );
   };
 
+  const fileExists = (file: File) => {
+    for (let i = 0, l = files.length; i < l; i += 1) {
+      if (files[i].path === file.path) return true;
+    }
+    return false;
+  };
+
   const realAddFile = async filePaths => {
     if (filePaths.length === 0) return;
-    const selectedFiles = (await processFiles(filePaths)).filter(f =>
-      isExtensionAllowed(f.ext, processedFilters)
+    const selectedFiles = (await processFiles(filePaths)).filter(
+      f => isExtensionAllowed(f.ext, processedFilters) && !fileExists(f)
     );
     if (selectedFiles.length === 0) return;
     setFiles(prevFiles => [...prevFiles, ...selectedFiles]);
