@@ -24,6 +24,7 @@ import type { File } from '../UI/FileSelector';
 import UploadProgress from '../UI/UploadProgress';
 import type { UsesUpload } from '../../types/ui';
 import SwitchField from '../Form/SwitchField';
+import type { AnalysisFileTypes, TrimGaloreConfig } from '../../types/analysis';
 
 type Props = {
   refreshJobs: () => void,
@@ -140,22 +141,28 @@ class LongRNA extends React.Component<Props, State> {
         {(inputType === 'bam' || inputType === 'sam') && (
           <SwitchField label="Convert BAM/SAM to FASTQ?" name="convertBam" />
         )}
-        {(inputType === 'bam' || convertBam) && (
+        {(inputType === 'fastq' || convertBam) && (
           <>
             <SwitchField label="Enable Trimming?" name="trimGalore.enable" />
             {enable && (
-              <>
-                <TextField
-                  label="Min PHREAD quality"
-                  name="trimGalore.quality"
-                  type="number"
-                />
-                <TextField
-                  label="Min reads length"
-                  name="trimGalore.length"
-                  type="number"
-                />
-              </>
+              <FormGroup row className={classes.formControl}>
+                <Grid container justify="center" alignItems="center" spacing={1}>
+                  <Grid item xs={6}>
+                    <TextField
+                      label="Min PHREAD quality"
+                      name="trimGalore.quality"
+                      type="number"
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      label="Min reads length"
+                      name="trimGalore.length"
+                      type="number"
+                    />
+                  </Grid>
+                </Grid>
+              </FormGroup>
             )}
           </>
         )}
@@ -339,8 +346,20 @@ class LongRNA extends React.Component<Props, State> {
             </Typography>
             <Formik
               initialValues={{
-                name: '',
-                availableFor: []
+                paired: false,
+                inputType: 'fastq',
+                convertBam: false,
+                trimGalore: {
+                  enable: true,
+                  quality: 20,
+                  length: 14
+                },
+                algorithm: 'salmon',
+                countingAlgorithm: 'feature-counts',
+                genome: '',
+                transcriptome: '',
+                annotation: '',
+                threads: 1
               }}
               initialErrors={validationErrors}
               validationSchema={this.getValidationSchema()}

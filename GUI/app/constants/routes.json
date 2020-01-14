@@ -6,5 +6,6 @@
   "JOBS": "/jobs",
   "REFERENCES": "/references",
   "CREATE_REFERENCE": "/references/new",
-  "CREATE_ANNOTATION": "/annotations/new"
+  "CREATE_ANNOTATION": "/annotations/new",
+  "ANALYSIS_LONG_RNA": "/analysis/longRNA"
 }

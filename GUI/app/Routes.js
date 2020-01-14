@@ -10,10 +10,12 @@ import AnnotationsListPage from './containers/AnnotationsListPage';
 import ReferencesListPage from './containers/ReferencesListPage';
 import CreateReferencePage from './containers/CreateReferencePage';
 import CreateAnnotationPage from './containers/CreateAnnotationPage';
+import LongRNA from './containers/Analysis/LongRNAPage';
 
 export default () => (
   <App>
     <Switch>
+      <Route path={routes.ANALYSIS_LONG_RNA} component={LongRNA} />
       <Route path={routes.SETTINGS} component={SettingsPage} />
       <Route path={routes.CREATE_REFERENCE} component={CreateReferencePage} />
       <Route path={routes.REFERENCES} component={ReferencesListPage} />
