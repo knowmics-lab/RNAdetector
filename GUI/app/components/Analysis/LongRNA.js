@@ -22,7 +22,11 @@ import type { File } from '../UI/FileSelector';
 import UploadProgress from '../UI/UploadProgress';
 import type { UsesUpload } from '../../types/ui';
 import SwitchField from '../Form/SwitchField';
-import type { AnalysisFileTypes, TrimGaloreConfig } from '../../types/analysis';
+import type {
+  AnalysisFileTypes,
+  LongRNAAnalysisConfig,
+  TrimGaloreConfig
+} from '../../types/analysis';
 import type { SimpleMapType } from '../../types/common';
 
 type Props = {
@@ -80,6 +84,12 @@ const ALGORITHMS = {
   salmon: 'Salmon',
   tophat: 'Tophat',
   hisat2: 'Hisat 2'
+};
+
+const COUNTING_ALGORITHMS = {
+  htseq: 'HT-seq',
+  'feature-counts': 'Feature Counts',
+  salmon: 'Salmon'
 };
 
 type State = {
@@ -141,7 +151,36 @@ class LongRNA extends React.Component<Props, State> {
 
   getValidationSchema = () =>
     Yup.object().shape({
-      // @TODO
+      name: Yup.string().required(),
+      paired: Yup.boolean().required(),
+      inputType: Yup.string().oneOf(
+        Object.keys(Api.Utils.supportedAnalysisFileTypes())
+      ),
+      convertBam: Yup.boolean().notRequired(),
+      trimGalore: Yup.object()
+        .notRequired()
+        .shape({
+          enable: Yup.boolean().notRequired(),
+          quality: Yup.number()
+            .notRequired()
+            .min(1),
+          length: Yup.number()
+            .notRequired()
+            .min(1)
+        }),
+      algorithm: Yup.string()
+        .notRequired()
+        .oneOf(Object.keys(ALGORITHMS)),
+      countingAlgorithm: Yup.string()
+        .notRequired()
+        .oneOf(Object.keys(COUNTING_ALGORITHMS)),
+      genome: Yup.string().notRequired(),
+      transcriptome: Yup.string().notRequired(),
+      annotation: Yup.string().notRequired(),
+      threads: Yup.number()
+        .required()
+        .min(1)
+        .max(Api.Utils.cpuCount())
     });
 
   getSteps = () => [
@@ -167,6 +206,7 @@ class LongRNA extends React.Component<Props, State> {
           required
         />
         <SwitchField label="Are reads paired-end?" name="paired" />
+        <TextField label="Number of threads" name="threads" type="number" required />
       </>
     );
   };
@@ -227,11 +267,7 @@ class LongRNA extends React.Component<Props, State> {
           <SelectField
             label="Counting Algorithm"
             name="countingAlgorithm"
-            options={{
-              htseq: 'HT-seq',
-              'feature-counts': 'Feature Counts',
-              salmon: 'Salmon'
-            }}
+            options={COUNTING_ALGORITHMS}
           />
         )}
       </>
@@ -358,12 +394,44 @@ class LongRNA extends React.Component<Props, State> {
     });
   };
 
+  async analysisSubmit(name: string, parameters: LongRNAAnalysisConfig) {}
+
   formSubmit = async values => {
-    /* const {
-      pushNotification,
-      redirect,
-      refreshJobs
-    } = this.props;
+    const { paired } = values;
+    const { name, ...params } = values;
+    const { pushNotification, redirect, refreshJobs } = this.props;
+    const { firstFiles, secondFiles } = this.state;
+    if (firstFiles.length < 1) {
+      return pushNotification(
+        'You should select at least one input file.',
+        'error'
+      );
+    }
+    if (paired && secondFiles.length !== firstFiles.length) {
+      return pushNotification(
+        'You must select the same number of mate input files.',
+        'error'
+      );
+    }
+    this.setSaving(true);
+    const single = firstFiles.length === 1;
+    const promises = firstFiles.map((file1, i) => {
+      return this.analysisSubmit(`${name}${single ? '' : ` - Sample ${i}`}`, {
+        ...params,
+        firstInputFile: file1.name,
+        secondInputFile: paired ? secondFiles[i].name : null
+      });
+    });
+    try {
+      await Promise.all(promises);
+      refreshJobs();
+      redirect(JOBS);
+    } catch (e) {
+      pushNotification(`An error occurred: ${e.message}`, 'error');
+      this.setSaving(false);
+    }
+
+    /*
     const { files } = this.state;
     if (files.length !== 1) {
       pushNotification('You must select a FASTA file.', 'error');
@@ -430,7 +498,7 @@ class LongRNA extends React.Component<Props, State> {
         <Box>
           <Paper className={classes.root}>
             <Typography variant="h5" component="h3">
-              New Long RNAs Analysis
+              Long RNAs Analysis
             </Typography>
             <Formik
               initialValues={{

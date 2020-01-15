@@ -12,7 +12,7 @@ export type TrimGaloreConfig = {|
 export type LongRNAAnalysisConfig = {|
   paired?: boolean,
   firstInputFile: string,
-  secondInputFile: string,
+  secondInputFile: ?string,
   inputType: AnalysisFileTypes,
   convertBam?: boolean,
   trimGalore?: TrimGaloreConfig,
