@@ -95,7 +95,7 @@ class DiffExprAnalysisJobType extends AbstractJob
 
     private function runNormalization (string $formatted_input): array
     {
-        $normalizationOutputRelative = $this->model->getJobTempFile('normalized_output', '.txt');
+        $normalizationOutputRelative = $this->model->getJobFile('normalized_output', '.txt');
         $normalizationOutput = $this->model->absoluteJobPath($normalizationOutputRelative);
         $normalizationOutputUrl = \Storage::disk('public')->url($normalizationOutputRelative);
         $output = self::runCommand(
@@ -130,7 +130,7 @@ class DiffExprAnalysisJobType extends AbstractJob
      */
     private function runDeseq (string $formatted_input, string $sample_info):array
     {
-        $deseqOutputRelative = $this->model->getJobTempFile('deseq_output', '.txt');
+        $deseqOutputRelative = $this->model->getJobFile('deseq_output', '.txt');
         $deseqOutput = $this->model->absoluteJobPath($deseqOutputRelative);
         $deseqOutputUrl = \Storage::disk('public')->url($deseqOutputRelative);
         $output = self::runCommand(
@@ -168,7 +168,7 @@ class DiffExprAnalysisJobType extends AbstractJob
 
     private function runEdger (string $formatted_input, string $sample_info):array
     {
-        $edgerOutputRelative = $this->model->getJobTempFile('edger_output', '.txt');
+        $edgerOutputRelative = $this->model->getJobFile('edger_output', '.txt');
         $edgerOutput = $this->model->absoluteJobPath($edgerOutputRelative);
         $edgerOutputUrl = \Storage::disk('public')->url($edgerOutputRelative);
         $output = self::runCommand(
@@ -197,7 +197,7 @@ class DiffExprAnalysisJobType extends AbstractJob
 
     private function runLimma (string $formatted_input, string $sample_info):array
     {
-        $limmaOutputRelative = $this->model->getJobTempFile('limma_output', '.txt');
+        $limmaOutputRelative = $this->model->getJobFile('limma_output', '.txt');
         $limmaOutput = $this->model->absoluteJobPath($limmaOutputRelative);
         $limmaOutputUrl = \Storage::disk('public')->url($limmaOutputRelative);
         $output = self::runCommand(

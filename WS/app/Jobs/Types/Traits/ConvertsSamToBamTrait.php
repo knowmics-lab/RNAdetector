@@ -20,16 +20,18 @@ trait ConvertsSamToBamTrait
      *
      * @param \App\Models\Job $model
      * @param string          $samFile
+     * @param bool            $unique
      *
      * @return string
      * @throws \App\Exceptions\ProcessingJobException
      */
     private static function convertSamToBam(
         Job $model,
-        string $samFile
+        string $samFile,
+        bool $unique = true
     ): string {
         $model->appendLog('Converting SAM to BAM.');
-        $bamFile = $model->getJobTempFileAbsolute('sam2bam_', '.bam');
+        $bamFile = ($unique) ? $model->getJobTempFileAbsolute('sam2bam_', '.bam') : $model->getJobFileAbsolute('sam2bam_', '.bam');
         $output = AbstractJob::runCommand(
             [
                 'bash',

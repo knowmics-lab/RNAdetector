@@ -21,23 +21,22 @@ class TusServiceProvider extends ServiceProvider
     public function register()
     {
         if (!file_exists(storage_path('app/tus_cache/'))) {
+            /** @noinspection MkdirRaceConditionInspection */
             @mkdir(storage_path('app/tus_cache/'), 0777, true);
             @chmod(storage_path('app/tus_cache/'), 0777);
         }
         TusConfig::set(
             [
-                "file" => [
-                    "dir"  => storage_path('tus_cache/'),
-                    "name" => "tus_php.server.cache",
+                'file' => [
+                    'dir'  => storage_path('app/tus_cache/'),
+                    'name' => 'tus_php.server.cache',
                 ],
             ]
         );
         $this->app->singleton(
             'tus-server',
             static function ($app) {
-                $server = new TusServer();
-
-                return $server;
+                return new TusServer();
             }
         );
     }

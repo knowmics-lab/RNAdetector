@@ -133,14 +133,13 @@ app.on('ready', async () => {
     async (event, { id, filePath, fileName, fileType, endpoint }) => {
       const file = fs.createReadStream(filePath);
       const { size } = fs.statSync(filePath);
-      const isLocal = Settings.isLocal();
       const upload = new tus.Upload(file, {
         endpoint,
         retryDelays: [0, 3000, 5000, 10000, 20000],
         headers: {
           ...Settings.getAuthHeaders()
         },
-        chunkSize: (isLocal ? 500 : 50) * 1024 * 1024, // 5Mb per chunk
+        chunkSize: 50 * 1024 * 1024, // 5Mb per chunk
         resume: true,
         metadata: {
           filename: fileName,

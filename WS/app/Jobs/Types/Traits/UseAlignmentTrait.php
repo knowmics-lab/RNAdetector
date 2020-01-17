@@ -48,7 +48,7 @@ trait UseAlignmentTrait
             throw new ProcessingJobException('The selected annotation must be in GTF format.');
         }
         $model->appendLog('Aligning reads using TopHat.');
-        $bamOutput = $model->getJobTempFileAbsolute('tophat_output', '.bam');
+        $bamOutput = $model->getJobFileAbsolute('tophat_output_', '.bam');
         $command = [
             'bash',
             AbstractJob::scriptPath('tophat.bash'),
@@ -116,7 +116,7 @@ trait UseAlignmentTrait
             throw new ProcessingJobException('The selected reference has not been indexed for HISAT.');
         }
         $model->appendLog('Aligning with HISAT.');
-        $bamOutput = $model->getJobTempFileAbsolute('hisat_output', '.bam');
+        $bamOutput = $model->getJobFileAbsolute('hisat_output_', '.bam');
         $command = [
             'bash',
             AbstractJob::scriptPath('hisat.sh'),
@@ -183,7 +183,7 @@ trait UseAlignmentTrait
             throw new ProcessingJobException('The specified reference sequence is not indexed for salmon.');
         }
         $model->appendLog('Quantifying with Salmon.');
-        $salmonOutputRelative = $model->getJobTempFile('salmon_output', '_sa.txt');
+        $salmonOutputRelative = $model->getJobFile('salmon_output_', '_sa.txt');
         $salmonOutput = $model->absoluteJobPath($salmonOutputRelative);
         $salmonOutputUrl = Storage::disk('public')->url($salmonOutputRelative);
         switch ($inputType) {

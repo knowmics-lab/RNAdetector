@@ -200,6 +200,32 @@ class Job extends Model
     }
 
     /**
+     * Returns the path of a file in the job directory
+     *
+     * @param string $prefix
+     * @param string $suffix
+     *
+     * @return string
+     */
+    public function getJobFile(string $prefix = '', string $suffix = ''): string
+    {
+        return $this->getJobDirectory() . '/' . $prefix . Str::slug($this->name) . $suffix;
+    }
+
+    /**
+     * Returns the absolute path of a file in the job directory
+     *
+     * @param string $prefix
+     * @param string $suffix
+     *
+     * @return string
+     */
+    public function getJobFileAbsolute(string $prefix = '', string $suffix = ''): string
+    {
+        return $this->absoluteJobPath($this->getJobFile($prefix, $suffix));
+    }
+
+    /**
      * Delete the job directory
      *
      * @return bool

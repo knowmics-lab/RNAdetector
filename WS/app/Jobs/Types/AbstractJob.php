@@ -18,6 +18,9 @@ use Symfony\Component\Process\Exception\ProcessFailedException;
  * Class AbstractJob
  *
  * @method string getJobTempFile(string $prefix = '', string $suffix = '')
+ * @method string getJobTempFileAbsolute(string $prefix = '', string $suffix = '')
+ * @method string getJobFile(string $prefix = '', string $suffix = '')
+ * @method string getJobFileAbsolute(string $prefix = '', string $suffix = '')
  * @method string absoluteJobPath(string $path)
  * @method string getAbsoluteJobDirectory()
  * @method mixed getParameter($parameter = null, $default = null)
@@ -32,13 +35,13 @@ abstract class AbstractJob
     protected const SAM               = 'SAM';
     protected const VALID_INPUT_TYPES = [self::FASTQ, self::BAM, self::SAM];
 
-    protected const HTSEQ_COUNTS         = 'htseq';
-    protected const FEATURECOUNTS_COUNTS = 'feature-counts';
-    protected const SALMON               = 'salmon';
+    protected const HTSEQ_COUNTS           = 'htseq';
+    protected const FEATURECOUNTS_COUNTS   = 'feature-counts';
+    protected const SALMON                 = 'salmon';
     protected const VALID_COUNTING_METHODS = [self::HTSEQ_COUNTS, self::FEATURECOUNTS_COUNTS, self::SALMON];
 
-    protected const TOPHAT = 'tophat';
-    protected const HISAT2 = 'hisat2';
+    protected const TOPHAT                    = 'tophat';
+    protected const HISAT2                    = 'hisat2';
     protected const VALID_ALIGN_QUANT_METHODS = [self::SALMON, self::TOPHAT, self::HISAT2];
 
     /**

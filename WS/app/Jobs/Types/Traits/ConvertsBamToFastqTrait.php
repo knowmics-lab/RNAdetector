@@ -21,6 +21,7 @@ trait ConvertsBamToFastqTrait
      * @param \App\Models\Job $model
      * @param bool            $paired
      * @param string          $firstInputFile
+     * @param bool            $unique
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
@@ -28,11 +29,21 @@ trait ConvertsBamToFastqTrait
     private static function convertBamToFastq(
         Job $model,
         bool $paired,
-        string $firstInputFile
+        string $firstInputFile,
+        bool $unique = false
     ): array {
         $model->appendLog('Converting BAM to FASTQ.');
-        $firstFastQ = $model->getJobTempFileAbsolute('bam2fastq_', '.fastq');
-        $secondFastQ = ($paired) ? $model->getJobTempFileAbsolute('bam2fastq_', '.fastq') : null;
+        $firstFastQ = ($unique) ? $model->getJobTempFileAbsolute('bam2fastq_', '_1.fastq') : $model->getJobFileAbsolute(
+            'bam2fastq_',
+            '_1.fastq'
+        );
+        $secondFastQ = null;
+        if ($paired) {
+            $secondFastQ = ($unique) ? $model->getJobTempFileAbsolute('bam2fastq_', '_2.fastq') : $model->getJobFileAbsolute(
+                'bam2fastq_',
+                '_2.fastq'
+            );
+        }
         $command = [
             'bash',
             AbstractJob::scriptPath('bam2fastq.bash'),

@@ -40,7 +40,7 @@ trait RunTrimGaloreTrait
         int $threads = 1
     ): array {
         $model->appendLog('Trimming reads using TrimGalore');
-        $outputDirectory = $model->getJobTempFileAbsolute('trim_galore_');
+        $outputDirectory = $model->getJobFileAbsolute('trim_galore_');
         $command = [
             'bash',
             AbstractJob::scriptPath('trim_galore.bash'),
@@ -78,13 +78,16 @@ trait RunTrimGaloreTrait
             throw new ProcessingJobException('Unable to create trimGalore output folder');
         }
         if ($paired) {
-            $firstOutput = $outputDirectory . '/' . basename($firstInputFile, '.fastq') . '_val_1.fq';
-            $secondOutput = $outputDirectory . '/' . basename($secondInputFile, '.fastq') . '_val_2.fq';
+            $firstBase = pathinfo($firstInputFile, PATHINFO_FILENAME);
+            $secondBase = pathinfo($secondInputFile, PATHINFO_FILENAME);
+            $firstOutput = $outputDirectory . '/' . $firstBase . '_val_1.fq';
+            $secondOutput = $outputDirectory . '/' . $secondBase . '_val_2.fq';
             if (!file_exists($firstOutput) || !file_exists($secondOutput)) {
                 throw new ProcessingJobException('Unable to create output files');
             }
         } else {
-            $firstOutput = $outputDirectory . '/' . basename($firstInputFile, '.fastq') . '_trimmed.fq';
+            $firstBase = pathinfo($firstInputFile, PATHINFO_FILENAME);
+            $firstOutput = $outputDirectory . '/' . $firstBase . '_trimmed.fq';
             $secondOutput = null;
             if (!file_exists($firstOutput)) {
                 throw new ProcessingJobException('Unable to create output files');

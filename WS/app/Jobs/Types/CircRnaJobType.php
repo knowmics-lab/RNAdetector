@@ -119,7 +119,7 @@ class CircRnaJobType extends AbstractJob
         if (!$genome->isAvailableFor('bwa')) {
             throw new ProcessingJobException('The specified genome is not indexed for BWA analysis.');
         }
-        $samOutput = $this->model->getJobTempFileAbsolute('bwa_output', '.sam');
+        $samOutput = $this->model->getJobFileAbsolute('bwa_output_', '.sam');
         $command = [
             'bash',
             self::scriptPath('bwa.bash'),
@@ -186,7 +186,7 @@ class CircRnaJobType extends AbstractJob
         bool $paired = false,
         bool $useCiri1 = false
     ): array {
-        $ciriOutputRelative = $this->model->getJobTempFile('ciri_output', '_ci.txt');
+        $ciriOutputRelative = $this->model->getJobFile('ciri_output_', '_ci.txt');
         $ciriOutput = $this->model->absoluteJobPath($ciriOutputRelative);
         $ciriOutputUrl = \Storage::disk('public')->url($ciriOutputRelative);
         $command = [
@@ -302,7 +302,7 @@ class CircRnaJobType extends AbstractJob
             );
             $this->log('Alignment completed.');
         } elseif ($inputType === self::BAM) {
-            $ciriInputFile = $this->model->getJobTempFileAbsolute('bam2sam', '.sam');
+            $ciriInputFile = $this->model->getJobFileAbsolute('bam2sam_', '.sam');
             $this->log('Converting BAM to SAM.');
             $output = self::runCommand(
                 [

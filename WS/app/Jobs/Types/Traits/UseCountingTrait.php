@@ -37,7 +37,7 @@ trait UseCountingTrait
             throw new ProcessingJobException('The selected annotation must be in GTF format.');
         }
         $model->appendLog('Counting with HTseq-count.');
-        $htseqOutputRelative = $model->getJobTempFile('htseq_output', '_ht.txt');
+        $htseqOutputRelative = $model->getJobFile('htseq_output_', '_ht.txt');
         $htseqOutput = $model->absoluteJobPath($htseqOutputRelative);
         $htseqOutputUrl = \Storage::disk('public')->url($htseqOutputRelative);
         $output = AbstractJob::runCommand(
@@ -91,7 +91,7 @@ trait UseCountingTrait
             throw new ProcessingJobException('The selected annotation must be in GTF format.');
         }
         $model->appendLog('Counting with Feature-Count.');;
-        $relativeOutput = $model->getJobTempFile('featurecount_output', '_fc.txt');
+        $relativeOutput = $model->getJobFile('featurecount_output_', '_fc.txt');
         $absoluteOutput = $model->absoluteJobPath($relativeOutput);
         $outputUrl = \Storage::disk('public')->url($relativeOutput);
         $output = AbstractJob::runCommand(
@@ -146,9 +146,9 @@ trait UseCountingTrait
         if (!$transcriptome->isAvailableFor('salmon')) {
             throw new ProcessingJobException('The specified reference sequence is not indexed for salmon analysis.');
         }
-        [$firstTempFastQ, $secondTempFastQ] = self::convertBamToFastq($model, $paired, $topHatInputFile);
+        [$firstTempFastQ, $secondTempFastQ] = self::convertBamToFastq($model, $paired, $topHatInputFile, true);
         $model->appendLog('Quantifying with salmon');
-        $salmonOutputRelative = $model->getJobTempFile('salmon_output', '_sa.txt');
+        $salmonOutputRelative = $model->getJobFile('salmon_output_', '_sa.txt');
         $salmonOutput = $model->absoluteJobPath($salmonOutputRelative);
         $salmonOutputUrl = \Storage::disk('public')->url($salmonOutputRelative);
         $command = [
