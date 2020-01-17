@@ -145,7 +145,9 @@ class CircRnaJobType extends AbstractJob
             $command,
             $this->model->getAbsoluteJobDirectory(),
             null,
-            null,
+            function ($type, $buffer) {
+                $this->log(trim($buffer));
+            },
             [
                 3 => 'Annotation file does not exist.',
                 4 => 'Input file does not exist.',
@@ -158,7 +160,7 @@ class CircRnaJobType extends AbstractJob
         if (!file_exists($samOutput)) {
             throw new ProcessingJobException('Unable to create BWA output file');
         }
-        $this->log($output);
+        // $this->log($output);
 
         return $samOutput;
     }
@@ -215,7 +217,9 @@ class CircRnaJobType extends AbstractJob
             $command,
             $this->model->getAbsoluteJobDirectory(),
             null,
-            null,
+            function ($type, $buffer) {
+                $this->log(trim($buffer));
+            },
             [
                 3 => 'Annotation file does not exist.',
                 4 => 'Input file does not exist.',
@@ -229,7 +233,7 @@ class CircRnaJobType extends AbstractJob
         if (!file_exists($ciriOutput)) {
             throw new ProcessingJobException('Unable to create CIRI output file');
         }
-        $this->log($output);
+        // $this->log($output);
 
         return [$ciriOutputRelative, $ciriOutputUrl];
     }
@@ -315,14 +319,16 @@ class CircRnaJobType extends AbstractJob
                 ],
                 $this->model->getAbsoluteJobDirectory(),
                 null,
-                null,
+                function ($type, $buffer) {
+                    $this->log(trim($buffer));
+                },
                 [
                     3 => 'Input file does not exist.',
                     4 => 'Output file must be specified.',
                     5 => 'Output directory is not writable.',
                 ]
             );
-            $this->log($output);
+            // $this->log($output);
             $this->log('BAM converted to SAM.');
             if (!file_exists($ciriInputFile)) {
                 throw new ProcessingJobException('Unable to create converted BAM file');

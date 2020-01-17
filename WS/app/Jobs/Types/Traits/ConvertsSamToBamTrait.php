@@ -11,6 +11,7 @@ namespace App\Jobs\Types\Traits;
 use App\Exceptions\ProcessingJobException;
 use App\Jobs\Types\AbstractJob;
 use App\Models\Job;
+use Symfony\Component\Process\Process;
 
 trait ConvertsSamToBamTrait
 {
@@ -43,7 +44,9 @@ trait ConvertsSamToBamTrait
             ],
             $model->getAbsoluteJobDirectory(),
             null,
-            null,
+            static function ($type, $buffer) use ($model) {
+                $model->appendLog(trim($buffer));
+            },
             [
                 3 => 'Input file does not exist.',
                 4 => 'Output file must be specified.',
@@ -54,7 +57,7 @@ trait ConvertsSamToBamTrait
         if (!file_exists($bamFile)) {
             throw new ProcessingJobException('Unable to convert sam to bam.');
         }
-        $model->appendLog($output);
+        // $model->appendLog($output);
         $model->appendLog('SAM converted to BAM.');
 
         return $bamFile;

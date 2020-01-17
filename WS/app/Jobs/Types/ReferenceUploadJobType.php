@@ -105,14 +105,16 @@ class ReferenceUploadJobType extends AbstractJob
             ],
             $this->model->getAbsoluteJobDirectory(),
             null,
-            null,
+            function ($type, $buffer) {
+                $this->log(trim($buffer));
+            },
             [
                 3 => 'Input file does not exist.',
                 4 => 'Output prefix must be specified',
                 5 => 'Output directory is not writable',
             ]
         );
-        $this->log($output);
+        // $this->log($output);
         $this->log('Reference sequence indexed for bwa.');
     }
 
@@ -136,14 +138,16 @@ class ReferenceUploadJobType extends AbstractJob
             ],
             $this->model->getAbsoluteJobDirectory(),
             null,
-            null,
+            function ($type, $buffer) {
+                $this->log(trim($buffer));
+            },
             [
                 3 => 'Input file does not exist.',
                 4 => 'Output prefix must be specified.',
                 5 => 'Output directory is not writable',
             ]
         );
-        $this->log($output);
+        // $this->log($output);
         $this->log('Reference sequence indexed for TopHat.');
     }
 
@@ -167,13 +171,15 @@ class ReferenceUploadJobType extends AbstractJob
             ],
             $this->model->getAbsoluteJobDirectory(),
             null,
-            null,
+            function ($type, $buffer) {
+                $this->log(trim($buffer));
+            },
             [
                 3 => 'FASTA file with transcripts does not exist.',
                 4 => 'Indexed trascriptome folder does not exist.',
             ]
         );
-        $this->log($output);
+        // $this->log($output);
         $this->log('Reference sequence indexed for Salmon.');
     }
 
@@ -197,7 +203,9 @@ class ReferenceUploadJobType extends AbstractJob
             ],
             $this->model->getAbsoluteJobDirectory(),
             null,
-            null,
+            function ($type, $buffer) {
+                $this->log(trim($buffer));
+            },
             [
                 3 => 'Input file does not exist.',
                 4 => 'Output prefix must be specified.',
@@ -205,7 +213,7 @@ class ReferenceUploadJobType extends AbstractJob
                 6 => 'An unknown error occurred while running hisat2-build.',
             ]
         );
-        $this->log($output);
+        // $this->log($output);
         $this->log('Reference sequence indexed for Hisat 2.');
     }
 

@@ -55,7 +55,9 @@ trait UseCountingTrait
             ],
             $model->getAbsoluteJobDirectory(),
             null,
-            null,
+            static function ($type, $buffer) use ($model) {
+                $model->appendLog(trim($buffer));
+            },
             [
                 3 => 'Annotation file does not exist.',
                 4 => 'Input file does not exist.',
@@ -68,7 +70,7 @@ trait UseCountingTrait
         if (!file_exists($htseqOutput)) {
             throw new ProcessingJobException('Unable to create HTseq-count output file');
         }
-        $model->appendLog($output);
+        // $model->appendLog($output);
         $model->appendLog('Counting completed.');
 
         return [$htseqOutputRelative, $htseqOutputUrl];
@@ -109,7 +111,9 @@ trait UseCountingTrait
             ],
             $model->getAbsoluteJobDirectory(),
             null,
-            null,
+            static function ($type, $buffer) use ($model) {
+                $model->appendLog(trim($buffer));
+            },
             [
                 3 => 'Annotation file does not exist.',
                 4 => 'Input file does not exist.',
@@ -122,7 +126,7 @@ trait UseCountingTrait
         if (!file_exists($absoluteOutput)) {
             throw new ProcessingJobException('Unable to create FeatureCount output file');
         }
-        $model->appendLog($output);
+        // $model->appendLog($output);
         $model->appendLog('Counting completed.');
 
 
@@ -171,7 +175,9 @@ trait UseCountingTrait
             $command,
             $model->getAbsoluteJobDirectory(),
             null,
-            null,
+            static function ($type, $buffer) use ($model) {
+                $model->appendLog(trim($buffer));
+            },
             [
                 3 => 'Input file does not exist.',
                 4 => 'Second input file does not exist.',
@@ -182,7 +188,7 @@ trait UseCountingTrait
                 9 => 'An error occurred during salmon quant execution.',
             ]
         );
-        $model->appendLog($output);
+        // $model->appendLog($output);
         if (!file_exists($salmonOutput)) {
             throw new ProcessingJobException('Unable to create Salmon output file');
         }

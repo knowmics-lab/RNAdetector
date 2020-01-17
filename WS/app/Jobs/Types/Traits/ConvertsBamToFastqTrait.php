@@ -11,6 +11,7 @@ namespace App\Jobs\Types\Traits;
 use App\Exceptions\ProcessingJobException;
 use App\Jobs\Types\AbstractJob;
 use App\Models\Job;
+use Symfony\Component\Process\Process;
 
 trait ConvertsBamToFastqTrait
 {
@@ -60,7 +61,9 @@ trait ConvertsBamToFastqTrait
             $command,
             $model->getAbsoluteJobDirectory(),
             null,
-            null,
+            static function ($type, $buffer) use ($model) {
+                $model->appendLog(trim($buffer));
+            },
             [
                 3 => 'Input file does not exist.',
                 4 => 'Output file must be specified.',
@@ -74,7 +77,7 @@ trait ConvertsBamToFastqTrait
         if ($paired && !file_exists($firstFastQ) && !file_exists($secondFastQ)) {
             throw new ProcessingJobException('Unable to convert bam to fastq.');
         }
-        $model->appendLog($output);
+        // $model->appendLog($output);
         $model->appendLog('BAM converted to FASTQ.');
 
         return [$firstFastQ, $secondFastQ];

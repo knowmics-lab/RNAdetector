@@ -66,7 +66,9 @@ trait RunTrimGaloreTrait
             $command,
             $model->getAbsoluteJobDirectory(),
             null,
-            null,
+            static function ($type, $buffer) use ($model) {
+                $model->appendLog(trim($buffer));
+            },
             [
                 3 => 'Input file does not exist.',
                 4 => 'Second input file does not exist.',
@@ -93,7 +95,7 @@ trait RunTrimGaloreTrait
                 throw new ProcessingJobException('Unable to create output files');
             }
         }
-        $model->appendLog($output);
+        // $model->appendLog($output);
         $model->appendLog('Trimming completed');
 
         return [$firstOutput, $secondOutput];

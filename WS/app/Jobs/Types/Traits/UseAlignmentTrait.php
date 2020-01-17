@@ -71,7 +71,9 @@ trait UseAlignmentTrait
             $command,
             $model->getAbsoluteJobDirectory(),
             null,
-            null,
+            static function ($type, $buffer) use ($model) {
+                $model->appendLog(trim($buffer));
+            },
             [
                 3 => 'Annotation file does not exist.',
                 4 => 'Input file does not exist.',
@@ -85,7 +87,7 @@ trait UseAlignmentTrait
         if (!file_exists($bamOutput)) {
             throw new ProcessingJobException('Unable to create TopHat output file');
         }
-        $model->appendLog($output);
+        // $model->appendLog($output);
         $model->appendLog('Alignment completed.');
 
         return $bamOutput;
@@ -137,7 +139,9 @@ trait UseAlignmentTrait
             $command,
             $model->getAbsoluteJobDirectory(),
             null,
-            null,
+            static function ($type, $buffer) use ($model) {
+                $model->appendLog(trim($buffer));
+            },
             [
                 3 => 'Input file does not exist.',
                 4 => 'Second input file does not exist.',
@@ -150,7 +154,7 @@ trait UseAlignmentTrait
         if (!file_exists($bamOutput)) {
             throw new ProcessingJobException('Unable to create HISAT output file');
         }
-        $model->appendLog($output);
+        // $model->appendLog($output);
         $model->appendLog('Alignment completed.');
 
         return $bamOutput;
@@ -208,7 +212,9 @@ trait UseAlignmentTrait
                     $command,
                     $model->getAbsoluteJobDirectory(),
                     null,
-                    null,
+                    static function ($type, $buffer) use ($model) {
+                        $model->appendLog(trim($buffer));
+                    },
                     [
                         3 => 'Input file does not exist.',
                         4 => 'Second input file does not exist.',
@@ -236,7 +242,9 @@ trait UseAlignmentTrait
                     ],
                     $model->getAbsoluteJobDirectory(),
                     null,
-                    null,
+                    static function ($type, $buffer) use ($model) {
+                        $model->appendLog(trim($buffer));
+                    },
                     [
                         3 => 'Input file does not exist.',
                         4 => 'FASTA transcriptome file does not exist.',
@@ -253,7 +261,7 @@ trait UseAlignmentTrait
         if (!file_exists($salmonOutput)) {
             throw new ProcessingJobException('Unable to create Salmon output file');
         }
-        $model->appendLog($output);
+        // $model->appendLog($output);
         $model->appendLog('Transcripts quantification completed.');
 
         return [$salmonOutputRelative, $salmonOutputUrl];
