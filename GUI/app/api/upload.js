@@ -4,7 +4,6 @@ import { is } from 'electron-util';
 import { ipcRenderer } from 'electron';
 import type { UsesUpload } from '../types/ui';
 import type { UploadProgressFunction } from '../types/common';
-import { Upload } from './index';
 
 const registeredCallbacks = new Map();
 

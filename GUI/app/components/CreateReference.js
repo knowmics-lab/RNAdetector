@@ -245,15 +245,15 @@ class CreateReference extends React.Component<Props, State> {
             'A new indexing job has been created! Uploading FASTA file...'
           );
           const url = Api.Jobs.getUploadUrl(job);
-          Api.Upload.ui.uploadStart(this.setState, file.name);
+          Api.Upload.ui.uploadStart(this.setState.bind(this), file.name);
           await Api.Upload.upload(
             url,
             file.path,
             file.name,
             file.type,
-            Api.Upload.ui.makeOnProgress(this.setState)
+            Api.Upload.ui.makeOnProgress(this.setState.bind(this))
           );
-          Api.Upload.ui.uploadEnd(this.setState);
+          Api.Upload.ui.uploadEnd(this.setState.bind(this));
           pushNotification('FASTA file uploaded! Starting indexing job...');
           await Api.Jobs.submitJob(job.id);
           pushNotification('Indexing job queued!');

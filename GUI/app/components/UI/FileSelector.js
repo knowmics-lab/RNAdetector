@@ -108,7 +108,6 @@ export default function FileSelector({
     }
     return false;
   };
-
   const realAddFile = async filePaths => {
     if (filePaths.length === 0) return;
     const selectedFiles = (await processFiles(filePaths)).filter(

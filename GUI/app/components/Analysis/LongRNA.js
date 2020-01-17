@@ -399,72 +399,43 @@ class LongRNA extends React.Component<Props, State> {
     });
   };
 
-  async analysisSubmit(
+  uploadFile = async (url: string, file: File) => {
+    Api.Upload.ui.uploadStart(this.setState.bind(this), file.name);
+    await Api.Upload.upload(
+      url,
+      file.path,
+      file.name,
+      file.type,
+      Api.Upload.ui.makeOnProgress(this.setState.bind(this))
+    );
+    Api.Upload.ui.uploadEnd(this.setState.bind(this));
+  };
+
+  analysisSubmit = async (
     name: string,
     parameters: LongRNAAnalysisConfig,
     firstFile: File,
     secondFile: ?File
-  ) {
-    const {
-      pushNotification,
-      redirect,
-      refreshJobs,
-      refreshAnnotations
-    } = this.props;
-    const { files } = this.state;
-    if (files.length !== 1) {
-      pushNotification('You must select a file.', 'error');
+  ) => {
+    const { pushNotification } = this.props;
+    const data = await Api.Analysis.createLongRNA(name, parameters);
+    if (data.validationErrors) {
+      pushNotification(
+        'Errors occurred during validation of input parameters. Please review the form!',
+        'warning'
+      );
+      this.setSaving(false, data.validationErrors);
     } else {
-      const file = files[0];
-      this.setSaving(true);
-      try {
-        const data = await Api.Annotations.create(
-          values.name,
-          values.type,
-          file.name
-        );
-        if (data.validationErrors) {
-          pushNotification(
-            'Errors occurred during validation of input parameters. Please review the form!',
-            'warning'
-          );
-          this.setSaving(false, data.validationErrors);
-        } else {
-          const { data: job } = data;
-          pushNotification('Job created! Uploading FASTA file...');
-          const url = Api.Jobs.getUploadUrl(job);
-          this.setState({
-            isUploading: true,
-            uploadFile: file.name
-          });
-          await Api.Upload.upload(
-            url,
-            file.path,
-            file.name,
-            file.type,
-            (uploadedPercent, uploadedBytes, uploadTotal) =>
-              this.setState({
-                uploadedPercent,
-                uploadedBytes,
-                uploadTotal
-              })
-          );
-          this.setState({
-            isUploading: false
-          });
-          pushNotification('Annotation file uploaded! Starting job...');
-          await Api.Jobs.submitJob(job.id);
-          pushNotification('Job queued!');
-          refreshJobs();
-          refreshAnnotations();
-          redirect(JOBS);
-        }
-      } catch (e) {
-        pushNotification(`An error occurred: ${e.message}`, 'error');
-        this.setSaving(false);
-      }
+      const { data: job } = data;
+      pushNotification('Job created! Uploading files...');
+      const url = Api.Jobs.getUploadUrl(job);
+      await this.uploadFile(url, firstFile);
+      if (secondFile) await this.uploadFile(url, secondFile);
+      pushNotification('Files uploaded! Starting job...');
+      await Api.Jobs.submitJob(job.id);
+      pushNotification('Job queued!');
     }
-  }
+  };
 
   formSubmit = async values => {
     const { paired } = values;
@@ -502,6 +473,7 @@ class LongRNA extends React.Component<Props, State> {
       refreshJobs();
       redirect(JOBS);
     } catch (e) {
+      console.log(e);
       pushNotification(`An error occurred: ${e.message}`, 'error');
       this.setSaving(false);
     }
