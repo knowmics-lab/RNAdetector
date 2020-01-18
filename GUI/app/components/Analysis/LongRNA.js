@@ -151,6 +151,11 @@ class LongRNA extends React.Component<Props, State> {
 
   getValidationSchema = () =>
     Yup.object().shape({
+      code: Yup.string()
+        .required()
+        .matches(/^[A-Za-z0-9\-_]+$/, {
+          message: 'The field must contain only letters, numbers, and dashes.'
+        }),
       name: Yup.string().required(),
       paired: Yup.boolean().required(),
       inputType: Yup.string().oneOf(
@@ -198,6 +203,7 @@ class LongRNA extends React.Component<Props, State> {
           Choose the type of input files and sequencing strategy (single or
           paired-end).
         </Typography>
+        <TextField label="Sample Code" name="code" required />
         <TextField label="Analysis Name" name="name" required />
         <SelectField
           label="Input Type"
@@ -412,13 +418,14 @@ class LongRNA extends React.Component<Props, State> {
   };
 
   analysisSubmit = async (
+    code: string,
     name: string,
     parameters: LongRNAAnalysisConfig,
     firstFile: File,
     secondFile: ?File
   ) => {
     const { pushNotification } = this.props;
-    const data = await Api.Analysis.createLongRNA(name, parameters);
+    const data = await Api.Analysis.createLongRNA(code, name, parameters);
     if (data.validationErrors) {
       pushNotification(
         'Errors occurred during validation of input parameters. Please review the form!',
@@ -439,7 +446,7 @@ class LongRNA extends React.Component<Props, State> {
 
   formSubmit = async values => {
     const { paired } = values;
-    const { name, ...params } = values;
+    const { code, name, ...params } = values;
     const { pushNotification, redirect, refreshJobs } = this.props;
     const { firstFiles, secondFiles } = this.state;
     if (firstFiles.length < 1) {
@@ -458,6 +465,7 @@ class LongRNA extends React.Component<Props, State> {
     const single = firstFiles.length === 1;
     const promises = firstFiles.map((file1, i) => {
       return this.analysisSubmit(
+        `${code}${single ? '' : `_${i}`}`,
         `${name}${single ? '' : ` - Sample ${i}`}`,
         {
           ...params,
@@ -492,6 +500,7 @@ class LongRNA extends React.Component<Props, State> {
             </Typography>
             <Formik
               initialValues={{
+                code: '',
                 name: '',
                 paired: false,
                 inputType: 'fastq',

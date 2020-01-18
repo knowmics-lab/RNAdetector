@@ -161,7 +161,7 @@ class SamplesGroupJobType extends AbstractJob
                 PHP_EOL,
                 array_map(
                     function ($job) {
-                        return $job->sample_code . "\t" . $this->model->name;
+                        return $job->sample_code . "\t" . $this->model->sample_code;
                     },
                     $models
                 )
@@ -202,7 +202,7 @@ class SamplesGroupJobType extends AbstractJob
         $firstLine = true;
         while (($data = fgetcsv($inputFp, 0, "\t")) !== false) {
             $firstElement = array_shift($data); // The first element must be always the sample identifier
-            array_unshift($data, ($firstLine ? 'SampleGroup' : $this->model->name));
+            array_unshift($data, ($firstLine ? 'SampleGroup' : $this->model->sample_code));
             if ($firstLine) {
                 $metas = $data;
                 $firstLine = false;

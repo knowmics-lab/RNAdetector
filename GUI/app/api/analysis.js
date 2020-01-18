@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 // @flow
 
 import type { ResponseType } from '../types/common';
@@ -10,11 +11,13 @@ import type {
 } from '../types/analysis';
 
 async function realJobSubmit(
+  sample_code,
   name,
   type,
   parameters
 ): Promise<ResponseType<Job>> {
   const result = await Connector.callPost('jobs', {
+    sample_code,
     name,
     type,
     parameters
@@ -32,22 +35,31 @@ async function realJobSubmit(
 }
 
 export default {
+  async createSampleGroup(
+    name: string,
+    
+  ): Promise<ResponseType<Job>> {
+
+  },
   async createLongRNA(
+    code: string,
     name: string,
     parameters: LongRNAAnalysisConfig
   ): Promise<ResponseType<Job>> {
-    return realJobSubmit(name, 'long_rna_job_type', parameters);
+    return realJobSubmit(code, name, 'long_rna_job_type', parameters);
   },
   async createSmallRNA(
+    code: string,
     name: string,
     parameters: SmallRNAAnalysisConfig
   ): Promise<ResponseType<Job>> {
-    return realJobSubmit(name, 'small_rna_job_type', parameters);
+    return realJobSubmit(code, name, 'small_rna_job_type', parameters);
   },
   async createCircRNA(
+    code: string,
     name: string,
     parameters: CircRNAAnalysisConfig
   ): Promise<ResponseType<Job>> {
-    return realJobSubmit(name, 'circ_rna_job_type', parameters);
+    return realJobSubmit(code, name, 'circ_rna_job_type', parameters);
   }
 };
