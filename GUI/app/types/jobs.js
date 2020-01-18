@@ -3,6 +3,7 @@ import type { MapType, MetaResponseType, StatePaginationType } from './common';
 
 export type Job = {
   id: number,
+  sample_code?: string,
   name: string,
   type: string,
   readable_type: string,

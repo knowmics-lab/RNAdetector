@@ -23,6 +23,7 @@ class Job extends JsonResource
         return [
             'data'  => [
                 'id'              => $this->id,
+                'sample_code'     => $this->sample_code,
                 'name'            => $this->name,
                 'type'            => $this->job_type,
                 'readable_type'   => $this->resource->readableJobType(),

@@ -25,6 +25,7 @@ class JobCollection extends ResourceCollection
             static function (Job $item) {
                 return [
                     'id'              => $item->id,
+                    'sample_code'     => $item->sample_code,
                     'name'            => $item->name,
                     'type'            => $item->job_type,
                     'readable_type'   => $item->resource->readableJobType(),
