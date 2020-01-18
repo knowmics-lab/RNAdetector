@@ -16,6 +16,7 @@ use Storage;
  * App\Models\Job
  *
  * @property int                             $id
+ * @property string                          $sample_code
  * @property string                          $name
  * @property string                          $job_type
  * @property string                          $status
@@ -31,6 +32,7 @@ use Storage;
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job query()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereSampleCode($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereJobOutput($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereJobParameters($value)
@@ -56,6 +58,7 @@ class Job extends Model
      * @var array
      */
     protected $fillable = [
+        'sample_code',
         'name',
         'job_type',
         'status',
@@ -86,7 +89,7 @@ class Job extends Model
     }
 
     /**
-     * Returns a default name is the value is null
+     * Returns a default name if its value is null
      *
      * @param string|null $value
      *
@@ -96,6 +99,22 @@ class Job extends Model
     {
         if ($value === null) {
             return $this->readableJobType() . ' Job of ' . $this->created_at->diffForHumans();
+        }
+
+        return $value;
+    }
+
+    /**
+     * Returns a default sample code if its value is null
+     *
+     * @param string|null $value
+     *
+     * @return string
+     */
+    public function getSampleCodeAttribute(?string $value): string
+    {
+        if ($value === null) {
+            return '' . $this->id;
         }
 
         return $value;

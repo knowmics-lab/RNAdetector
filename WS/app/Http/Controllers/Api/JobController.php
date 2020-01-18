@@ -93,9 +93,10 @@ class JobController extends Controller
         $validValues = $this->validate(
             $request,
             [
-                'name'       => ['required', 'string'],
-                'type'       => ['required', 'string', Rule::in($jobTypes->pluck('id'))],
-                'parameters' => ['filled', 'array'],
+                'sample_code' => ['filled', 'string', 'alpha_dash'],
+                'name'        => ['required', 'string'],
+                'type'        => ['required', 'string', Rule::in($jobTypes->pluck('id'))],
+                'parameters'  => ['filled', 'array'],
             ]
         );
         $parametersValidation = $this->_prepareNestedValidation(
@@ -106,6 +107,7 @@ class JobController extends Controller
         $validParameters = $validParameters['parameters'] ?? [];
         $job = Job::create(
             [
+                'sample_code'    => $validValues['sample_code'],
                 'name'           => $validValues['name'],
                 'job_type'       => $type,
                 'status'         => Job::READY,

@@ -23,6 +23,7 @@ use Symfony\Component\Process\Exception\ProcessFailedException;
  * @method string getJobFileAbsolute(string $prefix = '', string $suffix = '')
  * @method string absoluteJobPath(string $path)
  * @method string getAbsoluteJobDirectory()
+ * @method string getJobDirectory()
  * @method mixed getParameter($parameter = null, $default = null)
  * @method \App\Models\Job setOutput($parameter, $value = null)
  * @package App\Jobs\Types
