@@ -227,7 +227,7 @@ class SamplesGroupJobType extends AbstractJob
     {
         $jobs = $this->getParameter('jobs', []);
         $models = $this->processValidJobs($jobs);
-        $this->checkJobsTypes();
+        $this->checkJobsTypes($models);
         /** @var int[] $validJobs */
         $validJobs = $this->pullProperty($models, 'id');
         /** @var string[] $validCodes */

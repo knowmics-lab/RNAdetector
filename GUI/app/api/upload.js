@@ -69,11 +69,9 @@ export default {
     fileType: string,
     onProgress: ?UploadProgressFunction
   ): Promise<void> {
-    /*
     if (Api.Settings.isLocal()) {
       return this.localCopy(job, filePath, fileName, onProgress);
     }
-     */
     const endpoint = Api.Jobs.getUploadUrl(job);
     return new Promise((resolve, reject) => {
       const id = uniqid();

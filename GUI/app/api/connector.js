@@ -17,18 +17,55 @@ const dotParser = <T>(obj: T, suppress = []) => {
   return res;
 };
 
-const parseErrorResponse = <T>(response): ResponseType<T> => {
+const parseErrorResponse = <T>(response): ?ResponseType<T> => {
   if (response.status && response.status === 422) {
     const validationErrors = dotParser(response.data.errors, ['^parameters']);
     return {
       validationErrors
     };
   }
+  if (response.status && response.status === 504) {
+    return null;
+  }
   if (response.data && response.data.message) {
     throw new Error(response.data.message);
   }
   throw new Error('Unknown error');
 };
+
+// eslint-disable-next-line promise/param-names
+const delay = ms => new Promise(res => setTimeout(res, ms));
+
+async function call<T>(
+  url: string,
+  method: string,
+  config: MapType,
+  retry: number = 10
+): Promise<ResponseType<T>> {
+  if (retry < 0) throw new Error('Too many retries');
+  try {
+    const { data } = await axios.request({
+      method,
+      url,
+      ...config,
+      ...Settings.getAxiosHeaders()
+    });
+    return {
+      data
+    };
+  } catch (e) {
+    if (e.response) {
+      const { response } = e;
+      const parsedResponse = parseErrorResponse(response);
+      if (parsedResponse === null) {
+        await delay(10000);
+        return call(endpoint, method, config, retry - 1);
+      }
+      return parsedResponse;
+    }
+    throw e;
+  }
+}
 
 export default {
   getEndpointUrl(endpoint: string): string {
@@ -38,7 +75,10 @@ export default {
     endpoint: string,
     params: MapType = {}
   ): Promise<ResponseType<T>> {
-    const url = this.getEndpointUrl(endpoint);
+    return call(this.getEndpointUrl(endpoint), 'get', {
+      params
+    });
+    /* const url = this.getEndpointUrl(endpoint);
     try {
       const { data } = await axios.get(url, {
         params,
@@ -53,13 +93,16 @@ export default {
         return parseErrorResponse(response);
       }
       throw e;
-    }
+    } */
   },
   async callPost<T>(
     endpoint: string,
     params: MapType = {}
   ): Promise<ResponseType<T>> {
-    const url = this.getEndpointUrl(endpoint);
+    return call(this.getEndpointUrl(endpoint), 'post', {
+      data: params
+    });
+    /* const url = this.getEndpointUrl(endpoint);
     try {
       const { data } = await axios.post(url, params, {
         ...Settings.getAxiosHeaders()
@@ -73,13 +116,16 @@ export default {
         return parseErrorResponse(response);
       }
       throw e;
-    }
+    } */
   },
   async callPatch<T>(
     endpoint: string,
     params: MapType = {}
   ): Promise<ResponseType<T>> {
-    const url = this.getEndpointUrl(endpoint);
+    return call(this.getEndpointUrl(endpoint), 'patch', {
+      data: params
+    });
+    /* const url = this.getEndpointUrl(endpoint);
     try {
       const { data } = await axios.patch(url, params, {
         ...Settings.getAxiosHeaders()
@@ -93,13 +139,16 @@ export default {
         return parseErrorResponse(response);
       }
       throw e;
-    }
+    } */
   },
   async callDelete<T>(
     endpoint: string,
     params: MapType = {}
   ): Promise<ResponseType<T>> {
-    const url = this.getEndpointUrl(endpoint);
+    return call(this.getEndpointUrl(endpoint), 'delete', {
+      params
+    });
+    /* const url = this.getEndpointUrl(endpoint);
     try {
       const { data } = await axios.delete(url, {
         params,
@@ -114,6 +163,6 @@ export default {
         return parseErrorResponse(response);
       }
       throw e;
-    }
+    } */
   }
 };
