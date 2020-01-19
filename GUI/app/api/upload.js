@@ -43,6 +43,19 @@ if (is.renderer) {
   );
 }
 
+const makeLocalOnProgress = (onProgress: ?UploadProgressFunction) => {
+  let oldPercent = 0;
+  return ({ size, written, percent }) => {
+    const percentRound = Math.round(percent * 100);
+    if (percentRound >= oldPercent + 1) {
+      if (onProgress) {
+        onProgress(percentRound, written, size);
+      }
+      oldPercent = percentRound;
+    }
+  };
+};
+
 export default {
   async localCopy(
     job: number | Job,
@@ -53,13 +66,7 @@ export default {
     // const { size } = fs.statSync(filePath);
     await cpFile(filePath, `${Api.Jobs.getLocalDirectory(job)}/${fileName}`).on(
       'progress',
-      ({ size, written, percent }) => {
-        if (written % THRESHOLD === 0) {
-          if (onProgress) {
-            onProgress(Math.round(percent * 100), written, size);
-          }
-        }
-      }
+      makeLocalOnProgress(onProgress)
     );
   },
   async upload(
