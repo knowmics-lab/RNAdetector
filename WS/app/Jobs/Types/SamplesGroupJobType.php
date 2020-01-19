@@ -183,11 +183,12 @@ class SamplesGroupJobType extends AbstractJob
         if (empty($inputDescription) || !Storage::disk('public')->exists($dir . $inputDescription)) {
             return $this->makeDescriptionFile($models);
         }
+        $inputDescriptionPath = realpath($this->getAbsoluteJobDirectory() . '/' . $inputDescription);
         $descriptionRelative = $this->getJobFile('description_', '.tsv');
         $descriptionFile = $this->absoluteJobPath($descriptionRelative);
         $descriptionUrl = Storage::disk('public')->url($descriptionRelative);
         $metas = [];
-        $inputFp = fopen($inputDescription, 'rb');
+        $inputFp = fopen($inputDescriptionPath, 'rb');
         $outputFp = fopen($descriptionFile, 'wb');
         if (!$inputFp) {
             throw new ProcessingJobException('Unable to open description file.');
