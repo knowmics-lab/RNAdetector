@@ -527,7 +527,6 @@ class LongRNA extends React.Component<Props, State> {
   };
 
   uploadFile = async (job: Job, file: File) => {
-    console.log('Upload start', job, file);
     Api.Upload.ui.uploadStart(this.setState.bind(this), file.name);
     await Api.Upload.upload(
       job,
@@ -537,7 +536,6 @@ class LongRNA extends React.Component<Props, State> {
       Api.Upload.ui.makeOnProgress(this.setState.bind(this))
     );
     Api.Upload.ui.uploadEnd(this.setState.bind(this));
-    console.log('Upload end', job, file);
   };
 
   createAnalysis = async (
@@ -643,6 +641,7 @@ class LongRNA extends React.Component<Props, State> {
             ? sample.code
             : `${code}${single ? '' : `_${idx}`}`;
           const sampleName = `${name}${single ? '' : ` - Sample ${idx}`}`;
+          pushNotification(`Creating job ${sampleName}!`, 'info');
           jobs.push(
             // eslint-disable-next-line no-await-in-loop
             await this.createAnalysis(
@@ -660,9 +659,10 @@ class LongRNA extends React.Component<Props, State> {
               paired ? secondFile : null
             )
           );
+          pushNotification(`Job ${sampleName} created!`, 'success');
         }
       }
-      pushNotification('Analysis jobs created!');
+      if (!single) pushNotification('Analysis jobs created!');
       const groupJob = await this.createGroup(
         single,
         code,
@@ -670,11 +670,10 @@ class LongRNA extends React.Component<Props, State> {
         jobs,
         descriptionFile
       );
-      this.submitAnalysis(jobs, groupJob);
+      await this.submitAnalysis(jobs, groupJob);
       refreshJobs();
       redirect(JOBS);
     } catch (e) {
-      console.log(e);
       pushNotification(`An error occurred: ${e.message}`, 'error');
       this.setSaving(false);
     }
