@@ -77,11 +77,8 @@ class SamplesGroupJobType extends AbstractJob
         $description = $this->getParameter('description', null);
         $disk = Storage::disk('public');
         $dir = $this->getJobDirectory() . '/';
-        if (!empty($description) && !$disk->exists($dir . $description)) {
-            return false;
-        }
 
-        return true;
+        return !(!empty($description) && !$disk->exists($dir . $description));
     }
 
     /**
@@ -156,7 +153,7 @@ class SamplesGroupJobType extends AbstractJob
     {
         $descriptionRelative = $this->getJobFile('description_', '.tsv');
         $descriptionFile = $this->absoluteJobPath($descriptionRelative);
-        $descriptionUrl = \Storage::disk('public')->url($descriptionRelative);
+        $descriptionUrl = Storage::disk('public')->url($descriptionRelative);
         $content = "SampleId\tSampleGroup" . PHP_EOL . implode(
                 PHP_EOL,
                 array_map(
@@ -188,7 +185,7 @@ class SamplesGroupJobType extends AbstractJob
         }
         $descriptionRelative = $this->getJobFile('description_', '.tsv');
         $descriptionFile = $this->absoluteJobPath($descriptionRelative);
-        $descriptionUrl = \Storage::disk('public')->url($descriptionRelative);
+        $descriptionUrl = Storage::disk('public')->url($descriptionRelative);
         $metas = [];
         $inputFp = fopen($inputDescription, 'rb');
         $outputFp = fopen($descriptionFile, 'wb');

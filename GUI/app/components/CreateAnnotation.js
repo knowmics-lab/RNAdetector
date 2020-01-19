@@ -255,13 +255,12 @@ class CreateAnnotation extends React.Component<Props, State> {
         } else {
           const { data: job } = data;
           pushNotification('Job created! Uploading FASTA file...');
-          const url = Api.Jobs.getUploadUrl(job);
           this.setState({
             isUploading: true,
             uploadFile: file.name
           });
           await Api.Upload.upload(
-            url,
+            job,
             file.path,
             file.name,
             file.type,

@@ -2,9 +2,13 @@
 import uniqid from 'uniqid';
 import { is } from 'electron-util';
 import { ipcRenderer } from 'electron';
+import cpFile from 'cp-file';
 import type { UsesUpload } from '../types/ui';
 import type { UploadProgressFunction } from '../types/common';
+import type { Job } from '../types/jobs';
+import * as Api from './index';
 
+const THRESHOLD = 5 * 1024 * 1024;
 const registeredCallbacks = new Map();
 
 if (is.renderer) {
@@ -40,13 +44,37 @@ if (is.renderer) {
 }
 
 export default {
+  async localCopy(
+    job: number | Job,
+    filePath: string,
+    fileName: string,
+    onProgress: ?UploadProgressFunction
+  ): Promise<void> {
+    // const { size } = fs.statSync(filePath);
+    await cpFile(filePath, `${Api.Jobs.getLocalDirectory(job)}/${fileName}`).on(
+      'progress',
+      ({ size, written, percent }) => {
+        if (written % THRESHOLD === 0) {
+          if (onProgress) {
+            onProgress(Math.round(percent * 100), written, size);
+          }
+        }
+      }
+    );
+  },
   async upload(
-    endpoint: string,
+    job: number | Job,
     filePath: string,
     fileName: string,
     fileType: string,
     onProgress: ?UploadProgressFunction
   ): Promise<void> {
+    /*
+    if (Api.Settings.isLocal()) {
+      return this.localCopy(job, filePath, fileName, onProgress);
+    }
+     */
+    const endpoint = Api.Jobs.getUploadUrl(job);
     return new Promise((resolve, reject) => {
       const id = uniqid();
       registeredCallbacks.set(id, {
@@ -84,7 +112,10 @@ export default {
     uploadEnd(setState: (*) => void): void {
       setState({
         isUploading: false,
-        uploadFile: ''
+        uploadFile: '',
+        uploadedBytes: 0,
+        uploadedPercent: 0,
+        uploadTotal: 0
       });
     },
     makeOnProgress(setState: (*) => void): UploadProgressFunction {

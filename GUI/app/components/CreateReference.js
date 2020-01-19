@@ -244,10 +244,9 @@ class CreateReference extends React.Component<Props, State> {
           pushNotification(
             'A new indexing job has been created! Uploading FASTA file...'
           );
-          const url = Api.Jobs.getUploadUrl(job);
           Api.Upload.ui.uploadStart(this.setState.bind(this), file.name);
           await Api.Upload.upload(
-            url,
+            job,
             file.path,
             file.name,
             file.type,

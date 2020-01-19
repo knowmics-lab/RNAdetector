@@ -9,25 +9,24 @@ import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { green } from '@material-ui/core/colors';
-import { Formik, Form } from 'formik';
+import { Formik, Form, FieldArray } from 'formik';
 import * as Yup from 'yup';
 import Backdrop from '@material-ui/core/Backdrop';
+import { InputLabel } from '@material-ui/core';
+import IconButton from '@material-ui/core/IconButton';
+import Icon from '@material-ui/core/Icon';
 import * as Api from '../../api';
-import { JOBS, REFERENCES } from '../../constants/routes';
+import { JOBS } from '../../constants/routes';
 import SelectField from '../Form/SelectField';
 import TextField from '../Form/TextField';
 import Wizard from '../UI/Wizard';
 import FileSelector from '../UI/FileSelector';
 import type { File } from '../UI/FileSelector';
 import UploadProgress from '../UI/UploadProgress';
-import type { UsesUpload } from '../../types/ui';
 import SwitchField from '../Form/SwitchField';
-import type {
-  AnalysisFileTypes,
-  LongRNAAnalysisConfig,
-  TrimGaloreConfig
-} from '../../types/analysis';
+import type { LongRNAAnalysisConfig } from '../../types/analysis';
 import type { SimpleMapType } from '../../types/common';
+import type { Job } from '../../types/jobs';
 
 type Props = {
   refreshJobs: () => void,
@@ -95,12 +94,17 @@ const COUNTING_ALGORITHMS = {
 type State = {
   isLoading: boolean,
   isSaving: boolean,
-  firstFiles: File[],
-  secondFiles: File[],
+  files: (?File)[][],
+  descriptionFile: ?File,
   genomes: SimpleMapType<SimpleMapType<string>>,
   annotations: SimpleMapType<string>,
-  validationErrors: *
-} & UsesUpload;
+  validationErrors: *,
+  isUploading: boolean,
+  uploadFile: string,
+  uploadedBytes: number,
+  uploadedPercent: number,
+  uploadTotal: number
+};
 
 class LongRNA extends React.Component<Props, State> {
   props: Props;
@@ -111,8 +115,8 @@ class LongRNA extends React.Component<Props, State> {
       isLoading: false,
       isSaving: false,
       ...Api.Upload.ui.initUploadState(),
-      firstFiles: [],
-      secondFiles: [],
+      files: [[null, null]],
+      descriptionFile: null,
       validationErrors: {},
       genomes: {},
       annotations: {}
@@ -216,6 +220,9 @@ class LongRNA extends React.Component<Props, State> {
           label="Number of threads"
           name="threads"
           type="number"
+          helperText={`Do not select more than ${Math.floor(
+            Api.Utils.cpuCount() / 3
+          )} cores if you wish to submit multiple analysis.`}
           required
         />
       </>
@@ -321,19 +328,101 @@ class LongRNA extends React.Component<Props, State> {
     );
   };
 
-  makeHandleFileAdd = (field: string) => f =>
-    this.setState(oldState => ({
-      [field]: [...oldState[field], ...f]
-    }));
+  updateFile = (state: State, i: number, j: number, f: ?File) => {
+    const files = [...state.files];
+    const fileI = [...files[i]];
+    fileI[j] = f;
+    files[i] = fileI;
+    return {
+      files
+    };
+  };
 
-  makeHandleFileRemove = (field: string) => f =>
+  makeHandleFileAdd = (j: number, i: number) => f =>
+    this.setState(oldState => this.updateFile(oldState, i, j, f[0]));
+
+  makeHandleFileRemove = (j: number, i: number) => () =>
+    this.setState(oldState => this.updateFile(oldState, i, j, null));
+
+  handleDescriptionFileAdd = (descriptionFile: File[]) =>
+    this.setState({
+      descriptionFile: descriptionFile[0]
+    });
+
+  handleDescriptionFileRemove = () =>
+    this.setState({
+      descriptionFile: null
+    });
+
+  addHandle = helpers => e => {
+    e.preventDefault();
+    helpers.push({ code: '' });
     this.setState(oldState => ({
-      [field]: oldState[field].filter(o => o.path !== f.path)
+      files: [...oldState.files, [null, null]]
     }));
+  };
+
+  removeHandle = (helpers, i) => e => {
+    e.preventDefault();
+    helpers.remove(i);
+    this.setState(oldState => {
+      const files = [...oldState.files];
+      files.splice(i, 1);
+      return {
+        files
+      };
+    });
+  };
+
+  makeSampleForm = (i, single, values, helpers) => {
+    const { classes } = this.props;
+    const { code, inputType, paired } = values;
+    const { isUploading } = this.state;
+    return (
+      <FormGroup row className={classes.formControl} key={`sample-${i}`}>
+        <Grid container justify="space-around" alignItems="center" spacing={3}>
+          {!single && (
+            <Grid item xs>
+              <TextField
+                label="Sample Code"
+                name={`samples.${i}.code`}
+                placeholder={`${code}_${i + 1}`}
+              />
+            </Grid>
+          )}
+          <Grid item xs>
+            <FileSelector
+              onFileRemove={this.makeHandleFileRemove(0, i)}
+              onFileAdd={this.makeHandleFileAdd(0, i)}
+              filters={Api.Utils.analysisFileExtensions(inputType)}
+              disabled={isUploading}
+            />
+          </Grid>
+          {paired && (
+            <Grid item xs>
+              <FileSelector
+                onFileRemove={this.makeHandleFileRemove(1, i)}
+                onFileAdd={this.makeHandleFileAdd(1, i)}
+                filters={Api.Utils.analysisFileExtensions(inputType)}
+                disabled={isUploading}
+              />
+            </Grid>
+          )}
+          {!single && (
+            <Grid item xs={1}>
+              <IconButton onClick={this.removeHandle(helpers, i)}>
+                <Icon className="fas fa-trash" />
+              </IconButton>
+            </Grid>
+          )}
+        </Grid>
+      </FormGroup>
+    );
+  };
 
   getStep3 = values => {
     const { classes } = this.props;
-    const { inputType, paired } = values;
+    const { samples } = values;
     const {
       isUploading,
       uploadFile,
@@ -341,32 +430,64 @@ class LongRNA extends React.Component<Props, State> {
       uploadedPercent,
       uploadTotal
     } = this.state;
+    const single = samples.length <= 1;
     return (
       <>
         <Typography className={classes.instructions}>
-          Select the FASTA file you wish to use and click &quot;Save&quot; to
-          start the upload process.
+          Select the file you wish to use and click &quot;Save&quot; to start
+          the upload process. If you are uploading multiple samples for a batch
+          analysis, you can also select a sample description file (in TSV
+          format) that can be used for differential expression analysis.
         </Typography>
-        <FormGroup row className={classes.formControl}>
-          <Grid container justify="space-around" alignItems="flex-start">
-            <FileSelector
-              onFileRemove={this.makeHandleFileRemove('firstFiles')}
-              onFileAdd={this.makeHandleFileAdd('firstFiles')}
-              filters={Api.Utils.analysisFileExtensions(inputType)}
-              disabled={isUploading}
-              multiple
-            />
-            {paired && (
-              <FileSelector
-                onFileRemove={this.makeHandleFileRemove('secondFiles')}
-                onFileAdd={this.makeHandleFileAdd('secondFiles')}
-                filters={Api.Utils.analysisFileExtensions(inputType)}
-                disabled={isUploading}
-                multiple
-              />
-            )}
-          </Grid>
-        </FormGroup>
+        <FieldArray
+          name="samples"
+          render={helpers => (
+            <>
+              {samples.map((s, i) =>
+                this.makeSampleForm(i, single, values, helpers)
+              )}
+              <FormGroup row className={classes.formControl}>
+                <Grid
+                  container
+                  direction="row-reverse"
+                  alignItems="center"
+                  spacing={3}
+                >
+                  <Grid item xs="auto">
+                    <Button
+                      variant="outlined"
+                      onClick={this.addHandle(helpers)}
+                    >
+                      <Icon className="fas fa-plus" /> Add another sample
+                    </Button>
+                  </Grid>
+                </Grid>
+              </FormGroup>
+            </>
+          )}
+        />
+        {!single && (
+          <FormGroup row className={classes.formControl}>
+            <Grid container alignItems="center" spacing={3}>
+              <Grid item xs="auto">
+                <InputLabel>Select an optional description file</InputLabel>
+              </Grid>
+              <Grid item xs>
+                <FileSelector
+                  onFileRemove={this.handleDescriptionFileRemove}
+                  onFileAdd={this.handleDescriptionFileAdd}
+                  filters={[
+                    {
+                      name: 'TSV files',
+                      extensions: ['tab', 'tsv', 'txt']
+                    }
+                  ]}
+                  disabled={isUploading}
+                />
+              </Grid>
+            </Grid>
+          </FormGroup>
+        )}
         <UploadProgress
           isUploading={isUploading}
           uploadFile={uploadFile}
@@ -405,79 +526,151 @@ class LongRNA extends React.Component<Props, State> {
     });
   };
 
-  uploadFile = async (url: string, file: File) => {
+  uploadFile = async (job: Job, file: File) => {
+    console.log('Upload start', job, file);
     Api.Upload.ui.uploadStart(this.setState.bind(this), file.name);
     await Api.Upload.upload(
-      url,
+      job,
       file.path,
       file.name,
       file.type,
       Api.Upload.ui.makeOnProgress(this.setState.bind(this))
     );
     Api.Upload.ui.uploadEnd(this.setState.bind(this));
+    console.log('Upload end', job, file);
   };
 
-  analysisSubmit = async (
+  createAnalysis = async (
     code: string,
     name: string,
     parameters: LongRNAAnalysisConfig,
     firstFile: File,
     secondFile: ?File
-  ) => {
-    const { pushNotification } = this.props;
+  ): Promise<Job> => {
     const data = await Api.Analysis.createLongRNA(code, name, parameters);
+    if (data.validationErrors) {
+      this.setSaving(false, data.validationErrors);
+      throw new Error('Validation of input parameters failed');
+    }
+    const { data: job } = data;
+    await this.uploadFile(job, firstFile);
+    if (secondFile) await this.uploadFile(job, secondFile);
+    return job;
+  };
+
+  submitAnalysis = async (analysisJob: Job[], groupJob: ?Job) => {
+    const { pushNotification } = this.props;
+    // Submit all jobs in order of creation
+    for (let i = 0, l = analysisJob.length; i < l; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await Api.Jobs.submitJob(analysisJob[i].id);
+    }
+    if (groupJob) {
+      await Api.Jobs.submitJob(groupJob.id);
+    }
+    pushNotification('Analysis jobs queued!');
+  };
+
+  createGroup = async (
+    single: boolean,
+    code: string,
+    name: string,
+    jobs: Job[],
+    descriptionFile: ?File
+  ): Promise<?Job> => {
+    if (single) return null;
+    const { pushNotification } = this.props;
+    const data = await Api.Analysis.createSampleGroup(
+      code,
+      name,
+      jobs,
+      descriptionFile ? descriptionFile.name : undefined
+    );
     if (data.validationErrors) {
       pushNotification(
         'Errors occurred during validation of input parameters. Please review the form!',
         'warning'
       );
       this.setSaving(false, data.validationErrors);
-    } else {
-      const { data: job } = data;
-      pushNotification('Job created! Uploading files...');
-      const url = Api.Jobs.getUploadUrl(job);
-      await this.uploadFile(url, firstFile);
-      if (secondFile) await this.uploadFile(url, secondFile);
-      pushNotification('Files uploaded! Starting job...');
-      await Api.Jobs.submitJob(job.id);
-      pushNotification('Job queued!');
+      return null;
     }
+    const { data: job } = data;
+    if (descriptionFile) {
+      await this.uploadFile(job, descriptionFile);
+    }
+    pushNotification('Sample group created!');
+    return job;
   };
 
   formSubmit = async values => {
     const { paired } = values;
-    const { code, name, ...params } = values;
+    const { code, name, samples, ...params } = values;
     const { pushNotification, redirect, refreshJobs } = this.props;
-    const { firstFiles, secondFiles } = this.state;
-    if (firstFiles.length < 1) {
+    const { files, descriptionFile } = this.state;
+    const validLength = files.filter(
+      f => f[0] !== null && (!paired || (paired && f[1] !== null))
+    ).length;
+    const firstLength = files.map(f => f[0]).filter(f => f !== null).length;
+    const secondLength = files.map(f => f[1]).filter(f => f !== null).length;
+    if (validLength < 1) {
       return pushNotification(
         'You should select at least one input file.',
         'error'
       );
     }
-    if (paired && secondFiles.length !== firstFiles.length) {
+    if (
+      paired &&
+      (firstLength !== validLength || secondLength !== validLength)
+    ) {
       return pushNotification(
         'You must select the same number of mate input files.',
         'error'
       );
     }
     this.setSaving(true);
-    const single = firstFiles.length === 1;
-    const promises = firstFiles.map((file1, i) => {
-      return this.analysisSubmit(
-        `${code}${single ? '' : `_${i}`}`,
-        `${name}${single ? '' : ` - Sample ${i}`}`,
-        {
-          ...params,
-          firstInputFile: file1.name,
-          secondInputFile: paired ? secondFiles[i].name : null
-        },
-        file1,
-        paired ? secondFiles[i] : null
-      );
-    });
+    const single = validLength === 1;
     try {
-      await Promise.all(promises);
+      const jobs = [];
+      for (let i = 0; i < samples.length; i += 1) {
+        const sample = samples[i];
+        const [firstFile, secondFile] = files[i];
+        if (
+          firstFile !== null &&
+          (!paired || (paired && secondFile !== null))
+        ) {
+          const idx = i + 1;
+          const sampleCode = sample.code
+            ? sample.code
+            : `${code}${single ? '' : `_${idx}`}`;
+          const sampleName = `${name}${single ? '' : ` - Sample ${idx}`}`;
+          jobs.push(
+            // eslint-disable-next-line no-await-in-loop
+            await this.createAnalysis(
+              sampleCode,
+              sampleName,
+              {
+                ...params,
+                // $FlowFixMe: firstFile is not null here
+                firstInputFile: firstFile.name,
+                // $FlowFixMe: secondFile is not null if paired is true
+                secondInputFile: paired ? secondFile.name : null
+              },
+              // $FlowFixMe: firstFile is not null here
+              firstFile,
+              paired ? secondFile : null
+            )
+          );
+        }
+      }
+      pushNotification('Analysis jobs created!');
+      const groupJob = await this.createGroup(
+        single,
+        code,
+        name,
+        jobs,
+        descriptionFile
+      );
+      this.submitAnalysis(jobs, groupJob);
       refreshJobs();
       redirect(JOBS);
     } catch (e) {
@@ -515,7 +708,12 @@ class LongRNA extends React.Component<Props, State> {
                 genome: 'Human_hg19_genome',
                 transcriptome: 'Human_hg19_transcriptome',
                 annotation: 'Human_hg19_gencode_19_gtf',
-                threads: 1
+                threads: 1,
+                samples: [
+                  {
+                    code: ''
+                  }
+                ]
               }}
               initialErrors={validationErrors}
               validationSchema={this.getValidationSchema()}

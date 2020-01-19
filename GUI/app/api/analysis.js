@@ -36,10 +36,15 @@ async function realJobSubmit(
 
 export default {
   async createSampleGroup(
+    code: string,
     name: string,
-    
+    jobs: (Job | number)[],
+    descriptionFile?: ?string
   ): Promise<ResponseType<Job>> {
-
+    return realJobSubmit(code, name, 'samples_group_job_type', {
+      jobs: jobs.map(j => (typeof j === 'object' ? j.id : j)),
+      description: descriptionFile || undefined
+    });
   },
   async createLongRNA(
     code: string,

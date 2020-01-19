@@ -41,7 +41,7 @@ trait UseAlignmentTrait
         Annotation $annotation,
         int $threads = 1
     ): string {
-        if ($genome->isAvailableFor('tophat')) {
+        if (!$genome->isAvailableFor('tophat')) {
             throw new ProcessingJobException('The selected reference has not been indexed for tophat.');
         }
         if (!$annotation->isGtf()) {
@@ -114,7 +114,7 @@ trait UseAlignmentTrait
         Reference $genome,
         int $threads = 1
     ): string {
-        if ($genome->isAvailableFor('hisat')) {
+        if (!$genome->isAvailableFor('hisat')) {
             throw new ProcessingJobException('The selected reference has not been indexed for HISAT.');
         }
         $model->appendLog('Aligning with HISAT.');

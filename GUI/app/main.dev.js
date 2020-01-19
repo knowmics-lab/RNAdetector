@@ -139,7 +139,7 @@ app.on('ready', async () => {
         headers: {
           ...Settings.getAuthHeaders()
         },
-        chunkSize: 50 * 1024 * 1024, // 5Mb per chunk
+        chunkSize: 50 * 1024 * 1024, // 50Mb per chunk
         resume: true,
         metadata: {
           filename: fileName,

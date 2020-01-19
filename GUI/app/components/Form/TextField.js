@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import { useField } from 'formik';
 import { makeStyles } from '@material-ui/core/styles';
 import { TextField as MaterialTextField } from '@material-ui/core';
@@ -15,6 +15,7 @@ type TextFieldProps = {
   label: string,
   name: string,
   type?: string,
+  helperText?: React.Node,
   placeholder?: string,
   readOnly?: boolean,
   required?: boolean,
@@ -24,6 +25,7 @@ type TextFieldProps = {
 TextField.defaultProps = {
   type: 'text',
   placeholder: '',
+  helperText: null,
   required: false,
   readOnly: false,
   multiline: false
@@ -33,6 +35,7 @@ export default function TextField({
   label,
   placeholder,
   required,
+  helperText,
   ...props
 }: TextFieldProps) {
   const classes = useStyles();
@@ -51,7 +54,7 @@ export default function TextField({
       onBlur={onBlur}
       onChange={onChange}
       value={value}
-      helperText={touched && error ? error : null}
+      helperText={touched && error ? error : helperText}
     />
   );
 }

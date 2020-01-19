@@ -1,9 +1,8 @@
 /* eslint-disable no-restricted-syntax */
 // @flow
 import * as React from 'react';
-import has from 'lodash/has';
 import path from 'path';
-import { api, activeWindow } from 'electron-util';
+import { activeWindow, api } from 'electron-util';
 import { makeStyles } from '@material-ui/core/styles';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -24,7 +23,7 @@ import * as Api from '../../api';
 const useStyles = makeStyles(theme => ({
   root: {
     width: '100%',
-    maxWidth: 360,
+    maxWidth: 250,
     backgroundColor: theme.palette.background.paper
   },
   title: {
@@ -42,7 +41,7 @@ export type File = {
 };
 
 type Props = {
-  title?: string,
+  title?: ?string,
   onFileAdd: (File[]) => void,
   onFileRemove: File => void,
   multiple?: boolean,
@@ -51,7 +50,7 @@ type Props = {
 };
 
 FileSelector.defaultProps = {
-  title: 'Select files',
+  title: null,
   multiple: false,
   disabled: false,
   filters: [{ name: 'All Files', extensions: ['*'] }]
@@ -159,6 +158,27 @@ export default function FileSelector({
     return false;
   };
 
+  const getTitle = () => {
+    if (title !== null) return title;
+    return multiple ? 'Select Files' : 'Select a file';
+  };
+
+  const makeSubheader = () => {
+    if (!multiple && files.length > 0) return null;
+    return (
+      <ListSubheader>
+        {getTitle()}
+        <ListItemSecondaryAction>
+          {(multiple || (!multiple && files.length < 1)) && (
+            <IconButton edge="end" onClick={handleAdd} disabled={disabled}>
+              <Icon className="fas fa-plus" />
+            </IconButton>
+          )}
+        </ListItemSecondaryAction>
+      </ListSubheader>
+    );
+  };
+
   const m2f = mimetype2fa({ prefix: 'fa-' });
   return (
     <Box
@@ -171,22 +191,8 @@ export default function FileSelector({
       onDragEnd={handlePrevent}
       onDrop={handleDrop}
     >
-      <List
-        subheader={
-          <ListSubheader>
-            {title}
-            <ListItemSecondaryAction>
-              {(multiple || (!multiple && files.length < 1)) && (
-                <IconButton edge="end" onClick={handleAdd} disabled={disabled}>
-                  <Icon className="fas fa-plus" />
-                </IconButton>
-              )}
-            </ListItemSecondaryAction>
-          </ListSubheader>
-        }
-        dense
-      >
-        {files.length > 0 && <Divider />}
+      <List subheader={makeSubheader()} dense>
+        {multiple && files.length > 0 && <Divider />}
         {files.map(f => (
           <ListItem key={f.path}>
             <ListItemAvatar>
@@ -194,7 +200,11 @@ export default function FileSelector({
                 <i className={`fas ${m2f(f.type)}`} />
               </Avatar>
             </ListItemAvatar>
-            <ListItemText className={classes.title} primary={f.name} />
+            <ListItemText
+              className={classes.title}
+              primary={f.name}
+              title={f.name}
+            />
             {!disabled && (
               <ListItemSecondaryAction>
                 <IconButton

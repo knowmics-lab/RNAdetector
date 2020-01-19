@@ -19,6 +19,10 @@ export default {
     }
     return Connector.getEndpointUrl(`jobs/${jobId}/upload`);
   },
+  getLocalDirectory(job: number | Job): string {
+    const jobId = typeof job === 'object' ? job.id : job;
+    return Settings.getLocalPath(`/public/jobs/${jobId}`);
+  },
   async download(
     jobId: number,
     onStart?: () => void,
