@@ -7,5 +7,6 @@
   "REFERENCES": "/references",
   "CREATE_REFERENCE": "/references/new",
   "CREATE_ANNOTATION": "/annotations/new",
-  "ANALYSIS_LONG_RNA": "/analysis/longRNA"
+  "ANALYSIS_LONG_RNA": "/analysis/longRNA",
+  "ANALYSIS_SMALL_RNA": "/analysis/smallRNA"
 }

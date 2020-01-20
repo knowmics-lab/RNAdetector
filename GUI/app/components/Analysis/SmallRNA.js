@@ -24,7 +24,7 @@ import FileSelector from '../UI/FileSelector';
 import type { File } from '../UI/FileSelector';
 import UploadProgress from '../UI/UploadProgress';
 import SwitchField from '../Form/SwitchField';
-import type { LongRNAAnalysisConfig } from '../../types/analysis';
+import type { SmallRNAAnalysisConfig } from '../../types/analysis';
 import type { SimpleMapType } from '../../types/common';
 import type { Job } from '../../types/jobs';
 
@@ -107,7 +107,7 @@ type State = {
   uploadTotal: number
 };
 
-class LongRNA extends React.Component<Props, State> {
+class SmallRNA extends React.Component<Props, State> {
   props: Props;
 
   constructor(props) {
@@ -546,11 +546,11 @@ class LongRNA extends React.Component<Props, State> {
   createAnalysis = async (
     code: string,
     name: string,
-    parameters: LongRNAAnalysisConfig,
+    parameters: SmallRNAAnalysisConfig,
     firstFile: File,
     secondFile: ?File
   ): Promise<Job> => {
-    const data = await Api.Analysis.createLongRNA(code, name, parameters);
+    const data = await Api.Analysis.createSmallRNA(code, name, parameters);
     if (data.validationErrors) {
       this.setSaving(false, data.validationErrors);
       throw new Error('Validation of input parameters failed');
@@ -707,7 +707,7 @@ class LongRNA extends React.Component<Props, State> {
                   quality: 20,
                   length: 14
                 },
-                algorithm: 'salmon',
+                algorithm: 'hisat2',
                 countingAlgorithm: 'feature-counts',
                 genome: 'Human_hg19_genome',
                 transcriptome: 'Human_hg19_transcriptome',
@@ -746,4 +746,4 @@ class LongRNA extends React.Component<Props, State> {
   }
 }
 
-export default withStyles(style)(LongRNA);
+export default withStyles(style)(SmallRNA);
