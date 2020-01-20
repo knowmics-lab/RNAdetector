@@ -1,6 +1,6 @@
 // @flow
 /* eslint-disable no-nested-ternary */
-import React from 'react';
+import * as React from 'react';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -34,10 +34,12 @@ function InternalLogsDialog({
   jobs,
   requestJob
 }: InternalLogsDialogProps) {
+  const logRef = React.createRef();
   const theme = useTheme();
   const fnRequestJob = () => {
     if (jobId) requestJob(jobId, true);
   };
+  const [first, setFirst] = React.useState(true);
   const [timeout, setTimeout] = React.useState(30);
   const [timer, setTimer] = React.useState();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
@@ -64,6 +66,7 @@ function InternalLogsDialog({
   };
   const internalOnClose = () => {
     stopTimer();
+    setFirst(true);
     onClose();
   };
   const needsRefresh =
@@ -75,6 +78,16 @@ function InternalLogsDialog({
   if (doRequestJob) fnRequestJob();
   if (doStartTimer) startTimer();
   if (doStopTimer) stopTimer();
+  if (isOpen && first) {
+    fnRequestJob();
+    setFirst(false);
+  }
+
+  React.useEffect(() => {
+    if (logRef.current) {
+      logRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  });
 
   return (
     <Dialog fullScreen={fullScreen} open={isOpen} onClose={onClose}>
@@ -83,7 +96,10 @@ function InternalLogsDialog({
       </DialogTitle>
       <DialogContent>
         {jobId && hasJob ? (
-          <pre>{jobs.items[jobId].log}</pre>
+          <>
+            <pre>{jobs.items[jobId].log}</pre>
+            <div ref={logRef} />
+          </>
         ) : (
           <div style={{ textAlign: 'center' }}>
             <CircularProgress />
