@@ -104,6 +104,10 @@ app.on('ready', async () => {
     }
   });
 
+  mainWindow.on('close', function (event) {
+    
+  });
+
   mainWindow.on('closed', async () => {
     mainWindow = null;
   });

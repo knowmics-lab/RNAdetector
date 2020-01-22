@@ -44,5 +44,9 @@
   "apiKey": {
     "type": "string",
     "default": ""
+  },
+  "autoStopDockerOnClose": {
+    "type": "boolean",
+    "default": false
   }
 }

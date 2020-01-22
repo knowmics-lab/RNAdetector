@@ -26,8 +26,19 @@ export default {
       ),
       dockerExecutablePath: this.configStore.get('dockerExecutablePath'),
       containerName: this.configStore.get('containerName'),
-      apiKey: this.configStore.get('apiKey')
+      apiKey: this.configStore.get('apiKey'),
+      autoStopDockerOnClose: this.configStore.get('autoStopDockerOnClose')
     };
+  },
+  autoStopDockerOnClose() {
+    return this.configStore.get('autoStopDockerOnClose');
+  },
+  setAutoStopDockerOnClose() {
+    const newConfig = {
+      ...this.getConfig(),
+      autoStopDockerOnClose: true
+    };
+    this.configStore.set(newConfig);
   },
   isConfigured() {
     return this.configStore.get('configured');

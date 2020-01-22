@@ -209,8 +209,11 @@ class SmallRNA extends React.Component<Props, State> {
     return (
       <>
         <Typography className={classes.instructions}>
-          Choose the type of input files and sequencing strategy (single or
-          paired-end).
+          Here you can choose sample code, analysis name, input file type, and
+          sequencing strategy (single or paired-end). Sample code is used for
+          further analysis, such as Differential Expression Analysis. It
+          identifies the sample during the analysis therefore it should be a
+          string without any spaces (only letters, numbers, and dashes).
         </Typography>
         <TextField label="Sample Code" name="code" required />
         <TextField label="Analysis Name" name="name" required />
@@ -245,8 +248,9 @@ class SmallRNA extends React.Component<Props, State> {
     return (
       <>
         <Typography className={classes.instructions}>
-          Choose which steps will be included in the analysis: trimming, BAM to
-          FASTQ conversion, alignment and counting, or quantification.
+          Here you can choose which steps will be included in the analysis:
+          trimming, BAM to FASTQ conversion, alignment and counting, or
+          quantification.
         </Typography>
         {(inputType === 'bam' || inputType === 'sam') && (
           <SwitchField label="Convert BAM/SAM to FASTQ?" name="convertBam" />
@@ -312,6 +316,7 @@ class SmallRNA extends React.Component<Props, State> {
             label="Reference Genome"
             name="genome"
             options={genomes[algorithm]}
+            required
           />
         )}
         {(algorithm === 'salmon' || countingAlgorithm === 'salmon') && (
@@ -319,6 +324,7 @@ class SmallRNA extends React.Component<Props, State> {
             label="Reference Transcriptome"
             name="transcriptome"
             options={genomes.salmon}
+            required
           />
         )}
         {((algorithm !== 'salmon' && countingAlgorithm !== 'salmon') ||
@@ -327,6 +333,7 @@ class SmallRNA extends React.Component<Props, State> {
             label="Genome Annotation"
             name="annotation"
             options={annotations}
+            required
           />
         )}
       </>
@@ -439,10 +446,12 @@ class SmallRNA extends React.Component<Props, State> {
     return (
       <>
         <Typography className={classes.instructions}>
-          Select the file you wish to use and click &quot;Save&quot; to start
-          the upload process. If you are uploading multiple samples for a batch
-          analysis, you can also select a sample description file (in TSV
-          format) that can be used for differential expression analysis.
+          Here you can add samples to the analysis and upload their files. For
+          each sample, you will be also able to input a custom Sample Code. If
+          you are uploading multiple samples for a batch analysis, you can also
+          select a sample description file (in TSV format) that can be used for
+          differential expression analysis. To start the upload process and the
+          analysis, click on the &quot;Start Analysis&quot; button.
         </Typography>
         <FieldArray
           name="samples"
@@ -515,7 +524,7 @@ class SmallRNA extends React.Component<Props, State> {
           color="primary"
           disabled={isSaving}
         >
-          Save
+          Start Analysis
         </Button>
         {isSaving && (
           <CircularProgress size={24} className={classes.buttonProgress} />
