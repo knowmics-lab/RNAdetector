@@ -12,7 +12,7 @@
  *
  * @flow
  */
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { download } from 'electron-dl';
@@ -104,8 +104,63 @@ app.on('ready', async () => {
     }
   });
 
-  mainWindow.on('close', function (event) {
-    
+  let doQuit = false;
+
+  const quitNow = () => {
+    doQuit = true;
+    if (mainWindow) mainWindow.close();
+    app.quit();
+  };
+
+  const stopDockerAndQuit = () => {
+    console.log('Waiting for docker container to stop');
+    Docker.stopContainer()
+      .then(() => {
+        console.log('Docker container has been stopped! Quitting!');
+      })
+      .catch(ex => {
+        console.log('Docker container cannot be stopped! Stop it manually!');
+        console.log(ex);
+      })
+      .finally(() => {
+        quitNow();
+      });
+  };
+
+  mainWindow.on('close', e => {
+    if (Settings.isLocal() && !doQuit) {
+      e.preventDefault();
+      if (Settings.autoStopDockerOnClose()) {
+        stopDockerAndQuit();
+      } else {
+        dialog.showMessageBox(
+          mainWindow,
+          {
+            // title: 'Close docker',
+            message: 'Do you wish to close docker?',
+            buttons: ['&Yes', '&No'],
+            type: 'question',
+            checkboxLabel: 'Close without asking again?',
+            checkboxChecked: Settings.autoStopDockerOnClose(),
+            normalizeAccessKeys: true
+          },
+          (response, checkboxChecked) => {
+            if (checkboxChecked) {
+              Settings.setAutoStopDockerOnClose();
+            }
+            if (response === 0) {
+              if (mainWindow)
+                mainWindow.webContents.send('waiting-docker-close');
+              stopDockerAndQuit();
+            } else {
+              doQuit = true;
+              if (mainWindow) mainWindow.close();
+              quitNow();
+            }
+          }
+        );
+      }
+    }
   });
 
   mainWindow.on('closed', async () => {
@@ -197,6 +252,7 @@ app.on('ready', async () => {
   new AppUpdater();
 });
 
+/*
 let waitingDockerClose = false;
 let dockerClosed = false;
 
@@ -224,3 +280,4 @@ app.on('before-quit', e => {
     e.preventDefault();
   }
 });
+*/
