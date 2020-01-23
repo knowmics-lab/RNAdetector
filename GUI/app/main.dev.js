@@ -73,12 +73,6 @@ app.on('ready', async () => {
     await installExtensions();
   }
 
-  if (Settings.isConfigured() && Settings.isLocal()) {
-    console.log('Starting docker container!');
-    await Docker.startContainer();
-    console.log('Docker container started!');
-  }
-
   mainWindow = new BrowserWindow({
     show: false,
     width: 1024,

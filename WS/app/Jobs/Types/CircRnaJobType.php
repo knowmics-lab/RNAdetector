@@ -38,8 +38,10 @@ class CircRnaJobType extends AbstractJob
                     'length'   => 'Minimal reads length (Default 40)',
                     'hardTrim' => 'A boolean value to indicate if reads should be trimmed to the same size (Default true)',
                 ],
+                'ciriQuant'            => 'An optional boolean to indicate whether to use ciri-quant instead of ciri (Default false)',
                 'genome'               => 'An optional name for a reference genome (Default human hg19)',
                 'annotation'           => 'An optional name for a GTF genome annotation (Default human hg19)',
+                'bedAnnotation'        => 'An optional annotation in BED format for circRNAs junctions. Required for ciriQuant analysis.',
                 'threads'              => 'Number of threads for this analysis (Default 1)',
                 'useFastqPair'         => 'A boolean value to indicate whether to use fastq_pair or bbmap repair (Default false=bbmap repair)',
                 'ciriSpanningDistance' => 'The maximum spanning distance used in CIRI (Default 200000)',
@@ -56,7 +58,7 @@ class CircRnaJobType extends AbstractJob
     public static function outputSpec(): array
     {
         return [
-            'outputFile' => 'Formatted read counts files (If multiple files a zip archive is returned)',
+            'outputFile' => 'Formatted read counts files',
         ];
     }
 
@@ -160,6 +162,7 @@ class CircRnaJobType extends AbstractJob
         if (!file_exists($samOutput)) {
             throw new ProcessingJobException('Unable to create BWA output file');
         }
+
         // $this->log($output);
 
         return $samOutput;
@@ -233,6 +236,115 @@ class CircRnaJobType extends AbstractJob
         if (!file_exists($ciriOutput)) {
             throw new ProcessingJobException('Unable to create CIRI output file');
         }
+
+        // $this->log($output);
+
+        return [$ciriOutputRelative, $ciriOutputUrl];
+    }
+
+    /**
+     * Make CIRIquant configuration file and returns its path
+     *
+     * @param \App\Models\Reference  $reference
+     * @param \App\Models\Annotation $annotation
+     *
+     * @return string
+     */
+    private function makeQuantConfig(Reference $reference, Annotation $annotation): string
+    {
+        $configFile = $this->getJobFile('quant_config_', '.yml');
+        $name = basename($configFile, '.yml');
+        $template = file_get_contents(resource_path('templates/quant_config.yml'));
+        $template = str_replace(
+            [
+                '{NAME}',
+                '{GENOME_FASTA}',
+                '{GENOME_GTF}',
+                '{GENOME_INDEX}',
+            ],
+            [
+                $name,
+                $reference->path,
+                $annotation->path,
+                $reference->basename(),
+            ],
+            $template
+        );
+        @file_put_contents($configFile, $template);
+        @chmod($configFile, 0777);
+
+        return $configFile;
+    }
+
+    /**
+     * Runs CIRI analysis
+     *
+     * @param string                 $ciriInputFile
+     * @param \App\Models\Reference  $genome
+     * @param \App\Models\Annotation $annotation
+     * @param int                    $spanningDistance
+     * @param int                    $threads
+     * @param bool                   $paired
+     * @param bool                   $useCiri1
+     *
+     * @return array
+     * @throws \App\Exceptions\ProcessingJobException
+     */
+    private function runCIRIQuant(
+        string $ciriInputFile,
+        Reference $genome,
+        Annotation $annotation,
+        int $spanningDistance = 200000,
+        int $threads = 1,
+        bool $paired = false,
+        bool $useCiri1 = false
+    ): array {
+        $ciriOutputRelative = $this->model->getJobFile('ciri_output_', '_ci.txt');
+        $ciriOutput = $this->model->absoluteJobPath($ciriOutputRelative);
+        $ciriOutputUrl = \Storage::disk('public')->url($ciriOutputRelative);
+        $command = [
+            'bash',
+            self::scriptPath('ciri.bash'),
+            '-a',
+            $annotation->path,
+            '-f',
+            $genome->path,
+            '-t',
+            $threads,
+            '-m',
+            $spanningDistance,
+            '-i',
+            $ciriInputFile,
+            '-o',
+            $ciriOutput,
+        ];
+        if ($paired) {
+            $command[] = '-p';
+        }
+        if ($useCiri1) {
+            $command[] = '-1';
+        }
+        $output = AbstractJob::runCommand(
+            $command,
+            $this->model->getAbsoluteJobDirectory(),
+            null,
+            function ($type, $buffer) {
+                $this->log(trim($buffer));
+            },
+            [
+                3 => 'Annotation file does not exist.',
+                4 => 'Input file does not exist.',
+                5 => 'CIRI returned non-zero exit code.',
+                6 => 'Output file must be specified.',
+                7 => 'Output directory is not writable.',
+                8 => 'FASTA file does not exist.',
+                9 => 'Unable to find CIRI output file.',
+            ]
+        );
+        if (!file_exists($ciriOutput)) {
+            throw new ProcessingJobException('Unable to create CIRI output file');
+        }
+
         // $this->log($output);
 
         return [$ciriOutputRelative, $ciriOutputUrl];

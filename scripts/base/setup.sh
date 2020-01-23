@@ -49,6 +49,13 @@ git clone https://github.com/linsalrob/fastq-pair.git
 cd fastq-pair/ || exit 100
 mkdir build && cd build && cmake .. && make && make install
 
+# Install latest version of CIRIquant
+cd /rnadetector/tmp || exit 100
+curl -fsSL https://downloads.sourceforge.net/project/ciri/CIRIquant/CIRIquant_v1.0.tar.gz -o CIRIquant.tar.gz
+tar -zxvf CIRIquant.tar.gz
+cd /rnadetector/tmp/CIRIquant || exit 100
+python setup.py install
+
 # Install the web service
 cd /rnadetector/ws/ || exit 100
 mv .env.docker .env

@@ -4,11 +4,16 @@ import Backdrop from '@material-ui/core/Backdrop';
 import Typography from '@material-ui/core/Typography';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { makeStyles } from '@material-ui/core/styles';
+import Paper from '@material-ui/core/Paper';
+import Grid from '@material-ui/core/Grid';
 
 const useStyles = makeStyles(theme => ({
   backdrop: {
     zIndex: theme.zIndex.drawer + 10,
     color: '#fff'
+  },
+  paper: {
+    padding: 10
   }
 }));
 
@@ -23,11 +28,15 @@ export default function CloseHandler() {
   return (
     <>
       <Backdrop className={classes.backdrop} open={waiting}>
-        <CircularProgress color="inherit" />
-        &nbsp;&nbsp;
-        <Typography variant="h6" component="div">
-          Waiting for docker to stop
-        </Typography>
+        <Paper elevation={3} className={classes.paper}>
+          <Grid container direction="column" alignItems="center">
+            <CircularProgress color="inherit" />
+            &nbsp;&nbsp;
+            <Typography variant="h6" component="div">
+              Waiting for docker to stop
+            </Typography>
+          </Grid>
+        </Paper>
       </Backdrop>
     </>
   );

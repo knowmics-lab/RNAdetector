@@ -12,6 +12,7 @@ import IconButton from '@material-ui/core/IconButton';
 import DrawerContent from '../components/Layout/DrawerContent';
 import NotificationsList from '../components/Layout/Notifications';
 import CloseHandler from '../components/Layout/CloseHandler';
+import StartHandler from '../components/Layout/StartHandler';
 
 const drawerWidth = 260;
 const fixDriverMinSize = 1100;
@@ -128,6 +129,7 @@ export default function App({ children }: Props) {
         </Drawer>
       </nav>
       <main className={classes.content}>
+        <StartHandler />
         <div className={classes.toolbar} />
         {children}
         <NotificationsList />

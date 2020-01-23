@@ -1,0 +1,12 @@
+name: "{NAME}"
+tools:
+  bwa: "/usr/bin/bwa"
+  hisat2: "/usr/bin/hisat2"
+  stringtie: "/usr/local/bin/stringtie"
+  samtools: "/usr/bin/samtools"
+
+reference:
+  fasta: "{GENOME_FASTA}"
+  gtf: "{GENOME_GTF}"
+  bwa_index: "{GENOME_INDEX}"
+  hisat_index: "{GENOME_INDEX}"

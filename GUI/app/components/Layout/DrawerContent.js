@@ -12,6 +12,7 @@ import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import Collapse from '@material-ui/core/Collapse';
 import { items as menuItems } from '../../constants/menu.json';
+import * as Api from '../../api';
 
 type ListItemLinkProps = {
   icon?: ?React.Element<*>,
@@ -103,6 +104,7 @@ export type MenuItem = {
   icon: string,
   text: string,
   collapsible: boolean,
+  configured: boolean,
   key: string,
   items?: MenuItem[],
   to?: string
@@ -167,9 +169,10 @@ class DrawerContent extends React.Component<
   };
 
   renderMenuItem = (
-    { icon, text, collapsible, key, items, to }: MenuItem,
+    { icon, text, collapsible, configured, key, items, to }: MenuItem,
     nested: boolean = false
   ): ?React.Element<*> => {
+    if (configured && !Api.Settings.isConfigured()) return null;
     const { classes } = this.props;
     if (collapsible) {
       return (
