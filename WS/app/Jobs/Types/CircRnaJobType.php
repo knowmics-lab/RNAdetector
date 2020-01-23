@@ -477,7 +477,7 @@ class CircRnaJobType extends AbstractJob
             } elseif ($inputType === self::BAM) {
                 $ciriInputFile = $this->model->getJobFileAbsolute('bam2sam_', '.sam');
                 $this->log('Converting BAM to SAM.');
-                $output = self::runCommand(
+                self::runCommand(
                     [
                         'bash',
                         self::scriptPath('bam2sam.sh'),

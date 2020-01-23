@@ -213,6 +213,8 @@ class SamplesGroupJobType extends AbstractJob
         fclose($outputFp);
         fclose($inputFp);
 
+        // TODO: wait for jobs to complete and collect their outputs
+
         return [$descriptionRelative, $descriptionUrl, $metas];
     }
 
