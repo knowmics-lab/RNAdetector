@@ -12,10 +12,12 @@ import CreateReferencePage from './containers/CreateReferencePage';
 import CreateAnnotationPage from './containers/CreateAnnotationPage';
 import LongRNA from './containers/Analysis/LongRNAPage';
 import SmallRNA from './containers/Analysis/SmallRNAPage';
+import CircRNA from './containers/Analysis/CircRNAPage';
 
 export default () => (
   <App>
     <Switch>
+      <Route path={routes.ANALYSIS_CIRC_RNA} component={CircRNA} />
       <Route path={routes.ANALYSIS_SMALL_RNA} component={SmallRNA} />
       <Route path={routes.ANALYSIS_LONG_RNA} component={LongRNA} />
       <Route path={routes.SETTINGS} component={SettingsPage} />

@@ -434,6 +434,20 @@ class CircRnaJobType extends AbstractJob
                 $firstInputFile
             );
         }
+        if ($inputType === self::FASTQ && $trimGaloreEnable) {
+            $this->log('Trimming reads using TrimGalore');
+            [$firstInputFile, $secondInputFile] = self::runTrimGalore(
+                $this->model,
+                $paired,
+                $firstInputFile,
+                $secondInputFile,
+                $trimGaloreQuality,
+                $trimGaloreLength,
+                $trimGaloreHardTrim,
+                $threads
+            );
+            $this->log('Trimming completed');
+        }
         if ($ciriQuant) {
             if ($inputType !== self::BAM) {
                 throw new ProcessingJobException('Only FASTQ files are supported for CIRIquant analysis.');
@@ -447,27 +461,11 @@ class CircRnaJobType extends AbstractJob
             [$circOutput, $circOutputUrl] = $this->runCIRIQuant($firstInputFile, $secondInputFile, $configFile, $bedAnnotation, $threads);
         } else {
             if ($inputType === self::FASTQ) {
-                [$firstTrimmedFastq, $secondTrimmedFastq] = [$firstInputFile, $secondInputFile];
-                if ($trimGaloreEnable) {
-                    $this->log('Trimming reads using TrimGalore');
-                    [$firstTrimmedFastq, $secondTrimmedFastq, $bashOutput] = self::runTrimGalore(
-                        $this->model,
-                        $paired,
-                        $firstInputFile,
-                        $secondInputFile,
-                        $trimGaloreQuality,
-                        $trimGaloreLength,
-                        $trimGaloreHardTrim,
-                        $threads
-                    );
-                    $this->log($bashOutput);
-                    $this->log('Trimming completed');
-                }
                 $this->log('Aligning reads with BWA');
                 $ciriInputFile = $this->runBWA(
                     $paired,
-                    $firstTrimmedFastq,
-                    $secondTrimmedFastq,
+                    $firstInputFile,
+                    $secondInputFile,
                     $genome,
                     $annotation,
                     $threads,
@@ -497,7 +495,6 @@ class CircRnaJobType extends AbstractJob
                         5 => 'Output directory is not writable.',
                     ]
                 );
-                // $this->log($output);
                 $this->log('BAM converted to SAM.');
                 if (!file_exists($ciriInputFile)) {
                     throw new ProcessingJobException('Unable to create converted BAM file');
