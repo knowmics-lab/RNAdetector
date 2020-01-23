@@ -4,10 +4,10 @@
 # Options:
 #   -t number of threads (default: 1)
 # 	-f FIRST INPUT FASTQ (trimmed FASTQ file)
-# 	-s OPTIONAL SECOND INPUT FASTQ (FOR PAIRED) (trimmed FASTQ file)
+# 	-s SECOND INPUT FASTQ (FOR PAIRED) (trimmed FASTQ file)
 #   -c YAML-formated config file
 #   -b Back-Spliced Junction Site in BED format
-#   -o output (required)
+#   -o output file (required)
 ##############################################################################
 while getopts ":t:f:s:c:b:o:" opt; do
 	case $opt in
@@ -31,18 +31,13 @@ done
 #### Check parameters ####
 #Check input files
 if [ -z "$INPUT_1" ] || [ ! -f "$INPUT_1" ]; then
-	echo "Input file does not exist!"
+	echo "First input file does not exist!"
 	exit 3
 fi
 
-# Control sequencing strategy "single end" o "paired end"
-if [ -z "$INPUT_2" ]; then
-	PAIRED=false
-elif [ ! -f "$INPUT_2" ]; then
+if [ -z "$INPUT_2" ] || [ ! -f "$INPUT_2" ]; then
 	echo "Second input file does not exist!"
 	exit 4
-else
-	PAIRED=true
 fi
 
 # Check number of threads and set 1 as default value
@@ -64,24 +59,29 @@ fi
 
 # Check output
 if [ -z "$OUTPUT" ]; then
-	echo "Output file must be specified!"
+	echo "Output directory must be specified!"
 	exit 7
 fi
 
+OUT_DIR="$(dirname "$OUTPUT")"
+OUT_PREFIX="$(basename "$OUTPUT" ".gtf")"
+
 # Check if output directory is writable
-if [ ! -w "$(dirname "$OUTPUT")" ]; then
+if [ ! -w "$OUT_DIR" ]; then
 	echo "Output directory is not writable!"
 	exit 8
 fi
 
 #### Run CIRIquant ####
-if ! CIRIquant -t "$THREADS" --bed "$BED_FILE" -o "$OUTPUT" --config "$CONFIG_FILE" -1 "$INPUT_1" -2 "$INPUT_2"; then
+if ! CIRIquant -t "$THREADS" --bed "$BED_FILE" -o "$OUT_DIR" -p "$OUT_PREFIX" --config "$CONFIG_FILE" -1 "$INPUT_1" -2 "$INPUT_2"; then
 	echo "An error occurred during CIRIquant execution!"
 	exit 9
 fi
 
-# Check output file
+# Check SAM file
 if [ ! -f "$OUTPUT" ]; then
-	echo "Unable to find output file!"
+	echo "Unable to find CIRIquant output file!"
 	exit 10
 fi
+
+chmod 777 "$OUTPUT"
