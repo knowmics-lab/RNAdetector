@@ -46,8 +46,12 @@ export type CircRNAAnalysisConfig = {|
   inputType: 'fastq' | 'bam' | 'sam',
   convertBam?: boolean,
   trimGalore?: TrimGaloreConfig,
+  ciriQuant?: boolean,
   genome?: string,
   annotation?: string,
+  bedAnnotation?: string,
   threads?: number,
-  ciriSpanningDistance?: number
+  useFastqPair?: boolean,
+  ciriSpanningDistance?: number,
+  ciriUseVersion1?: boolean
 |};
