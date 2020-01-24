@@ -24,7 +24,7 @@ import FileSelector from '../UI/FileSelector';
 import type { File } from '../UI/FileSelector';
 import UploadProgress from '../UI/UploadProgress';
 import SwitchField from '../Form/SwitchField';
-import type { LongRNAAnalysisConfig } from '../../types/analysis';
+import type { CircRNAAnalysisConfig } from '../../types/analysis';
 import type { SimpleMapType } from '../../types/common';
 import type { Job } from '../../types/jobs';
 
@@ -167,11 +167,15 @@ class CircRNA extends React.Component<Props, State> {
             .min(1),
           length: Yup.number()
             .notRequired()
-            .min(1)
+            .min(40),
+          hardTrim: Yup.boolean().notRequired()
         }),
       genome: Yup.string().notRequired(),
-      transcriptome: Yup.string().notRequired(),
       annotation: Yup.string().notRequired(),
+      bedAnnotation: Yup.string().notRequired(),
+      useFastqPair: Yup.boolean().notRequired(),
+      ciriSpanningDistance: Yup.number().notRequired(),
+      ciriUseVersion1: Yup.boolean().notRequired(),
       threads: Yup.number()
         .required()
         .min(1)
@@ -224,9 +228,10 @@ class CircRNA extends React.Component<Props, State> {
       <>
         <Typography className={classes.instructions}>
           Here you can choose which steps will be included in the analysis:
-          trimming, BAM to FASTQ conversion, alignment and counting, or
-          quantification.
+          CIRIquant analysis (for paired-end sequencing), trimming, BAM to FASTQ
+          conversion, and CIRI version.
         </Typography>
+        {paired && <SwitchField label="Use CIRIquant?" name="ciriQuant" />}
         {!ciriQuant && samOrBam && (
           <SwitchField label="Convert BAM/SAM to FASTQ?" name="convertBam" />
         )}
@@ -238,7 +243,7 @@ class CircRNA extends React.Component<Props, State> {
                 <Grid
                   container
                   justify="center"
-                  alignItems="center"
+                  alignItems="flex-start"
                   spacing={1}
                 >
                   <Grid item xs={6}>
@@ -255,20 +260,16 @@ class CircRNA extends React.Component<Props, State> {
                       type="number"
                     />
                   </Grid>
-                  {!ciriQuant && ciriUseVersion1 && (
-                    <SwitchField
-                      label="Hard Trim reads?"
-                      name="trimGalore.hardTrim"
-                    />
-                  )}
                 </Grid>
               </FormGroup>
             )}
           </>
         )}
-        {paired && <SwitchField label="Use CIRIquant?" name="ciriQuant" />}
         {!ciriQuant && (
           <SwitchField label="Use CIRI v. 1?" name="ciriUseVersion1" />
+        )}
+        {!ciriQuant && ciriUseVersion1 && (
+          <SwitchField label="Hard Trim reads?" name="trimGalore.hardTrim" />
         )}
         <TextField
           label="Number of threads"
@@ -290,8 +291,7 @@ class CircRNA extends React.Component<Props, State> {
     return (
       <>
         <Typography className={classes.instructions}>
-          Choose reference genome/transcriptome, and genome annotations if
-          required.
+          Choose reference genome, and genome annotations if required.
         </Typography>
         <SelectField
           label="Reference Genome"
@@ -529,14 +529,38 @@ class CircRNA extends React.Component<Props, State> {
     Api.Upload.ui.uploadEnd(this.setState.bind(this));
   };
 
+  checkParameters = (
+    parameters: CircRNAAnalysisConfig
+  ): CircRNAAnalysisConfig => {
+    const result = { ...parameters };
+    if (!parameters.paired) {
+      result.ciriQuant = false;
+      if (!parameters.ciriUseVersion1)
+        result.trimGalore = {
+          ...result.trimGalore,
+          hardTrim: false
+        };
+    } else if (parameters.ciriQuant) {
+      result.useFastqPair = false;
+      if (parameters.inputType === 'bam' || parameters.inputType === 'sam') {
+        result.convertBam = true;
+      }
+    }
+    return result;
+  };
+
   createAnalysis = async (
     code: string,
     name: string,
-    parameters: LongRNAAnalysisConfig,
+    parameters: CircRNAAnalysisConfig,
     firstFile: File,
     secondFile: ?File
   ): Promise<Job> => {
-    const data = await Api.Analysis.createLongRNA(code, name, parameters);
+    const data = await Api.Analysis.createCircRNA(
+      code,
+      name,
+      this.checkParameters(parameters)
+    );
     if (data.validationErrors) {
       this.setSaving(false, data.validationErrors);
       throw new Error('Validation of input parameters failed');
@@ -691,12 +715,16 @@ class CircRNA extends React.Component<Props, State> {
                 trimGalore: {
                   enable: true,
                   quality: 20,
-                  length: 14
+                  length: 40,
+                  hardTrim: false
                 },
                 genome: 'Human_hg19_genome',
                 annotation: 'Human_hg19_gencode_19_gtf',
-                bedAnnotations: 'Human_hg19_circRNAs_bed',
+                bedAnnotation: 'Human_hg19_circRNAs_bed',
                 threads: 1,
+                useFastqPair: false,
+                ciriSpanningDistance: 200000,
+                ciriUseVersion1: false,
                 samples: [
                   {
                     code: ''

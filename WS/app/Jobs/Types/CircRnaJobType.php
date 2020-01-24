@@ -295,7 +295,7 @@ class CircRnaJobType extends AbstractJob
         if (!$annotation->isGtf()) {
             throw new ProcessingJobException('The selected annotation must be in GTF format.');
         }
-        $configFile = $this->getJobFile('quant_config_', '.yml');
+        $configFile = $this->getJobFileAbsolute('quant_config_', '.yml');
         $name = basename($configFile, '.yml');
         $template = file_get_contents(resource_path('templates/quant_config.yml'));
         $template = str_replace(
@@ -449,7 +449,7 @@ class CircRnaJobType extends AbstractJob
             $this->log('Trimming completed');
         }
         if ($ciriQuant) {
-            if ($inputType !== self::BAM) {
+            if ($inputType !== self::FASTQ) {
                 throw new ProcessingJobException('Only FASTQ files are supported for CIRIquant analysis.');
             }
             if ($bedAnnotation === null) {

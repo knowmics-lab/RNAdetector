@@ -59,7 +59,7 @@ async function call<T>(
       const parsedResponse = parseErrorResponse(response);
       if (parsedResponse === null) {
         await delay(10000);
-        return call(endpoint, method, config, retry - 1);
+        return call(url, method, config, retry - 1);
       }
       return parsedResponse;
     }
