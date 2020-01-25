@@ -271,6 +271,12 @@ class CircRNA extends React.Component<Props, State> {
         {!ciriQuant && ciriUseVersion1 && (
           <SwitchField label="Hard Trim reads?" name="trimGalore.hardTrim" />
         )}
+        {!ciriQuant && (
+          <SwitchField
+            label="Use fastq-pair to reduce memory usage?"
+            name="useFastqPair"
+          />
+        )}
         <TextField
           label="Number of threads"
           name="threads"

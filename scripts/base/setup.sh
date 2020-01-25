@@ -27,21 +27,34 @@ mv salmon-latest_linux_x86_64/ /opt/salmon/
 ln -s /opt/salmon/bin/salmon /usr/bin/salmon
 
 # Install bbmap for re-pair utility
+cd /rnadetector/tmp || exit 100
 curl -fsSL https://sourceforge.net/projects/bbmap/files/latest/download -o bbmap.tar.gz
 tar -zxvf bbmap.tar.gz --directory=/opt/
 chmod 755 /opt/bbmap/*
 rm bbmap.tar.gz
 
-# Install stringtie
-curl -fsSL http://ccb.jhu.edu/software/stringtie/dl/stringtie-2.0.5.Linux_x86_64.tar.gz -o stringtie.tar.gz
+# Install stringtie from source
+cd /rnadetector/tmp || exit 100
+curl -fsSL http://ccb.jhu.edu/software/stringtie/dl/stringtie-2.0.6.tar.gz -o stringtie.tar.gz
 tar -xzvf stringtie.tar.gz
-cp stringtie-2.0.5.Linux_x86_64/stringtie /usr/local/bin/stringtie
-cp stringtie-2.0.5.Linux_x86_64/prepDE.py /usr/local/bin/prepDE.py
+cd /rnadetector/tmp/stringtie-2.0.6 || exit 100
+make release || exit 110
+cp stringtie /usr/local/bin/stringtie
+cp prepDE.py /usr/local/bin/prepDE.py
+cd /rnadetector/tmp || exit 100
 rm -rf stringtie-2.0.5.Linux_x86_64/
 rm stringtie.tar.gz
 
 # Install latest version of htseq-count
-pip install HTSeq
+cd /rnadetector/tmp || exit 100
+curl -fsSL https://github.com/simon-anders/htseq/archive/release_0.11.1.tar.gz -o htseq.tar.gz
+tar -xzvf htseq.tar.gz
+cd /rnadetector/tmp/htseq-release_0.11.1 || exit 100
+python setup.py build
+python setup.py install
+cd /rnadetector/tmp || exit 100
+rm -rf htseq-release_0.11.1/
+rm htseq.tar.gz
 
 # Install latest version of fastq-pair
 cd /rnadetector/tmp || exit 100

@@ -55,6 +55,13 @@ if [ ! -w "$(dirname "$OUTPUT")" ]; then
 fi
 
 #### Counting ####
+if [ ! -f /usr/local/bin/htseq-count ]; then
+    pip install HTSeq
+    if [ ! -f /usr/local/bin/htseq-count ]; then
+        echo "Unable to install htseq-count"
+        exit 9
+    fi
+fi
 if ! htseq-count -f bam -m union --nonunique all -s no "$INPUT_BAM" "$GTF_FILE" >"$OUTPUT"; then
     echo "Error running htseq-count!"
     exit 8

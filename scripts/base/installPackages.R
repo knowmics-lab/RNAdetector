@@ -1,4 +1,4 @@
 #!/usr/bin/env Rscript
 
 install.packages("BiocManager")
-BiocManager::install(c("limma", "edgeR", "DESeq2", "readr"),ask = FALSE)
+BiocManager::install(c("limma", "edgeR", "DESeq2", "readr", "tximport"),ask = FALSE)
