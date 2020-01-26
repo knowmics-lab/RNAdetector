@@ -45,17 +45,6 @@ cd /rnadetector/tmp || exit 100
 rm -rf stringtie-2.0.5.Linux_x86_64/
 rm stringtie.tar.gz
 
-# Install latest version of htseq-count
-cd /rnadetector/tmp || exit 100
-curl -fsSL https://github.com/simon-anders/htseq/archive/release_0.11.1.tar.gz -o htseq.tar.gz
-tar -xzvf htseq.tar.gz
-cd /rnadetector/tmp/htseq-release_0.11.1 || exit 100
-python setup.py build
-python setup.py install
-cd /rnadetector/tmp || exit 100
-rm -rf htseq-release_0.11.1/
-rm htseq.tar.gz
-
 # Install latest version of fastq-pair
 cd /rnadetector/tmp || exit 100
 git clone https://github.com/linsalrob/fastq-pair.git
@@ -68,6 +57,17 @@ curl -fsSL https://downloads.sourceforge.net/project/ciri/CIRIquant/CIRIquant_v1
 tar -zxvf CIRIquant.tar.gz
 cd /rnadetector/tmp/CIRIquant || exit 100
 python setup.py install
+
+# Install latest version of htseq-count
+cd /rnadetector/tmp || exit 100
+curl -fsSL https://github.com/simon-anders/htseq/archive/release_0.11.1.tar.gz -o htseq.tar.gz
+tar -xzvf htseq.tar.gz
+cd /rnadetector/tmp/htseq-release_0.11.1 || exit 100
+python setup.py build
+python setup.py install
+cd /rnadetector/tmp || exit 100
+rm -rf htseq-release_0.11.1/
+rm htseq.tar.gz
 
 # Install the web service
 cd /rnadetector/ws/ || exit 100
