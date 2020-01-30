@@ -6,15 +6,23 @@
 #	-b INPUT BAM (BAM_PATH or ALIGNMENT_PATH)
 # 	-t NUMBER OF THREADS
 #	-o OUTPUT file
+#   -h HARMONIZED output file
 ##############################################################################
-while getopts ":a:b:t:o:" opt; do
+while getopts ":a:b:t:o:h:" opt; do
     case $opt in
-        a ) GTF_FILE=$OPTARG ;;
-        b ) INPUT_BAM=$OPTARG ;;
-        t ) THREADS=$OPTARG ;;
-        o ) OUTPUT=$OPTARG ;;
-        \?) echo "Invalid option: -$OPTARG"; exit 1 ;;
-        : ) echo "Option -$OPTARG requires an argument."; exit 2;;
+    a) GTF_FILE=$OPTARG ;;
+    b) INPUT_BAM=$OPTARG ;;
+    t) THREADS=$OPTARG ;;
+    o) OUTPUT=$OPTARG ;;
+    h) HARMONIZED=$OPTARG ;;
+    \?)
+        echo "Invalid option: -$OPTARG"
+        exit 1
+        ;;
+    :)
+        echo "Option -$OPTARG requires an argument."
+        exit 2
+        ;;
     esac
 done
 
@@ -55,8 +63,19 @@ if ! featureCounts -T $THREADS -a "$GTF_FILE" -o "$OUTPUT" "$INPUT_BAM"; then
 fi
 
 if [ ! -f "$OUTPUT" ]; then
-  echo "Unable to find output file!"
-  exit 7
+    echo "Unable to find output file!"
+    exit 7
 fi
 
 chmod 777 "$OUTPUT"
+
+if [ ! -z "$HARMONIZED" ]; then
+    CURR_DIR=$(pwd)
+    SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+    cd $CURR_DIR
+    if ! Rscript "${SCRIPT_PATH}/harmonize.R" -i "$OUTPUT" -g "$GTF_FILE" -a "featurecounts" -o "$HARMONIZED"; then
+        echo "Unable to harmonize output file"
+        exit 9
+    fi
+    chmod 777 "$HARMONIZED"
+fi

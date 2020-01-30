@@ -5,14 +5,18 @@
 #   -r FASTA transcripts files
 #   -i input BAM file
 # 	-t NUMBER OF THREADS
-#		-o OUTPUT file
+#	-o OUTPUT file
+#   -h HARMONIZED gene counts
+#   -n HARMONIZED transcripts counts
 ##############################################################################
-while getopts ":r:i:t:o:" opt; do
+while getopts ":r:i:t:o:h:n:" opt; do
     case $opt in
     r) FASTA_TRANSCRIPTS=$OPTARG ;;
     i) INPUT_BAM=$OPTARG ;;
     t) THREADS=$OPTARG ;;
     o) OUTPUT=$OPTARG ;;
+    h) HARMONIZED=$OPTARG ;;
+    n) HARMONIZED_TX=$OPTARG ;;
     \?)
         echo "Invalid option: -$OPTARG"
         exit 1
@@ -78,4 +82,20 @@ chmod 777 "$OUTPUT"
 # Removing items of tmp directory
 if [ -d "$TEMP_DIR" ]; then
     rm -rf "$TEMP_DIR"
+fi
+
+if [ ! -z "$HARMONIZED" ]; then
+    if [ -z "$HARMONIZED_TX" ]; then
+        echo "Harmonized transcripts output file is required"
+        exit 10
+    fi
+    CURR_DIR=$(pwd)
+    SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+    cd $CURR_DIR
+    if ! Rscript "${SCRIPT_PATH}/harmonize.R" -i "$OUTPUT" -a "salmon" -o "$HARMONIZED" -t "$HARMONIZED_TX"; then
+        echo "Unable to harmonize output file"
+        exit 9
+    fi
+    chmod 777 "$HARMONIZED"
+    chmod 777 "$HARMONIZED_TX"
 fi

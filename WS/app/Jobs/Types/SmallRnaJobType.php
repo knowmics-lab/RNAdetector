@@ -53,7 +53,9 @@ class SmallRnaJobType extends AbstractJob
     public static function outputSpec(): array
     {
         return [
-            'outputFile' => 'Formatted read counts files (If multiple files a zip archive is returned)',
+            'outputFile'                => 'Raw output file',
+            'harmonizedFile'            => 'Harmonized output file',
+            'harmonizedTranscriptsFile' => 'Harmonized output file for transcripts expression',
         ];
     }
 
@@ -159,6 +161,10 @@ class SmallRnaJobType extends AbstractJob
         }
         $outputFile = '';
         $outputUrl = '';
+        $harmonizedGeneFile = '';
+        $harmonizedGeneUrl = '';
+        $harmonizedTxFile = null;
+        $harmonizedTxUrl = null;
         $countingInputFile = '';
         $count = true;
         if ($inputType === self::FASTQ) {
@@ -191,7 +197,14 @@ class SmallRnaJobType extends AbstractJob
                     $countingInputFile = $this->runHisat($this->model, $paired, $firstTrimmedFastq, $secondTrimmedFastq, $genome, $threads);
                     break;
                 case self::SALMON:
-                    [$outputFile, $outputUrl] = $this->runSalmon(
+                    [
+                        $outputFile,
+                        $outputUrl,
+                        $harmonizedGeneFile,
+                        $harmonizedGeneUrl,
+                        $harmonizedTxFile,
+                        $harmonizedTxUrl,
+                    ] = $this->runSalmon(
                         $this->model,
                         $paired,
                         $firstTrimmedFastq,
@@ -209,23 +222,52 @@ class SmallRnaJobType extends AbstractJob
         if ($count) {
             switch ($countingAlgorithm) {
                 case self::HTSEQ_COUNTS:
-                    [$outputFile, $outputUrl] = $this->runHTSEQ($this->model, $countingInputFile, $annotation, $threads);
+                    [$outputFile, $outputUrl, $harmonizedGeneFile, $harmonizedGeneUrl] = $this->runHTSEQ(
+                        $this->model,
+                        $countingInputFile,
+                        $annotation,
+                        $threads
+                    );
                     break;
                 case self::FEATURECOUNTS_COUNTS:
-                    [$outputFile, $outputUrl] = $this->runFeatureCount($this->model, $countingInputFile, $annotation, $threads);
+                    [$outputFile, $outputUrl, $harmonizedGeneFile, $harmonizedGeneUrl] = $this->runFeatureCount(
+                        $this->model,
+                        $countingInputFile,
+                        $annotation,
+                        $threads
+                    );
                     break;
                 case self::SALMON:
-                    [$outputFile, $outputUrl] = $this->runSalmonCount($this->model, $paired, $countingInputFile, $transcriptome, $threads);
+                    [
+                        $outputFile,
+                        $outputUrl,
+                        $harmonizedGeneFile,
+                        $harmonizedGeneUrl,
+                        $harmonizedTxFile,
+                        $harmonizedTxUrl,
+                    ] = $this->runSalmonCount($this->model, $paired, $countingInputFile, $transcriptome, $threads);
                     break;
                 default:
                     throw new ProcessingJobException('Invalid counting algorithm');
             }
         }
-        $this->model->setOutput(
-            [
-                'outputFile' => ['path' => $outputFile, 'url' => $outputUrl],
-            ]
-        );
+        $output = [
+            'outputFile'     => [
+                'path' => $outputFile,
+                'url'  => $outputUrl,
+            ],
+            'harmonizedFile' => [
+                'path' => $harmonizedGeneFile,
+                'url'  => $harmonizedGeneUrl,
+            ],
+        ];
+        if ($harmonizedTxFile !== null) {
+            $output['harmonizedTranscriptsFile'] = [
+                'path' => $harmonizedTxFile,
+                'url'  => $harmonizedTxUrl,
+            ];
+        }
+        $this->model->setOutput($output);
         $this->log('Analysis completed.');
         $this->model->save();
     }

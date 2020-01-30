@@ -190,6 +190,12 @@ trait UseAlignmentTrait
         $salmonOutputRelative = $model->getJobFile('salmon_output_', '_sa.txt');
         $salmonOutput = $model->absoluteJobPath($salmonOutputRelative);
         $salmonOutputUrl = Storage::disk('public')->url($salmonOutputRelative);
+        $harmonizedGeneRelative = $model->getJobFile('salmon_harmonized_genes_', '.txt');
+        $harmonizedGene = $model->absoluteJobPath($harmonizedGeneRelative);
+        $harmonizedGeneUrl = \Storage::disk('public')->url($harmonizedGeneRelative);
+        $harmonizedTxRelative = $model->getJobFile('salmon_harmonized_transcripts_', '.txt');
+        $harmonizedTx = $model->absoluteJobPath($harmonizedTxRelative);
+        $harmonizedTxUrl = \Storage::disk('public')->url($harmonizedTxRelative);
         switch ($inputType) {
             case 'fastq':
                 $command = [
@@ -203,12 +209,16 @@ trait UseAlignmentTrait
                     $threads,
                     '-o',
                     $salmonOutput,
+                    '-h',
+                    $harmonizedGene,
+                    '-n',
+                    $harmonizedTx,
                 ];
                 if ($paired) {
                     $command[] = '-s';
                     $command[] = $secondInputFile;
                 }
-                $output = AbstractJob::runCommand(
+                AbstractJob::runCommand(
                     $command,
                     $model->getAbsoluteJobDirectory(),
                     null,
@@ -216,18 +226,20 @@ trait UseAlignmentTrait
                         $model->appendLog(trim($buffer));
                     },
                     [
-                        3 => 'Input file does not exist.',
-                        4 => 'Second input file does not exist.',
-                        5 => 'Output file must be specified.',
-                        6 => 'Output directory is not writable.',
-                        7 => 'Indexed transcriptome does not exist.',
-                        8 => 'Unable to find output file.',
-                        9 => 'An error occurred during salmon quant execution.',
+                        3  => 'Input file does not exist.',
+                        4  => 'Second input file does not exist.',
+                        5  => 'Output file must be specified.',
+                        6  => 'Output directory is not writable.',
+                        7  => 'Indexed transcriptome does not exist.',
+                        8  => 'Unable to find output file.',
+                        9  => 'An error occurred during salmon quant execution.',
+                        10 => 'Harmonized transcripts output file is required.',
+                        11 => 'Unable to harmonize output file.',
                     ]
                 );
                 break;
             case 'BAM':
-                $output = AbstractJob::runCommand(
+                AbstractJob::runCommand(
                     [
                         'bash',
                         AbstractJob::scriptPath('salmon_counting_bam.sh'),
@@ -239,6 +251,10 @@ trait UseAlignmentTrait
                         $threads,
                         '-o',
                         $salmonOutput,
+                        '-h',
+                        $harmonizedGene,
+                        '-n',
+                        $harmonizedTx,
                     ],
                     $model->getAbsoluteJobDirectory(),
                     null,
@@ -246,12 +262,14 @@ trait UseAlignmentTrait
                         $model->appendLog(trim($buffer));
                     },
                     [
-                        3 => 'Input file does not exist.',
-                        4 => 'FASTA transcriptome file does not exist.',
-                        5 => 'Output directory must be specified.',
-                        6 => 'Output directory is not writable.',
-                        7 => 'Unable to find output file.',
-                        8 => 'An error occurred during salmon quant execution.',
+                        3  => 'Input file does not exist.',
+                        4  => 'FASTA transcriptome file does not exist.',
+                        5  => 'Output directory must be specified.',
+                        6  => 'Output directory is not writable.',
+                        7  => 'Unable to find output file.',
+                        8  => 'An error occurred during salmon quant execution.',
+                        9  => 'Harmonized transcripts output file is required.',
+                        10 => 'Unable to harmonize output file.',
                     ]
                 );
                 break;
@@ -261,10 +279,19 @@ trait UseAlignmentTrait
         if (!file_exists($salmonOutput)) {
             throw new ProcessingJobException('Unable to create Salmon output file');
         }
-        // $model->appendLog($output);
+        if (!file_exists($harmonizedGene) || !file_exists($harmonizedTx)) {
+            throw new ProcessingJobException('Unable to create harmonized output files');
+        }
         $model->appendLog('Transcripts quantification completed.');
 
-        return [$salmonOutputRelative, $salmonOutputUrl];
+        return [
+            $salmonOutputRelative,
+            $salmonOutputUrl,
+            $harmonizedGeneRelative,
+            $harmonizedGeneUrl,
+            $harmonizedTxRelative,
+            $harmonizedTxUrl,
+        ];
     }
 
 }

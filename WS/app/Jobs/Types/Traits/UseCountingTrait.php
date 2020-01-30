@@ -37,10 +37,13 @@ trait UseCountingTrait
             throw new ProcessingJobException('The selected annotation must be in GTF format.');
         }
         $model->appendLog('Counting with HTseq-count.');
-        $htseqOutputRelative = $model->getJobFile('htseq_output_', '_ht.txt');
+        $htseqOutputRelative = $model->getJobFile('htseq_output_', '.txt');
         $htseqOutput = $model->absoluteJobPath($htseqOutputRelative);
         $htseqOutputUrl = \Storage::disk('public')->url($htseqOutputRelative);
-        $output = AbstractJob::runCommand(
+        $harmonizedRelative = $model->getJobFile('htseq_harmonized_', '.txt');
+        $harmonized = $model->absoluteJobPath($harmonizedRelative);
+        $harmonizedUrl = \Storage::disk('public')->url($harmonizedRelative);
+        AbstractJob::runCommand(
             [
                 'bash',
                 AbstractJob::scriptPath('htseqcount.bash'),
@@ -52,6 +55,8 @@ trait UseCountingTrait
                 $threads,
                 '-o',
                 $htseqOutput,
+                '-h',
+                $harmonized,
             ],
             $model->getAbsoluteJobDirectory(),
             null,
@@ -65,15 +70,19 @@ trait UseCountingTrait
                 6 => 'Output directory is not writable.',
                 7 => 'Unable to find output file.',
                 8 => 'Error running htseq-count.',
+                9 => 'Unable to harmonize output file.',
             ]
         );
         if (!file_exists($htseqOutput)) {
             throw new ProcessingJobException('Unable to create HTseq-count output file');
         }
+        if (!file_exists($harmonized)) {
+            throw new ProcessingJobException('Unable to create harmonized output file');
+        }
         // $model->appendLog($output);
         $model->appendLog('Counting completed.');
 
-        return [$htseqOutputRelative, $htseqOutputUrl];
+        return [$htseqOutputRelative, $htseqOutputUrl, $harmonizedRelative, $harmonizedUrl];
     }
 
     /**
@@ -93,10 +102,13 @@ trait UseCountingTrait
             throw new ProcessingJobException('The selected annotation must be in GTF format.');
         }
         $model->appendLog('Counting with Feature-Count.');;
-        $relativeOutput = $model->getJobFile('featurecount_output_', '_fc.txt');
+        $relativeOutput = $model->getJobFile('featurecount_output_', '.txt');
         $absoluteOutput = $model->absoluteJobPath($relativeOutput);
         $outputUrl = \Storage::disk('public')->url($relativeOutput);
-        $output = AbstractJob::runCommand(
+        $harmonizedRelative = $model->getJobFile('featurecount_harmonized_', '.txt');
+        $harmonized = $model->absoluteJobPath($harmonizedRelative);
+        $harmonizedUrl = \Storage::disk('public')->url($harmonizedRelative);
+        AbstractJob::runCommand(
             [
                 'bash',
                 AbstractJob::scriptPath('featurecounts.bash'),
@@ -108,6 +120,8 @@ trait UseCountingTrait
                 $threads,
                 '-o',
                 $absoluteOutput,
+                '-h',
+                $harmonized,
             ],
             $model->getAbsoluteJobDirectory(),
             null,
@@ -121,16 +135,19 @@ trait UseCountingTrait
                 6 => 'Output directory is not writable.',
                 7 => 'Unable to find output file.',
                 8 => 'An error occurred during featureCounts execution.',
+                9 => 'Unable to harmonize output file.',
             ]
         );
         if (!file_exists($absoluteOutput)) {
             throw new ProcessingJobException('Unable to create FeatureCount output file');
         }
-        // $model->appendLog($output);
+        if (!file_exists($harmonized)) {
+            throw new ProcessingJobException('Unable to create harmonized output file');
+        }
         $model->appendLog('Counting completed.');
 
 
-        return [$relativeOutput, $outputUrl];
+        return [$relativeOutput, $outputUrl, $harmonizedRelative, $harmonizedUrl];
     }
 
     /**
@@ -152,9 +169,15 @@ trait UseCountingTrait
         }
         [$firstTempFastQ, $secondTempFastQ] = self::convertBamToFastq($model, $paired, $topHatInputFile, true);
         $model->appendLog('Quantifying with salmon');
-        $salmonOutputRelative = $model->getJobFile('salmon_output_', '_sa.txt');
+        $salmonOutputRelative = $model->getJobFile('salmon_output_', '.txt');
         $salmonOutput = $model->absoluteJobPath($salmonOutputRelative);
         $salmonOutputUrl = \Storage::disk('public')->url($salmonOutputRelative);
+        $harmonizedGeneRelative = $model->getJobFile('salmon_harmonized_genes_', '.txt');
+        $harmonizedGene = $model->absoluteJobPath($harmonizedGeneRelative);
+        $harmonizedGeneUrl = \Storage::disk('public')->url($harmonizedGeneRelative);
+        $harmonizedTxRelative = $model->getJobFile('salmon_harmonized_transcripts_', '.txt');
+        $harmonizedTx = $model->absoluteJobPath($harmonizedTxRelative);
+        $harmonizedTxUrl = \Storage::disk('public')->url($harmonizedTxRelative);
         $command = [
             'bash',
             AbstractJob::scriptPath('salmon_counting.sh'),
@@ -166,12 +189,16 @@ trait UseCountingTrait
             $salmonOutput,
             '-f',
             $firstTempFastQ,
+            '-h',
+            $harmonizedGene,
+            '-n',
+            $harmonizedTx,
         ];
         if ($paired) {
             $command[] = '-s';
             $command[] = $secondTempFastQ;
         }
-        $output = AbstractJob::runCommand(
+        AbstractJob::runCommand(
             $command,
             $model->getAbsoluteJobDirectory(),
             null,
@@ -179,18 +206,23 @@ trait UseCountingTrait
                 $model->appendLog(trim($buffer));
             },
             [
-                3 => 'Input file does not exist.',
-                4 => 'Second input file does not exist.',
-                5 => 'Output file must be specified.',
-                6 => 'Output directory is not writable.',
-                7 => 'Indexed trascriptome does not exist.',
-                8 => 'Unable to find output file.',
-                9 => 'An error occurred during salmon quant execution.',
+                3  => 'Input file does not exist.',
+                4  => 'Second input file does not exist.',
+                5  => 'Output file must be specified.',
+                6  => 'Output directory is not writable.',
+                7  => 'Indexed trascriptome does not exist.',
+                8  => 'Unable to find output file.',
+                9  => 'An error occurred during salmon quant execution.',
+                10 => 'Harmonized transcripts output file is required.',
+                11 => 'Unable to harmonize output file.',
             ]
         );
         // $model->appendLog($output);
         if (!file_exists($salmonOutput)) {
             throw new ProcessingJobException('Unable to create Salmon output file');
+        }
+        if (!file_exists($harmonizedGene) || !file_exists($harmonizedTx)) {
+            throw new ProcessingJobException('Unable to create harmonized output files');
         }
         $model->appendLog('Counts computation completed.');
         if (file_exists($firstTempFastQ)) {
@@ -200,7 +232,14 @@ trait UseCountingTrait
             @unlink($secondTempFastQ);
         }
 
-        return [$salmonOutputRelative, $salmonOutputUrl];
+        return [
+            $salmonOutputRelative,
+            $salmonOutputUrl,
+            $harmonizedGeneRelative,
+            $harmonizedGeneUrl,
+            $harmonizedTxRelative,
+            $harmonizedTxUrl,
+        ];
     }
 
 }

@@ -8,8 +8,9 @@
 #   -c YAML-formated config file
 #   -b Back-Spliced Junction Site in BED format
 #   -o output file (required)
+#   -h HARMONIZED output file
 ##############################################################################
-while getopts ":t:f:s:c:b:o:" opt; do
+while getopts ":t:f:s:c:b:o:h:" opt; do
 	case $opt in
 	t) THREADS=$OPTARG ;;
 	f) INPUT_1=$OPTARG ;;
@@ -17,6 +18,7 @@ while getopts ":t:f:s:c:b:o:" opt; do
 	c) CONFIG_FILE=$OPTARG ;;
 	b) BED_FILE=$OPTARG ;;
 	o) OUTPUT=$OPTARG ;;
+	h) HARMONIZED=$OPTARG ;;
 	\?)
 		echo "Invalid option: -$OPTARG"
 		exit 1
@@ -85,3 +87,14 @@ if [ ! -f "$OUTPUT" ]; then
 fi
 
 chmod 777 "$OUTPUT"
+
+if [ ! -z "$HARMONIZED" ]; then
+	CURR_DIR=$(pwd)
+	SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+	cd $CURR_DIR
+	if ! Rscript "${SCRIPT_PATH}/harmonize.R" -i "$OUTPUT" -a "ciriquant" -o "$HARMONIZED"; then
+		echo "Unable to harmonize output file"
+		exit 11
+	fi
+	chmod 777 "$HARMONIZED"
+fi

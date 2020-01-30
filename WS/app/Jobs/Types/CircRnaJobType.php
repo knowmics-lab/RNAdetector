@@ -59,7 +59,8 @@ class CircRnaJobType extends AbstractJob
     public static function outputSpec(): array
     {
         return [
-            'outputFile' => 'Formatted read counts files',
+            'outputFile'     => 'Raw output file',
+            'harmonizedFile' => 'Harmonized output file',
         ];
     }
 
@@ -224,9 +225,12 @@ class CircRnaJobType extends AbstractJob
         if (!$annotation->isGtf()) {
             throw new ProcessingJobException('The selected annotation must be in GTF format.');
         }
-        $ciriOutputRelative = $this->model->getJobFile('ciri_output_', '_ci.txt');
+        $ciriOutputRelative = $this->model->getJobFile('ciri_output_', '.txt');
         $ciriOutput = $this->model->absoluteJobPath($ciriOutputRelative);
         $ciriOutputUrl = \Storage::disk('public')->url($ciriOutputRelative);
+        $ciriHarmonizedRelative = $this->model->getJobFile('ciri_harmonized_', '.txt');
+        $ciriHarmonized = $this->model->absoluteJobPath($ciriHarmonizedRelative);
+        $ciriHarmonizedUrl = \Storage::disk('public')->url($ciriHarmonizedRelative);
         $command = [
             'bash',
             self::scriptPath('ciri.bash'),
@@ -242,6 +246,8 @@ class CircRnaJobType extends AbstractJob
             $ciriInputFile,
             '-o',
             $ciriOutput,
+            '-h',
+            $ciriHarmonized,
         ];
         if ($paired) {
             $command[] = '-p';
@@ -257,13 +263,14 @@ class CircRnaJobType extends AbstractJob
                 $this->log(trim($buffer));
             },
             [
-                3 => 'Annotation file does not exist.',
-                4 => 'Input file does not exist.',
-                5 => 'CIRI returned non-zero exit code.',
-                6 => 'Output file must be specified.',
-                7 => 'Output directory is not writable.',
-                8 => 'FASTA file does not exist.',
-                9 => 'Unable to find CIRI output file.',
+                3  => 'Annotation file does not exist.',
+                4  => 'Input file does not exist.',
+                5  => 'CIRI returned non-zero exit code.',
+                6  => 'Output file must be specified.',
+                7  => 'Output directory is not writable.',
+                8  => 'FASTA file does not exist.',
+                9  => 'Unable to find CIRI output file.',
+                10 => 'Unable to harmonize output file.',
             ]
         );
         if (!file_exists($ciriOutput)) {
@@ -272,7 +279,7 @@ class CircRnaJobType extends AbstractJob
 
         // $this->log($output);
 
-        return [$ciriOutputRelative, $ciriOutputUrl];
+        return [$ciriOutputRelative, $ciriOutputUrl, $ciriHarmonizedRelative, $ciriHarmonizedUrl];
     }
 
     /**
@@ -344,6 +351,9 @@ class CircRnaJobType extends AbstractJob
         $quantOutputRelative = $this->model->getJobFile('quant_output_', '.gtf');
         $quantOutput = $this->model->absoluteJobPath($quantOutputRelative);
         $quantOutputUrl = \Storage::disk('public')->url($quantOutputRelative);
+        $quantHarmonizedRelative = $this->model->getJobFile('ciri_harmonized_', '.txt');
+        $quantHarmonized = $this->model->absoluteJobPath($quantHarmonizedRelative);
+        $quantHarmonizedUrl = \Storage::disk('public')->url($quantHarmonizedRelative);
         $command = [
             'bash',
             self::scriptPath('ciri_quant.sh'),
@@ -359,6 +369,8 @@ class CircRnaJobType extends AbstractJob
             $threads,
             '-o',
             $quantOutput,
+            '-h',
+            $quantHarmonized,
         ];
         AbstractJob::runCommand(
             $command,
@@ -376,13 +388,14 @@ class CircRnaJobType extends AbstractJob
                 8  => 'Output directory is not writeable.',
                 9  => 'Unknown error during CIRIquant execution.',
                 10 => 'Unable to find CIRIquant output file.',
+                11 => 'Unable to harmonize output file.',
             ]
         );
         if (!file_exists($quantOutput)) {
             throw new ProcessingJobException('Unable to create CIRIquant output file');
         }
 
-        return [$quantOutputRelative, $quantOutputUrl];
+        return [$quantOutputRelative, $quantOutputUrl, $quantHarmonizedRelative, $quantHarmonizedUrl];
     }
 
     /**
@@ -458,7 +471,13 @@ class CircRnaJobType extends AbstractJob
             $this->log('Building CIRIquant config file');
             $configFile = $this->makeQuantConfig($genome, $annotation);
             $this->log('Starting CIRIquant analysis');
-            [$circOutput, $circOutputUrl] = $this->runCIRIQuant($firstInputFile, $secondInputFile, $configFile, $bedAnnotation, $threads);
+            [$circOutput, $circOutputUrl, $circHarmonized, $circHarmonizedUrl] = $this->runCIRIQuant(
+                $firstInputFile,
+                $secondInputFile,
+                $configFile,
+                $bedAnnotation,
+                $threads
+            );
         } else {
             if ($inputType === self::FASTQ) {
                 $this->log('Aligning reads with BWA');
@@ -503,7 +522,7 @@ class CircRnaJobType extends AbstractJob
                 $ciriInputFile = $firstInputFile;
             }
             $this->log('Computing counts of CircRNA using CIRI.');
-            [$circOutput, $circOutputUrl] = $this->runCIRI(
+            [$circOutput, $circOutputUrl, $circHarmonized, $circHarmonizedUrl] = $this->runCIRI(
                 $ciriInputFile,
                 $genome,
                 $annotation,
@@ -516,9 +535,13 @@ class CircRnaJobType extends AbstractJob
         $this->log('CircRNA Analysis completed!');
         $this->model->setOutput(
             [
-                'outputFile' => [
+                'outputFile'     => [
                     'path' => $circOutput,
                     'url'  => $circOutputUrl,
+                ],
+                'harmonizedFile' => [
+                    'path' => $circHarmonized,
+                    'url'  => $circHarmonizedUrl,
                 ],
             ]
         );

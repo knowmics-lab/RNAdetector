@@ -7,14 +7,18 @@
 # 	-s OPTIONAL SECOND INPUT FASTQ (FOR PAIRED) (trimmed FASTQ file)
 # 	-t NUMBER OF THREADS
 #		-o OUTPUT file
+#   -h HARMONIZED gene counts
+#   -n HARMONIZED transcripts counts
 ##############################################################################
-while getopts ":i:f:s:t:o:" opt; do
+while getopts ":i:f:s:t:o:h:n:" opt; do
   case $opt in
   i) INDEXED_FASTA=$OPTARG ;;
   f) INPUT_1=$OPTARG ;;
   s) INPUT_2=$OPTARG ;;
   t) THREADS=$OPTARG ;;
   o) OUTPUT=$OPTARG ;;
+  h) HARMONIZED=$OPTARG ;;
+  n) HARMONIZED_TX=$OPTARG ;;
   \?)
     echo "Invalid option: -$OPTARG"
     exit 1
@@ -97,4 +101,20 @@ chmod 777 "$OUTPUT"
 # Removing items of tmp directory
 if [ -d "$TEMP_DIR" ]; then
   rm -rf "$TEMP_DIR"
+fi
+
+if [ ! -z "$HARMONIZED" ]; then
+  if [ -z "$HARMONIZED_TX" ]; then
+    echo "Harmonized transcripts output file is required"
+    exit 10
+  fi
+  CURR_DIR=$(pwd)
+  SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+  cd $CURR_DIR
+  if ! Rscript "${SCRIPT_PATH}/harmonize.R" -i "$OUTPUT" -a "salmon" -o "$HARMONIZED" -t "$HARMONIZED_TX"; then
+    echo "Unable to harmonize output file"
+    exit 11
+  fi
+  chmod 777 "$HARMONIZED"
+  chmod 777 "$HARMONIZED_TX"
 fi
