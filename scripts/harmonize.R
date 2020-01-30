@@ -52,7 +52,7 @@ harmonize.ciri <- function (input.file, output.file) {
   colnames(m) <- c("id", "name", "chr", "start", "end", "strand", "counts")
   m$length <- (m$end - m$start) + 1
   m <- m[,c("id", "name", "chr", "start", "end", "strand", "length", "counts")]
-  write.table(m, file = output.file, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)
+  write.table(m, file = output.file, quote = FALSE, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)
 }
 
 harmonize.ciri.quant <- function (input.file, output.file) {
@@ -60,7 +60,7 @@ harmonize.ciri.quant <- function (input.file, output.file) {
   m$length <- (m$end - m$start) + 1
   m <- m[,c("circ_id", "circ_id", "chr", "start", "end", "strand", "length", "bsj")]
   colnames(m) <- c("id", "name", "chr", "start", "end", "strand", "length", "counts")
-  write.table(m, file = output.file, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)
+  write.table(m, file = output.file, quote = FALSE, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)
 }
 
 harmonize.htseq <- function (input.file, input.gtf, output.file) {
@@ -80,7 +80,7 @@ harmonize.htseq <- function (input.file, input.gtf, output.file) {
   }
   m$length <- (m$end - m$start) + 1
   m <- m[,c("id", "name", "chr", "start", "end", "strand", "length", "counts")]
-  write.table(m, file = output.file, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)
+  write.table(m, file = output.file, quote = FALSE, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)
 }
 
 harmonize.featureCounts <- function (input.file, input.gtf, output.file) {
@@ -102,7 +102,7 @@ harmonize.featureCounts <- function (input.file, input.gtf, output.file) {
   }
   m$length <- (m$end - m$start) + 1
   m <- m[,c("id", "name", "chr", "start", "end", "strand", "length", "counts")]
-  write.table(m, file = output.file, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)
+  write.table(m, file = output.file, quote = FALSE, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)
 }
 
 harmonize.salmon <- function (input.file, input.annotation = NULL, output.file, output.transcripts) {
@@ -137,7 +137,7 @@ harmonize.salmon <- function (input.file, input.annotation = NULL, output.file, 
   ) %>% left_join(annotation, by=c("id"="tx_id"))
   df_tx <- unique(df_tx[,c("id", "tx_name", "chr", "start", "end", "strand", "length", "counts")])
   colnames(df_tx) <- c("id", "name", "chr", "start", "end", "strand", "length", "counts")
-  write.table(df_tx, file = output.transcripts, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)
+  write.table(df_tx, file = output.transcripts, quote = FALSE, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)
   if (has_genes) {
     df_gn <- data.frame(
       id=rownames(imported_gn$counts),
@@ -151,7 +151,7 @@ harmonize.salmon <- function (input.file, input.annotation = NULL, output.file, 
     ) %>% left_join(annotation, by=c("id"="gene_id"))
     df_gn <- unique(df_gn[,c("id", "gene_name", "chr", "start", "end", "strand", "length", "counts")])
     colnames(df_gn) <- c("id", "name", "chr", "start", "end", "strand", "length", "counts")
-    write.table(df_gn, file = output.file, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)   
+    write.table(df_gn, file = output.file, quote = FALSE, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)   
   }
 }
 
@@ -170,8 +170,8 @@ harmonize.stringtie <- function (input.gtf, gc.file, tc.file, output.file, outpu
   tc$length <- tc$end - tc$start + 1
   tc <- unique(tc[,c("id", "ref_gene_name", "chr", "start", "end", "strand", "length", "counts")])
   colnames(tc) <- c("id", "name", "chr", "start", "end", "strand", "length", "counts")
-  write.table(gc, file = output.file, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)   
-  write.table(tc, file = output.transcripts, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)   
+  write.table(gc, file = output.file, quote = FALSE, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)   
+  write.table(tc, file = output.transcripts, quote = FALSE, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)   
 }
 
 option_list <- list(

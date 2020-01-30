@@ -187,7 +187,7 @@ trait UseAlignmentTrait
             throw new ProcessingJobException('The specified reference sequence is not indexed for salmon.');
         }
         $model->appendLog('Quantifying with Salmon.');
-        $salmonOutputRelative = $model->getJobFile('salmon_output_', '_sa.txt');
+        $salmonOutputRelative = $model->getJobFile('salmon_output_', '.txt');
         $salmonOutput = $model->absoluteJobPath($salmonOutputRelative);
         $salmonOutputUrl = Storage::disk('public')->url($salmonOutputRelative);
         $harmonizedGeneRelative = $model->getJobFile('salmon_harmonized_genes_', '.txt');
