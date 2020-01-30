@@ -275,6 +275,16 @@ class Job extends Model
     }
 
     /**
+     * Checks if the current job has completed
+     *
+     * @return bool
+     */
+    public function hasCompleted(): bool
+    {
+        return in_array($this->status, [self::COMPLETED, self::FAILED], true);
+    }
+
+    /**
      * Checks if the current job should run or not.
      * Only queued jobs should run.
      *

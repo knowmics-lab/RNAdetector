@@ -218,6 +218,36 @@ class SamplesGroupJobType extends AbstractJob
         return [$descriptionRelative, $descriptionUrl, $metas];
     }
 
+    /**
+     * Checks if all jobs have completed (COMPLETED or FAILED state)
+     *
+     * @param \App\Models\Job[] $jobs
+     *
+     * @return bool
+     */
+    private function checksForCompletion(array $jobs): bool
+    {
+        $completed = true;
+        foreach ($jobs as $job) {
+            $completed = $completed && $job->hasCompleted();
+        }
+
+        return $completed;
+    }
+
+    /**
+     * Checks if all jobs have completed (COMPLETED or FAILED state)
+     *
+     * @param \App\Models\Job[] $jobs
+     *
+     * @return void
+     */
+    private function waitForCompletion(array $jobs): void
+    {
+        while (!$this->checksForCompletion($jobs)) {
+            sleep(500);
+        }
+    }
 
     /**
      * Handles all the computation for this job.
