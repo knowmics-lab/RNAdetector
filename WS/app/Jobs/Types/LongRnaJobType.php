@@ -16,6 +16,7 @@ use App\Jobs\Types\Traits\RunTrimGaloreTrait;
 use App\Jobs\Types\Traits\UseAlignmentTrait;
 use App\Jobs\Types\Traits\UseCountingTrait;
 use App\Models\Annotation;
+use App\Models\Job;
 use App\Models\Reference;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -273,5 +274,35 @@ class LongRnaJobType extends AbstractJob
     public static function description(): string
     {
         return 'Runs mRNAs and/or lncRNAs (long RNAs reads) analysis from sequencing data';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function sampleGroupFunctions(): ?array
+    {
+        return [
+            static function (Job $job) {
+                return $job->sample_code;
+            },
+            static function (Job $job) {
+                $output = $job->getOutput('harmonizedFile');
+
+                return $job->absoluteJobPath($output['path']);
+            },
+            static function (Job $job) {
+                $output = $job->getOutput('outputFile');
+
+                return $job->absoluteJobPath($output['path']);
+            },
+            static function (Job $job) {
+                $output = $job->getOutput('harmonizedTranscriptsFile');
+                if ($output !== null) {
+                    return null;
+                }
+
+                return $job->absoluteJobPath($output['path']);
+            },
+        ];
     }
 }

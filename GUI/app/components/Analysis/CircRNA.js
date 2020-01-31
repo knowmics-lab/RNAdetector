@@ -290,10 +290,9 @@ class CircRNA extends React.Component<Props, State> {
     );
   };
 
-  getStep2 = values => {
+  getStep2 = () => {
     const { classes } = this.props;
     const { genomes, annotations, bedAnnotations } = this.state;
-    const { ciriQuant } = values;
     return (
       <>
         <Typography className={classes.instructions}>
@@ -311,14 +310,12 @@ class CircRNA extends React.Component<Props, State> {
           options={annotations}
           required
         />
-        {ciriQuant && (
-          <SelectField
-            label="BED Back-Spliced Junction Annotation"
-            name="bedAnnotation"
-            options={bedAnnotations}
-            required
-          />
-        )}
+        <SelectField
+          label="BED Back-Spliced Junction Annotation"
+          name="bedAnnotation"
+          options={bedAnnotations}
+          required
+        />
       </>
     );
   };
@@ -748,7 +745,7 @@ class CircRNA extends React.Component<Props, State> {
                   <Wizard steps={steps} submitButton={this.getSubmitButton}>
                     <div>{this.getStep0()}</div>
                     <div>{this.getStep1(values)}</div>
-                    <div>{this.getStep2(values)}</div>
+                    <div>{this.getStep2()}</div>
                     <div>{this.getStep3(values)}</div>
                   </Wizard>
                 </Form>

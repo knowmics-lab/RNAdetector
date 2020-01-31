@@ -20,6 +20,7 @@ use Symfony\Component\Finder\Finder;
  * @method static array parametersSpec(\App\Models\Job|\App\Jobs\Types\AbstractJob|string $where)
  * @method static array outputSpec(\App\Models\Job|\App\Jobs\Types\AbstractJob|string $where)
  * @method static array validationSpec(\App\Models\Job|\App\Jobs\Types\AbstractJob|string $where, \Illuminate\Http\Request $request)
+ * @method static array|null sampleGroupFunctions(\App\Models\Job|\App\Jobs\Types\AbstractJob|string $where)
  */
 class Factory
 {
@@ -99,6 +100,7 @@ class Factory
                 'parametersSpec',
                 'outputSpec',
                 'validationSpec',
+                'sampleGroupFunctions',
             ]
         )) {
             if (count($arguments) >= 1) {

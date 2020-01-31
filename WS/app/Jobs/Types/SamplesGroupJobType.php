@@ -21,6 +21,8 @@ use App\Models\Reference;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Storage;
+use ZipArchive;
+use function foo\func;
 
 class SamplesGroupJobType extends AbstractJob
 {
@@ -112,9 +114,10 @@ class SamplesGroupJobType extends AbstractJob
      *
      * @param \App\Models\Job[] $models
      *
+     * @return string
      * @throws \App\Exceptions\ProcessingJobException
      */
-    private function checkJobsTypes(array $models): void
+    private function checkJobsTypes(array $models): string
     {
         $firstType = $models[0]->job_type;
         foreach ($models as $model) {
@@ -122,6 +125,8 @@ class SamplesGroupJobType extends AbstractJob
                 throw new ProcessingJobException('All jobs must be of the same type');
             }
         }
+
+        return $firstType;
     }
 
     /**
@@ -213,8 +218,6 @@ class SamplesGroupJobType extends AbstractJob
         fclose($outputFp);
         fclose($inputFp);
 
-        // TODO: wait for jobs to complete and collect their outputs
-
         return [$descriptionRelative, $descriptionUrl, $metas];
     }
 
@@ -237,16 +240,158 @@ class SamplesGroupJobType extends AbstractJob
 
     /**
      * Checks if all jobs have completed (COMPLETED or FAILED state)
+     * and returns only completed jobs.
      *
      * @param \App\Models\Job[] $jobs
      *
-     * @return void
+     * @return \App\Models\Job[]
      */
-    private function waitForCompletion(array $jobs): void
+    private function waitForCompletion(array $jobs): array
     {
+        $this->log('Waiting for grouped jobs to complete.', false);
         while (!$this->checksForCompletion($jobs)) {
-            sleep(500);
+            sleep(600); // Wait for 10 minutes
+            $this->log('.', false);
         }
+        $this->log('');
+
+        return array_filter(
+            $jobs,
+            static function (Job $job) {
+                return $job->status === Job::COMPLETED;
+            }
+        );
+    }
+
+    /**
+     * Make sample compose file
+     *
+     * @param \App\Models\Job[] $jobs
+     *
+     * @return array
+     */
+    private function makeSampleComposeFile(array $jobs): array
+    {
+
+        $sampleComposeData = array_filter(
+            array_map(
+                static function (Job $job) {
+                    $res = Factory::sampleGroupFunctions($job);
+                    if ($res === null) {
+                        return null;
+                    }
+
+                    return array_map(
+                        static function (callable $fn) use ($job) {
+                            return $fn($job) ?? 'NA';
+                        },
+                        $res
+                    );
+                },
+                $jobs
+            )
+        );
+        $content = implode(
+            PHP_EOL,
+            array_map(
+                static function ($data) {
+                    return implode("\t", $data);
+                },
+                $sampleComposeData
+            )
+        );
+        $sampleComposeFile = $this->getJobFileAbsolute('job_compose_', '.txt');
+        @file_put_contents($sampleComposeFile, $content);
+        @chmod($sampleComposeFile, 0777);
+        $hasTranscripts = true;
+        foreach ($sampleComposeData as $datum) {
+            if ($datum[3] === 'NA') {
+                $hasTranscripts = false;
+                break;
+            }
+        }
+
+        return [$sampleComposeFile, $sampleComposeData, $hasTranscripts];
+    }
+
+    /**
+     * Make raw output zip file
+     *
+     * @param array $sampleComposeContent
+     *
+     * @return array
+     * @throws \App\Exceptions\ProcessingJobException
+     */
+    private function createRawZip(array $sampleComposeContent): array
+    {
+        $outputRelative = $this->getJobFile('raw_output_', '.zip');
+        $output = $this->absoluteJobPath($outputRelative);
+        $outputUrl = \Storage::disk('public')->url($outputRelative);
+        $zip = new ZipArchive();
+        if ($zip->open($output, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+            foreach ($sampleComposeContent as $content) {
+                if ($content[2] !== null) {
+                    $zip->addFile($content[2], basename($content[2]));
+                }
+            }
+            $zip->close();
+        } else {
+            throw new ProcessingJobException('Unable to create raw output zip file.');
+        }
+
+        return [$outputRelative, $outputUrl];
+    }
+
+    /**
+     * @param string $sampleComposeFile
+     * @param bool   $ciri
+     * @param bool   $transcripts
+     *
+     * @return array
+     * @throws \App\Exceptions\ProcessingJobException
+     */
+    private function composeOutputFile(string $sampleComposeFile, bool $ciri, bool $transcripts): array
+    {
+        $outputRelative = $this->getJobFile('harmonized_output_', '.txt');
+        $output = $this->absoluteJobPath($outputRelative);
+        $outputUrl = \Storage::disk('public')->url($outputRelative);
+        $txRelative = null;
+        $txFile = null;
+        $txUrl = null;
+        $command = [
+            'Rscript',
+            self::scriptPath('compose.R'),
+            '-i',
+            $sampleComposeFile,
+            '-o',
+            $output,
+        ];
+        if ($ciri) {
+            $command[] = '-c';
+        } elseif ($transcripts) {
+            $txRelative = $this->getJobFile('harmonized_transcripts_output_', '.txt');
+            $txFile = $this->absoluteJobPath($outputRelative);
+            $txUrl = \Storage::disk('public')->url($txRelative);
+            $command[] = '-t';
+            $command[] = '-s';
+            $command[] = $txFile;
+        }
+        if (!file_exists($output)) {
+            throw new ProcessingJobException('Unable to create harmonized output file');
+        }
+        if (!$ciri && $transcripts && !file_exists($txFile)) {
+            throw new ProcessingJobException('Unable to create harmonized transcripts output file');
+        }
+        self::runCommand(
+            $command,
+            $this->model->getAbsoluteJobDirectory(),
+            null,
+            function ($type, $buffer) {
+                $this->log(trim($buffer));
+            }
+        );
+
+        return [$outputRelative, $outputUrl, $txRelative, $txUrl];
     }
 
     /**
@@ -260,21 +405,39 @@ class SamplesGroupJobType extends AbstractJob
     {
         $jobs = $this->getParameter('jobs', []);
         $models = $this->processValidJobs($jobs);
-        $this->checkJobsTypes($models);
+        $type = $this->checkJobsTypes($models);
         /** @var int[] $validJobs */
         $validJobs = $this->pullProperty($models, 'id');
         /** @var string[] $validCodes */
         $validCodes = $this->pullProperty($models, 'sample_code');
+        $this->log('Processing description file.');
         [$descriptionRelative, $descriptionUrl, $metadata] = $this->filterDescriptionFile($models, $validCodes);
-        $this->model->setOutput(
-            [
-                'jobs'        => $validJobs,
-                'codes'       => $validCodes,
-                'description' => ['path' => $descriptionRelative, 'url' => $descriptionUrl],
-                'metadata'    => $metadata,
-            ]
+        $models = $this->waitForCompletion($models);
+        $this->log('All jobs have been completed.');
+        [$sampleComposeFile, $sampleComposeContent, $hasTranscripts] = $this->makeSampleComposeFile($models);
+        $this->log('Creating raw output zip file.');
+        [$rawPath, $rawUrl] = $this->createRawZip($sampleComposeContent);
+        $this->log('Creating harmonized output file.');
+        $isCiri = $type === 'circ_rna_job_type';
+        [$harmonizedPath, $harmonizedUrl, $txPath, $txUrl] = $this->composeOutputFile(
+            $sampleComposeFile,
+            $isCiri,
+            !$isCiri && $hasTranscripts
         );
+        $output = [
+            'jobs'           => $validJobs,
+            'codes'          => $validCodes,
+            'description'    => ['path' => $descriptionRelative, 'url' => $descriptionUrl],
+            'metadata'       => $metadata,
+            'outputFile'     => ['path' => $rawPath, 'url' => $rawUrl],
+            'harmonizedFile' => ['path' => $harmonizedPath, 'url' => $harmonizedUrl],
+        ];
+        if ($txPath !== null && $txUrl !== null) {
+            $output['harmonizedTranscriptsFile'] = ['path' => $txPath, 'url' => $txUrl];
+        }
+        $this->model->setOutput($output);
         $this->model->save();
+        $this->log('Sample group has been created.');
     }
 
 

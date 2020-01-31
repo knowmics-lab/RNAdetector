@@ -10,6 +10,7 @@
 #   -m max spanning distance (default: 200,000)
 # FLAGS: -p for paired sequencing -1 to use CIRI1 instead of CIRI2
 #   -h HARMONIZED output file
+#   -b BED file for annotation
 ##############################################################################
 PAIRED=false
 VERSION=v2
@@ -24,6 +25,7 @@ while getopts "p1a:i:t:o:f:m:h:" opt; do
   f) FASTA_FILE=$OPTARG ;;
   m) SPANNING=$OPTARG ;;
   h) HARMONIZED=$OPTARG ;;
+  b) BED_FILE=$OPTARG ;;
   \?)
     echo "Invalid option: -$OPTARG"
     exit 1
@@ -110,9 +112,16 @@ if [ ! -z "$HARMONIZED" ]; then
   CURR_DIR=$(pwd)
   SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
   cd $CURR_DIR
-  if ! Rscript "${SCRIPT_PATH}/harmonize.R" -i "$OUTPUT" -a "ciri" -o "$HARMONIZED"; then
-    echo "Unable to harmonize output file"
-    exit 10
+  if [ ! -z "$BED_FILE" ]; then
+    if ! Rscript "${SCRIPT_PATH}/harmonize.R" -i "$OUTPUT" -a "ciri" -o "$HARMONIZED" -a "$BED_FILE"; then
+      echo "Unable to harmonize output file"
+      exit 10
+    fi
+  else
+    if ! Rscript "${SCRIPT_PATH}/harmonize.R" -i "$OUTPUT" -a "ciri" -o "$HARMONIZED"; then
+      echo "Unable to harmonize output file"
+      exit 10
+    fi
   fi
   chmod 777 "$HARMONIZED"
 fi

@@ -14,6 +14,7 @@ use App\Jobs\Types\Traits\ConvertsSamToBamTrait;
 use App\Jobs\Types\Traits\HasCommonParameters;
 use App\Jobs\Types\Traits\RunTrimGaloreTrait;
 use App\Models\Annotation;
+use App\Models\Job;
 use App\Models\Reference;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -202,13 +203,14 @@ class CircRnaJobType extends AbstractJob
     /**
      * Runs CIRI analysis
      *
-     * @param string                 $ciriInputFile
-     * @param \App\Models\Reference  $genome
-     * @param \App\Models\Annotation $annotation
-     * @param int                    $spanningDistance
-     * @param int                    $threads
-     * @param bool                   $paired
-     * @param bool                   $useCiri1
+     * @param string                      $ciriInputFile
+     * @param \App\Models\Reference       $genome
+     * @param \App\Models\Annotation      $annotation
+     * @param int                         $spanningDistance
+     * @param int                         $threads
+     * @param bool                        $paired
+     * @param bool                        $useCiri1
+     * @param \App\Models\Annotation|null $bedAnnotation
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
@@ -220,7 +222,8 @@ class CircRnaJobType extends AbstractJob
         int $spanningDistance = 200000,
         int $threads = 1,
         bool $paired = false,
-        bool $useCiri1 = false
+        bool $useCiri1 = false,
+        ?Annotation $bedAnnotation = null
     ): array {
         if (!$annotation->isGtf()) {
             throw new ProcessingJobException('The selected annotation must be in GTF format.');
@@ -255,6 +258,10 @@ class CircRnaJobType extends AbstractJob
         if ($useCiri1) {
             $command[] = '-1';
         }
+        if ($bedAnnotation !== null && $bedAnnotation->isBed()) {
+            $command[] = '-b';
+            $command[] = $bedAnnotation->path;
+        }
         $output = AbstractJob::runCommand(
             $command,
             $this->model->getAbsoluteJobDirectory(),
@@ -276,8 +283,6 @@ class CircRnaJobType extends AbstractJob
         if (!file_exists($ciriOutput)) {
             throw new ProcessingJobException('Unable to create CIRI output file');
         }
-
-        // $this->log($output);
 
         return [$ciriOutputRelative, $ciriOutputUrl, $ciriHarmonizedRelative, $ciriHarmonizedUrl];
     }
@@ -424,11 +429,8 @@ class CircRnaJobType extends AbstractJob
         $useFastqPair = (bool)$this->getParameter('useFastqPair', false);
         $useCiri1 = (bool)$this->getParameter('ciriUseVersion1', false);
         $ciriQuant = (bool)$this->getParameter('ciriQuant', false);
-        $bedAnnotationName = $this->getParameter('bedAnnotation');
-        $bedAnnotation = null;
-        if ($ciriQuant) {
-            $bedAnnotation = Annotation::whereName($bedAnnotationName)->firstOrFail();
-        }
+        $bedAnnotationName = $this->getParameter('bedAnnotation', 'Human_hg19_circRNAs_bed');
+        $bedAnnotation = Annotation::whereName($bedAnnotationName)->first();
         $genome = Reference::whereName($genomeName)->firstOrFail();
         $annotation = Annotation::whereName($annotationName)->firstOrFail();
         if ($annotation->type !== 'gtf') {
@@ -529,7 +531,8 @@ class CircRnaJobType extends AbstractJob
                 $ciriSpanningDistance,
                 $threads,
                 $paired,
-                $useCiri1
+                $useCiri1,
+                $bedAnnotation
             );
         }
         $this->log('CircRNA Analysis completed!');
@@ -556,5 +559,33 @@ class CircRnaJobType extends AbstractJob
     public static function description(): string
     {
         return 'Runs circRNA analysis from sequencing data';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function sampleGroupFunctions(): ?array
+    {
+        return [
+            static function (Job $job) {
+                return $job->sample_code;
+            },
+            static function (Job $job) {
+                $output = $job->getOutput('harmonizedFile');
+
+                return $job->absoluteJobPath($output['path']);
+            },
+            static function (Job $job) {
+                $output = $job->getOutput('outputFile');
+
+                return $job->absoluteJobPath($output['path']);
+            },
+            static function (Job $job) {
+                $bedAnnotationName = $job->getParameter('bedAnnotation', 'Human_hg19_circRNAs_bed');
+                $bedAnnotation = Annotation::whereName($bedAnnotationName)->first();
+
+                return ($bedAnnotation !== null) ? $bedAnnotation->path : null;
+            },
+        ];
     }
 }

@@ -116,6 +116,16 @@ abstract class AbstractJob
     abstract public static function validationSpec(Request $request): array;
 
     /**
+     * Returns an array of 4 functions one for each field of the sample group composition script input
+     *
+     * @return callable[]|null
+     */
+    public static function sampleGroupFunctions(): ?array
+    {
+        return null;
+    }
+
+    /**
      * Checks the input of this job and returns true iff the input contains valid data
      * The default implementation does nothing.
      *

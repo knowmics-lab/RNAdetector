@@ -135,7 +135,7 @@ trait UseAlignmentTrait
             $command[] = '-s';
             $command[] = $secondInputFile;
         }
-        $output = AbstractJob::runCommand(
+        AbstractJob::runCommand(
             $command,
             $model->getAbsoluteJobDirectory(),
             null,

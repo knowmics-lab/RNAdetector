@@ -70,6 +70,7 @@ merge.tables <- function (samples) {
     colnames(tmp) <- c("id", names(samples)[i])
     final <- final %>% full_join(tmp, by="id")
   }
+  final[,8:ncol(final)][is.na(final[,8:ncol(final)])] <- 0
   missing <- which(is.na(final$name) & is.na(final$chr) & is.na(final$start) & is.na(final$end) & is.na(final$strand) & is.na(final$length))
   if (length(missing) > 0) {
     missing.id <- final$id[missing]
