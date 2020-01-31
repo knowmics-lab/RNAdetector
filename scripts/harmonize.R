@@ -1,7 +1,11 @@
 #!/usr/bin/env Rscript
-library(optparse)
-library(dplyr)
-library(tximport)
+suppressPackageStartupMessages({
+  library(optparse)
+  library(dplyr)
+  library(tximport)
+  library(GenomicRanges)
+  library(rtracklayer)
+})
 
 read.gtf <- function (input.gtf, level = NULL, filter.features=NULL, one.by.one = FALSE) {
   a        <- read.table(input.gtf,  stringsAsFactors = FALSE, sep = "\t")
@@ -46,12 +50,20 @@ read.gtf <- function (input.gtf, level = NULL, filter.features=NULL, one.by.one 
   return (a)
 }
 
-harmonize.ciri <- function (input.file, output.file) {
+harmonize.ciri <- function (input.file, bedfile, output.file) {
   m <- read.table(input.file, stringsAsFactors = FALSE, sep = "\t", skip = 1)
   m <- m[,c(1,1,2,3,4,11,5)]
   colnames(m) <- c("id", "name", "chr", "start", "end", "strand", "counts")
-  m$length <- (m$end - m$start) + 1
+  m$length <- NA
   m <- m[,c("id", "name", "chr", "start", "end", "strand", "length", "counts")]
+  if (!is.null(bedfile) && file.exists(bedfile)) {
+    g <- GRanges(seqnames = Rle(m$chr), ranges = IRanges(m$start,m$end),strand=m$strand)
+    g$id       <- m$id
+    g$gene <- m$gene_id
+    gr_obj  <- import(bedfile)
+    o <- findOverlaps(g, gr_obj, type = "equal")
+    m$id[queryHits(o)] <- gr_obj$name[subjectHits(o)]
+  }
   write.table(m, file = output.file, quote = FALSE, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)
 }
 
@@ -231,7 +243,7 @@ if (opt$algorithm == "stringtie" && (is.null(opt[["stringtie-tx-counts"]]) || !f
 }
 
 if (opt$algorithm == "ciri") {
-  harmonize.ciri(input.file = opt$input, output.file = opt$goutput)
+  harmonize.ciri(input.file = opt$input, bedfile = opt$annotation, output.file = opt$goutput)
 } else if (opt$algorithm == "ciriquant") {
   harmonize.ciri.quant(input.file = opt$input, output.file = opt$goutput)
 } else if (opt$algorithm == "htseq") {

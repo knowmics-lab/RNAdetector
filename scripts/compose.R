@@ -1,58 +1,54 @@
 #!/usr/bin/env Rscript
-library(optparse)
-library(dplyr)
-library(tximport)
+suppressPackageStartupMessages({
+  library(optparse)
+  library(dplyr)
+  library(tximport)
+  library(GenomicRanges)
+  library(rtracklayer)
+})
 
-read.gtf <- function (input.gtf, level = NULL, filter.features=NULL, one.by.one = FALSE) {
-  a        <- read.table(input.gtf,  stringsAsFactors = FALSE, sep = "\t")
-  if (!is.null(level)) {
-    if (one.by.one) {
-      found <- FALSE
-      for (l in level) {
-        tmp <- a[a[,3] == l,]
-        if (nrow(tmp) > 0) {
-          found <- TRUE
-          a <- tmp
-          break
-        }
-      }
-      if (!found) return (NULL)
-    } else {
-      a <- a[a[,3] %in% level,]
-    }
+build.granges <- function (file, bedfile) {
+  m <- read.table(file, stringsAsFactors = FALSE, sep = "\t", skip = 1)
+  m <- m[,-12]
+  colnames(m) <- c("circRNA_ID","chr","circRNA_start","circRNA_end","junction_reads","SM_MS_SMS",
+                   "non_junction_reads","junction_reads_ratio","circRNA_type","gene_id","strand")
+  m <- m[order(m$junction_reads,decreasing=T),]
+  g <- GRanges(seqnames = Rle(m$chr), ranges = IRanges(m$circRNA_start,m$circRNA_end),strand=m$strand)
+  g$id       <- m$circRNA_ID
+  g$juncread <- m$junction_reads
+  g$gene <- m$gene_id
+  if (!is.na(bedfile) && file.exists(bedfile)) {
+    gr_obj  <- import(bedfile)
+    o <- findOverlaps(g, gr_obj, type = "equal")
+    g$id[queryHits(o)] <- gr_obj$name[subjectHits(o)]
   }
-  if (nrow(a) == 0) return (NULL)
-  features <- lapply(strsplit(a[,9],";\\s*", perl = TRUE), function (x) {
-    tmp <- strsplit(x, "\\s+\"?", perl = TRUE)
-    return (setNames(sapply(tmp, function (x) (ifelse(length(x) > 1, x[2], NA))), sapply(tmp, function (x) (x[1]))))
-  })
-  all.features <- names(features[[1]])
-  if (!is.null(filter.features)) {
-    all.features <- intersect(all.features, filter.features)
-  }
-  columns <- setNames(lapply(all.features, function (f) (sapply(features, function (x) (unname(x[f]))))), all.features)
-  a <- a[,-c(2,6,8,9)]
-  colnames(a) <- c("chr", "level", "start", "end", "strand")
-  for (c in names(columns)) {
-    if (!(c %in% colnames(a))) {
-      a[[c]] <- columns[[c]]
-    }
-  } 
-  for (c in setdiff(filter.features, all.features)) {
-    if (!(c %in% colnames(a))) {
-      a[[c]] <- NA
-    }
-  }
-  return (a)
+  return (g)
 }
 
-harmonize.ciri <- function (input.file, output.file) {
-  m <- read.table(input.file, stringsAsFactors = FALSE, sep = "\t", skip = 1)
-  m <- m[,c(1,1,2,3,4,11,5)]
-  colnames(m) <- c("id", "name", "chr", "start", "end", "strand", "counts")
-  m$length <- (m$end - m$start) + 1
-  m <- m[,c("id", "name", "chr", "start", "end", "strand", "length", "counts")]
-  write.table(m, file = output.file, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)
+merge.ciri <- function (files, bedfiles) {
+  nfile <- length(files)
+  glist <- setNames(lapply(1:nfile, function(i) (build.granges(files[i], bedfiles[i]))), names(files))
+  glist <- GRangesList(glist)
+  gcirc <- unlist(glist)
+  gcirc$juncread <- NULL
+  gcirc.uniq <- unique(gcirc)
+  ngcirc <- length(gcirc.uniq)
+  gcirc <- gcirc.uniq
+  juncread <- matrix(0, nrow = ngcirc, ncol = nfile, dimnames = list(NULL, names(files)))
+  for(ifile in 1:nfile){
+    tmp <- BiocGenerics::match(glist[[ifile]],gcirc)
+    juncread[tmp, ifile] <- glist[[ifile]]$juncread
+  }
+  juncread <- as.data.frame(juncread)
+  return (data.frame(
+    id=gcirc$id,
+    name=gcirc$id,
+    chr=as(seqnames(gcirc), "vector"),
+    start=start(ranges(gcirc)),
+    end=end(ranges(gcirc)),
+    length=NA,
+    juncread
+  ))
 }
 
 read.input <- function (input.file, raw = FALSE) {
@@ -94,7 +90,7 @@ option_list <- list(
   make_option(c("-c", "--ciri"), type="logical", default=FALSE, help="process CIRI output", action = "store_true"),
   make_option(c("-t", "--transcripts"), type="logical", default=FALSE, help="process transcripts output", action = "store_true"),
   make_option(c("-o", "--goutput"), type="character", default=NULL, help="gene expression output file", metavar="character"),
-  make_option(c("-t", "--toutput"), type="character", default=NULL, help="transcripts expression output file", metavar="character")
+  make_option(c("-s", "--toutput"), type="character", default=NULL, help="transcripts expression output file", metavar="character")
 ); 
 
 opt_parser <- OptionParser(option_list=option_list)
@@ -115,14 +111,15 @@ if (opt$transcripts && is.null(opt$toutput)) {
   stop("Transcripts output file is required!", call.=FALSE)
 }
 
+input <- read.input(opt$input)
 if (opt$ciri) {
-  
+  merged.input <- merge.ciri(input.as.vector(input, 3), input.as.vector(input, 4))
+  write.table(merged.input, file = opt$goutput, quote = FALSE, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)
 } else {
-  input <- read.input(opt$input)
   merged.input <- merge.tables(read.samples(input.as.vector(input)))
   write.table(merged.input, file = opt$goutput, quote = FALSE, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)
   if (opt$transcripts) {
-    merged.input <- merge.tables(read.samples(input.as.vector(input, column = 3)))
+    merged.input <- merge.tables(read.samples(input.as.vector(input, column = 4)))
     write.table(merged.input, file = opt$toutput, quote = FALSE, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)
   }
 }
