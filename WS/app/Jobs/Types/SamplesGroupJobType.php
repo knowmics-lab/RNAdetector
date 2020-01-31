@@ -338,6 +338,7 @@ class SamplesGroupJobType extends AbstractJob
         } else {
             throw new ProcessingJobException('Unable to create raw output zip file.');
         }
+        @chmod($output, 0777);
 
         return [$outputRelative, $outputUrl];
     }
@@ -384,13 +385,17 @@ class SamplesGroupJobType extends AbstractJob
                 $this->log(trim($buffer));
             }
         );
+        @chmod($output, 0777);
+        if (!$ciri && $transcripts) {
+            @chmod($txFile, 0777);
+        }
         if (!file_exists($output)) {
             throw new ProcessingJobException('Unable to create harmonized output file');
         }
         if (!$ciri && $transcripts && !file_exists($txFile)) {
             throw new ProcessingJobException('Unable to create harmonized transcripts output file');
         }
-        
+
         return [$outputRelative, $outputUrl, $txRelative, $txUrl];
     }
 
