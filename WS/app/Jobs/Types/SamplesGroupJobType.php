@@ -376,12 +376,6 @@ class SamplesGroupJobType extends AbstractJob
             $command[] = '-s';
             $command[] = $txFile;
         }
-        if (!file_exists($output)) {
-            throw new ProcessingJobException('Unable to create harmonized output file');
-        }
-        if (!$ciri && $transcripts && !file_exists($txFile)) {
-            throw new ProcessingJobException('Unable to create harmonized transcripts output file');
-        }
         self::runCommand(
             $command,
             $this->model->getAbsoluteJobDirectory(),
@@ -390,7 +384,13 @@ class SamplesGroupJobType extends AbstractJob
                 $this->log(trim($buffer));
             }
         );
-
+        if (!file_exists($output)) {
+            throw new ProcessingJobException('Unable to create harmonized output file');
+        }
+        if (!$ciri && $transcripts && !file_exists($txFile)) {
+            throw new ProcessingJobException('Unable to create harmonized transcripts output file');
+        }
+        
         return [$outputRelative, $outputUrl, $txRelative, $txUrl];
     }
 
