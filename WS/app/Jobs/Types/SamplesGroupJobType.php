@@ -292,14 +292,14 @@ class SamplesGroupJobType extends AbstractJob
             )
         );
         $content = implode(
-            PHP_EOL,
-            array_map(
-                static function ($data) {
-                    return implode("\t", $data);
-                },
-                $sampleComposeData
-            )
-        );
+                PHP_EOL,
+                array_map(
+                    static function ($data) {
+                        return implode("\t", $data);
+                    },
+                    $sampleComposeData
+                )
+            ) . PHP_EOL;
         $sampleComposeFile = $this->getJobFileAbsolute('job_compose_', '.txt');
         @file_put_contents($sampleComposeFile, $content);
         @chmod($sampleComposeFile, 0777);
