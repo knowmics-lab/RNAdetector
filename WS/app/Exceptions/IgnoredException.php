@@ -7,8 +7,8 @@
 
 namespace App\Exceptions;
 
-use Exception;
+use RuntimeException;
 
-class ProcessingJobException extends Exception
+class IgnoredException extends RuntimeException
 {
 }

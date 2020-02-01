@@ -13,17 +13,17 @@ if [ ! -f $INPUT ]; then
 fi
 
 MIME=$(file -i -0 "$INPUT" | cut -f 2 -d " " | cut -f 1 -d ";")
-EXTENSION="${INPUT_NAME##*.}"
+EXTENSION="${INPUT##*.}"
 FILENAME="$(dirname "$INPUT")/$(basename "$INPUT" ".${EXTENSION}")"
 
 COMPRESSED=false
 if [ "$MIME" = "application/gzip" ]; then
   echo "Extracting input file"
-  gunzip -v "$INPUT"
+  gunzip -k -v "$INPUT"
   COMPRESSED=true
 elif [ "$MIME" = "application/x-bzip2" ]; then
   echo "Extracting input file"
-  bunzip2 -v "$INPUT"
+  bunzip2 -k -v "$INPUT"
   COMPRESSED=true
 fi
 
@@ -32,4 +32,5 @@ if [ "$COMPRESSED" = "true" ]; then
     echo "Unable to find extracted file"
     exit 3
   fi
+  exit 4
 fi

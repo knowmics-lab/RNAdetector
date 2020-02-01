@@ -8,12 +8,16 @@
 namespace App;
 
 use App\Exceptions\CommandException;
+use App\Exceptions\IgnoredException;
 use App\Exceptions\ProcessingJobException;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
+use Throwable;
 
 final class Utils
 {
+
+    public const IGNORED_ERROR_CODE = '===IGNORED===';
 
     /**
      * Runs a shell command and checks for successful completion of execution
@@ -46,14 +50,18 @@ final class Utils
      * @param \Symfony\Component\Process\Exception\ProcessFailedException $e
      * @param array                                                       $errorCodeMap
      *
-     * @return \App\Exceptions\ProcessingJobException
+     * @return \App\Exceptions\ProcessingJobException|\App\Exceptions\IgnoredException
      */
     public static function mapCommandException(
         ProcessFailedException $e,
         array $errorCodeMap = []
-    ): ProcessingJobException {
+    ) {
         $code = $e->getProcess()->getExitCode();
         if (isset($errorCodeMap[$code])) {
+            if ($errorCodeMap[$code] === self::IGNORED_ERROR_CODE) {
+                return new IgnoredException($code, $code);
+            }
+
             return new ProcessingJobException($errorCodeMap[$code], $code, $e);
         }
 

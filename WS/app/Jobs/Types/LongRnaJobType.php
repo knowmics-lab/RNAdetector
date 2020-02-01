@@ -11,6 +11,7 @@ namespace App\Jobs\Types;
 
 use App\Exceptions\ProcessingJobException;
 use App\Jobs\Types\Traits\ConvertsSamToBamTrait;
+use App\Jobs\Types\Traits\HandlesCompressedFastqTrait;
 use App\Jobs\Types\Traits\HasCommonParameters;
 use App\Jobs\Types\Traits\RunTrimGaloreTrait;
 use App\Jobs\Types\Traits\UseAlignmentTrait;
@@ -23,7 +24,7 @@ use Illuminate\Validation\Rule;
 
 class LongRnaJobType extends AbstractJob
 {
-    use HasCommonParameters, ConvertsSamToBamTrait, RunTrimGaloreTrait, UseAlignmentTrait, UseCountingTrait;
+    use HasCommonParameters, ConvertsSamToBamTrait, RunTrimGaloreTrait, UseAlignmentTrait, UseCountingTrait, HandlesCompressedFastqTrait;
 
     /**
      * Returns an array containing for each input parameter an help detailing its content and use.
@@ -155,6 +156,9 @@ class LongRnaJobType extends AbstractJob
         $countingInputFile = '';
         $count = true;
         if ($inputType === self::FASTQ) {
+            $this->log('Checking if input is compressed...');
+            $firstInputFile = self::checksForCompression($this->model, $firstInputFile);
+            $secondInputFile = self::checksForCompression($this->model, $secondInputFile);
             [$firstTrimmedFastq, $secondTrimmedFastq] = [$firstInputFile, $secondInputFile];
             if ($trimGaloreEnable) {
                 [$firstTrimmedFastq, $secondTrimmedFastq] = self::runTrimGalore(
