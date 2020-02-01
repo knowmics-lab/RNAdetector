@@ -21,7 +21,9 @@ export default {
   analysisFileExtensions(type: AnalysisFileTypes): FileFilter[] {
     switch (type) {
       case 'fastq':
-        return [{ name: 'FASTQ files', extensions: ['fq', 'fastq'] }];
+        return [
+          { name: 'FASTQ files', extensions: ['fq', 'fastq', 'gz', 'bz2'] }
+        ];
       case 'bam':
         return [{ name: 'BAM files', extensions: ['bam'] }];
       case 'sam':
