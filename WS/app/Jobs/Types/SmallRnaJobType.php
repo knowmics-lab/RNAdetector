@@ -304,7 +304,7 @@ class SmallRnaJobType extends AbstractJob
             },
             static function (Job $job) {
                 $output = $job->getOutput('harmonizedTranscriptsFile');
-                if ($output !== null) {
+                if ($output === null) {
                     return null;
                 }
 
