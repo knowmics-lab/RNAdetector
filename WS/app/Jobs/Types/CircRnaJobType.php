@@ -11,6 +11,7 @@ namespace App\Jobs\Types;
 use App\Exceptions\ProcessingJobException;
 use App\Jobs\Types\Traits\ConvertsBamToFastqTrait;
 use App\Jobs\Types\Traits\ConvertsSamToBamTrait;
+use App\Jobs\Types\Traits\HandlesCompressedFastqTrait;
 use App\Jobs\Types\Traits\HasCommonParameters;
 use App\Jobs\Types\Traits\RunTrimGaloreTrait;
 use App\Models\Annotation;
@@ -22,7 +23,7 @@ use Illuminate\Validation\Rule;
 class CircRnaJobType extends AbstractJob
 {
 
-    use HasCommonParameters, ConvertsBamToFastqTrait, RunTrimGaloreTrait, ConvertsSamToBamTrait;
+    use HasCommonParameters, ConvertsBamToFastqTrait, RunTrimGaloreTrait, ConvertsSamToBamTrait, HandlesCompressedFastqTrait;
 
     /**
      * Returns an array containing for each input parameter an help detailing its content and use.
@@ -449,19 +450,24 @@ class CircRnaJobType extends AbstractJob
                 $firstInputFile
             );
         }
-        if ($inputType === self::FASTQ && $trimGaloreEnable) {
-            $this->log('Trimming reads using TrimGalore');
-            [$firstInputFile, $secondInputFile] = self::runTrimGalore(
-                $this->model,
-                $paired,
-                $firstInputFile,
-                $secondInputFile,
-                $trimGaloreQuality,
-                $trimGaloreLength,
-                $trimGaloreHardTrim,
-                $threads
-            );
-            $this->log('Trimming completed');
+        if ($inputType === self::FASTQ) {
+            $this->log('Checking if input is compressed...');
+            $firstInputFile = self::checksForCompression($this->model, $firstInputFile);
+            $secondInputFile = self::checksForCompression($this->model, $secondInputFile);
+            if ($trimGaloreEnable) {
+                $this->log('Trimming reads using TrimGalore');
+                [$firstInputFile, $secondInputFile] = self::runTrimGalore(
+                    $this->model,
+                    $paired,
+                    $firstInputFile,
+                    $secondInputFile,
+                    $trimGaloreQuality,
+                    $trimGaloreLength,
+                    $trimGaloreHardTrim,
+                    $threads
+                );
+                $this->log('Trimming completed');
+            }
         }
         if ($ciriQuant) {
             if ($inputType !== self::FASTQ) {
