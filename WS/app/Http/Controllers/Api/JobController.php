@@ -42,11 +42,22 @@ class JobController extends Controller
      */
     public function index(Request $request): JobCollection
     {
+        $query = Job::query();
+        if ($request->has('deep_type')) {
+            $type = $request->get('deep_type');
+            if ($type) {
+                $query = Job::deepTypeFilter($type);
+            }
+        }
+
         return new JobCollection(
             $this->handleBuilderRequest(
                 $request,
-                Job::query(),
-                static function (Builder $builder) {
+                $query,
+                static function (Builder $builder) use ($request) {
+                    if ($request->has('completed')) {
+                        $builder->where('status', '=', Job::COMPLETED);
+                    }
                     /** @var \App\Models\User $user */
                     $user = \Auth::guard('api')->user();
                     if (!$user->admin) {
