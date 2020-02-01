@@ -252,6 +252,10 @@ class SamplesGroupJobType extends AbstractJob
         while (!$this->checksForCompletion($jobs)) {
             sleep(600); // Wait for 10 minutes
             $this->log('.', false);
+            // Refresh all jobs
+            foreach ($jobs as $job) {
+                $job->refresh();
+            }
         }
         $this->log('');
 
