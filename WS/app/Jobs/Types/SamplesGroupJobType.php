@@ -84,6 +84,40 @@ class SamplesGroupJobType extends AbstractJob
     }
 
     /**
+     * @param \App\Models\Job[] $jobs
+     *
+     * @return array
+     */
+    private function processSamplesGroups(array $jobs): array
+    {
+        $samplesGroups = [];
+        $others = [];
+        foreach ($jobs as $job) {
+            if ($job->job_type === 'samples_group_job_type') {
+                $samplesGroups[] = $job;
+            } else {
+                $others[$job->id] = $job;
+            }
+        }
+        $samplesGroupsJobs = [];
+        foreach ($samplesGroups as $job) {
+            $containedJobs = $job->getOutput('jobs');
+            if ($jobs !== null && is_array($jobs)) {
+                foreach ($containedJobs as $cjId) {
+                    if (isset($others[$cjId])) {
+                        $samplesGroupsJobs[$cjId] = $others[$cjId];
+                        unset($others[$cjId]);
+                    } else {
+                        $samplesGroupsJobs[$cjId] = Job::whereId($cjId)->first();
+                    }
+                }
+            }
+        }
+
+        return [array_filter(array_values($samplesGroupsJobs)), array_values($others)];
+    }
+
+    /**
      * Find all valid jobs
      *
      * @param array $jobs
@@ -96,8 +130,8 @@ class SamplesGroupJobType extends AbstractJob
         /** @var Job[] $models */
         $models = array_filter(
             array_map(
-                static function ($job) {
-                    return Job::whereId($job)->first();
+                static function ($jobId) {
+                    return Job::whereId($jobId)->first();
                 },
                 $jobs
             )
@@ -414,15 +448,27 @@ class SamplesGroupJobType extends AbstractJob
     {
         $jobs = $this->getParameter('jobs', []);
         $models = $this->processValidJobs($jobs);
-        $type = $this->checkJobsTypes($models);
+        $models = $this->waitForCompletion($models);
+        $this->log('All jobs have been completed.');
+        [$samplesGroupsJobs, $otherJobs] = $this->processSamplesGroups($models);
+        $type = $this->checkJobsTypes($otherJobs);
+        if (count($samplesGroupsJobs) > 0) {
+            if ($this->checkJobsTypes($samplesGroupsJobs) !== $type) {
+                throw new ProcessingJobException('All jobs must be of the same type');
+            }
+            $models = array_merge($otherJobs, $samplesGroupsJobs);
+        } else {
+            $models = &$otherJobs;
+        }
         /** @var int[] $validJobs */
         $validJobs = $this->pullProperty($models, 'id');
         /** @var string[] $validCodes */
         $validCodes = $this->pullProperty($models, 'sample_code');
         $this->log('Processing description file.');
-        [$descriptionRelative, $descriptionUrl, $metadata] = $this->filterDescriptionFile($models, $validCodes);
-        $models = $this->waitForCompletion($models);
-        $this->log('All jobs have been completed.');
+        [$descriptionRelative, $descriptionUrl, $metadata] = $this->filterDescriptionFile(
+            $models,
+            $validCodes
+        ); // TODO create one big description file
         [$sampleComposeFile, $sampleComposeContent, $hasTranscripts] = $this->makeSampleComposeFile($models);
         $this->log('Creating raw output zip file.');
         [$rawPath, $rawUrl] = $this->createRawZip($sampleComposeContent);
