@@ -7,6 +7,8 @@
 
 namespace App\Models;
 
+use DB;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
@@ -19,6 +21,7 @@ use Storage;
  * @property string                          $sample_code
  * @property string                          $name
  * @property string                          $job_type
+ * @property string                          $sample_group_type
  * @property string                          $status
  * @property array                           $job_parameters
  * @property array                           $job_output
@@ -41,6 +44,7 @@ use Storage;
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job deepTypeFilter($type)
  * @mixin \Eloquent
  */
 class Job extends Model
@@ -77,6 +81,33 @@ class Job extends Model
         'job_parameters' => 'array',
         'job_output'     => 'array',
     ];
+
+    /**
+     * Scope a query to filter for job_type.
+     * If a job is a group then it uses the type of the first grouped job.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param string                                $type
+     *
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeDeepTypeFilter(Builder $query, string $type): Builder
+    {
+        return $query->where('job_type', '=', $type)->orWhere(
+            static function (Builder $builder) use ($type) {
+                return $builder->where('job_type', '=', 'samples_group_job_type')
+                               ->whereRaw('JSON_CONTAINS_PATH(job_parameters, \'one\', \'$.jobs\')')
+                               ->whereExists(
+                                   static function (\Illuminate\Database\Query\Builder $query) use ($type) {
+                                       $query->select(DB::raw(1))
+                                             ->from('jobs', 'j1')
+                                             ->whereRaw('j1.id = jobs.job_parameters->>"$.jobs[0]"')
+                                             ->where('j1.job_type', '=', $type);
+                                   }
+                               );
+            }
+        );
+    }
 
     /**
      * Returns the readable job type
@@ -118,6 +149,24 @@ class Job extends Model
         }
 
         return $value;
+    }
+
+    /**
+     * Returns the custom sample_group_type attribute
+     *
+     * @return string
+     */
+    public function getSampleGroupTypeAttribute(): string
+    {
+        $jobs = $this->getParameter('jobs');
+        if (is_array($jobs) && count($jobs) > 0) {
+            $job = self::whereId($jobs[0])->first();
+            if ($job !== null) {
+                return $job->job_type;
+            }
+        }
+
+        return null;
     }
 
     /**
