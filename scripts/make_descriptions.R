@@ -109,7 +109,7 @@ descriptions  <- read.descriptions(input, samples, default.group)
 final.df      <- rbind.fill(Filter(function (x) (nrow(x) > 0), remove.duplicated.samples(remove.invalid.samples(descriptions, samples))))
 write.table(final.df, file = opt$output, append = FALSE, quote = TRUE, sep = "\t", row.names = FALSE, col.names = TRUE)
 df.description <- describe.columns(final.df)
-write.table(df.description, file = opt$doutput, append = FALSE, quote = TRUE, sep = "\t", row.names = FALSE, col.names = FALSE)
+write.table(df.description, file = opt$doutput, append = FALSE, quote = FALSE, sep = "\t", row.names = FALSE, col.names = FALSE)
 
 
 

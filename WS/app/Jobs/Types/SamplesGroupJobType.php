@@ -208,6 +208,33 @@ class SamplesGroupJobType extends AbstractJob
     }
 
     /**
+     * Prepare the meta array using the output of the make_descriptions.R script
+     *
+     * @param string $descriptor
+     *
+     * @return array
+     * @throws \App\Exceptions\ProcessingJobException
+     */
+    private function prepareMetaArray(string $descriptor): array
+    {
+        $fp = @fopen($descriptor, 'rb');
+        if (!$fp) {
+            throw new ProcessingJobException('Unable to open descriptor file');
+        }
+        $meta = [];
+        while (($data = fgetcsv($fp, 0, "\t")) !== false) {
+            $meta[] = [
+                'field'   => $data[0],
+                'type'    => $data[1],
+                'content' => explode(';', $data[2]),
+            ];
+        }
+        @fclose($fp);
+
+        return $meta;
+    }
+
+    /**
      * @param \App\Models\Job[] $models
      * @param string[]          $validCodes
      * @param array             $preBuiltDescriptions
@@ -215,7 +242,7 @@ class SamplesGroupJobType extends AbstractJob
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
      */
-    private function filterDescriptionFile(array $models, array $validCodes, array $preBuiltDescriptions): array
+    private function makeDescriptionsFile(array $models, array $validCodes, array $preBuiltDescriptions): array
     {
         $inputDescription = $this->model->getParameter('description', null);
         $deNovo = $this->getParameter('de_novo', false);
@@ -228,15 +255,14 @@ class SamplesGroupJobType extends AbstractJob
         }
         $descriptionsListFile = $this->getJobFileAbsolute('descriptions_list_', '.txt');
         @chmod($descriptionsListFile, 0777);
-        @file_put_contents($descriptionsListFile, implode(PHP_EOL, $preBuiltDescriptions));
+        @file_put_contents($descriptionsListFile, implode(PHP_EOL, $preBuiltDescriptions) . PHP_EOL);
         $samplesListFile = $this->getJobFileAbsolute('samples_list_', '.txt');
         @chmod($samplesListFile, 0777);
-        @file_put_contents($samplesListFile, implode(PHP_EOL, $validCodes));
+        @file_put_contents($samplesListFile, implode(PHP_EOL, $validCodes) . PHP_EOL);
         $descriptionRelative = $this->getJobFile('description_', '.tsv');
         $descriptionFile = $this->absoluteJobPath($descriptionRelative);
         $descriptionUrl = Storage::disk('public')->url($descriptionRelative);
         $descriptorFile = $this->getJobFileAbsolute('description_descriptor_', '.tsv');
-        $metas = [];
         self::runCommand(
             [
                 'Rscript',
@@ -265,6 +291,10 @@ class SamplesGroupJobType extends AbstractJob
             throw new ProcessingJobException('Unable to create samples descriptor file');
         }
         @chmod($descriptionFile, 0777);
+        $metas = $this->prepareMetaArray($descriptorFile);
+        @unlink($descriptorFile);
+        @unlink($descriptionsListFile);
+        @unlink($samplesListFile);
 
         return [$descriptionRelative, $descriptionUrl, $metas];
     }
@@ -479,11 +509,11 @@ class SamplesGroupJobType extends AbstractJob
         /** @var string[] $validCodes */
         $validCodes = $this->pullProperty($models, 'sample_code');
         $this->log('Processing description file.');
-        [$descriptionRelative, $descriptionUrl, $metadata] = $this->filterDescriptionFile(
+        [$descriptionRelative, $descriptionUrl, $metadata] = $this->makeDescriptionsFile(
             $models,
             $validCodes,
             $preBuiltDescriptions
-        ); // TODO create one big description file
+        );
         [$sampleComposeFile, $sampleComposeContent, $hasTranscripts] = $this->makeSampleComposeFile($models);
         $this->log('Creating raw output zip file.');
         [$rawPath, $rawUrl] = $this->createRawZip($sampleComposeContent);
