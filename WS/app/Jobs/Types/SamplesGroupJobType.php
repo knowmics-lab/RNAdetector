@@ -223,7 +223,7 @@ class SamplesGroupJobType extends AbstractJob
             $preBuiltDescriptions = [];
         }
         $dir = $this->getJobDirectory() . '/';
-        if (empty($inputDescription) || !Storage::disk('public')->exists($dir . $inputDescription)) {
+        if (!empty($inputDescription) && Storage::disk('public')->exists($dir . $inputDescription)) {
             $preBuiltDescriptions[] = realpath($this->getAbsoluteJobDirectory() . '/' . $inputDescription);
         }
         $descriptionsListFile = $this->getJobFileAbsolute('descriptions_list_', '.txt');
