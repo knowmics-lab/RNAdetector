@@ -51,10 +51,10 @@ describe.columns <- function (input) {
     col <- input[[i]]
     cols[i - 1] <- colnames(input)[i]
     if (is.numeric(col)) {
-      cols[i - 1]    <- "numeric"
+      type[i - 1]    <- "numeric"
       content[i - 1] <- paste(range(col, na.rm = TRUE), collapse = ";")
     } else {
-      cols[i - 1]    <- "string"
+      type[i - 1]    <- "string"
       content[i - 1] <- paste(levels(factor(col)), collapse = ";")
     }
   }
