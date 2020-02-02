@@ -112,8 +112,9 @@ class SamplesGroupJobType extends AbstractJob
                 }
             }
         }
+        $finalJobsArray = array_merge(array_values($others), array_filter(array_values($samplesGroupsJobs)));
 
-        return [array_filter(array_values($samplesGroupsJobs)), array_values($others), $descriptionFiles];
+        return [$finalJobsArray, $descriptionFiles];
     }
 
     /**
@@ -181,33 +182,6 @@ class SamplesGroupJobType extends AbstractJob
     }
 
     /**
-     * Build a description file
-     *
-     * @param \App\Models\Job[] $models
-     *
-     * @return array
-     */
-    private function makeDescriptionFile(array $models): array
-    {
-        $descriptionRelative = $this->getJobFile('description_', '.tsv');
-        $descriptionFile = $this->absoluteJobPath($descriptionRelative);
-        $descriptionUrl = Storage::disk('public')->url($descriptionRelative);
-        $content = "SampleId\tSampleGroup" . PHP_EOL . implode(
-                PHP_EOL,
-                array_map(
-                    function ($job) {
-                        return $job->sample_code . "\t" . $this->model->sample_code;
-                    },
-                    $models
-                )
-            );
-        @file_put_contents($descriptionFile, $content);
-        @chmod($descriptionFile, 0777);
-
-        return [$descriptionRelative, $descriptionUrl, ['SampleGroup']];
-    }
-
-    /**
      * Prepare the meta array using the output of the make_descriptions.R script
      *
      * @param string $descriptor
@@ -235,14 +209,15 @@ class SamplesGroupJobType extends AbstractJob
     }
 
     /**
-     * @param \App\Models\Job[] $models
-     * @param string[]          $validCodes
-     * @param array             $preBuiltDescriptions
+     * Make the description file using the make_descriptions.R script
+     *
+     * @param string[] $validCodes
+     * @param array    $preBuiltDescriptions
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
      */
-    private function makeDescriptionsFile(array $models, array $validCodes, array $preBuiltDescriptions): array
+    private function makeDescriptionsFile(array $validCodes, array $preBuiltDescriptions): array
     {
         $inputDescription = $this->model->getParameter('description', null);
         $deNovo = $this->getParameter('de_novo', false);
@@ -494,23 +469,14 @@ class SamplesGroupJobType extends AbstractJob
         $models = $this->processValidJobs($jobs);
         $models = $this->waitForCompletion($models);
         $this->log('All jobs have been completed.');
-        [$samplesGroupsJobs, $otherJobs, $preBuiltDescriptions] = $this->processSamplesGroups($models);
-        $type = $this->checkJobsTypes($otherJobs);
-        if (count($samplesGroupsJobs) > 0) {
-            if ($this->checkJobsTypes($samplesGroupsJobs) !== $type) {
-                throw new ProcessingJobException('All jobs must be of the same type');
-            }
-            $models = array_merge($otherJobs, $samplesGroupsJobs);
-        } else {
-            $models = &$otherJobs;
-        }
+        [$models, $preBuiltDescriptions] = $this->processSamplesGroups($models);
+        $type = $this->checkJobsTypes($models);
         /** @var int[] $validJobs */
         $validJobs = $this->pullProperty($models, 'id');
         /** @var string[] $validCodes */
         $validCodes = $this->pullProperty($models, 'sample_code');
         $this->log('Processing description file.');
         [$descriptionRelative, $descriptionUrl, $metadata] = $this->makeDescriptionsFile(
-            $models,
             $validCodes,
             $preBuiltDescriptions
         );
