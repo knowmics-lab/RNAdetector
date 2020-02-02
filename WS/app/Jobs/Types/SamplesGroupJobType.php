@@ -8,21 +8,17 @@
 
 namespace App\Jobs\Types;
 
-
 use App\Exceptions\ProcessingJobException;
 use App\Jobs\Types\Traits\ConvertsSamToBamTrait;
 use App\Jobs\Types\Traits\HasCommonParameters;
 use App\Jobs\Types\Traits\RunTrimGaloreTrait;
 use App\Jobs\Types\Traits\UseAlignmentTrait;
 use App\Jobs\Types\Traits\UseCountingTrait;
-use App\Models\Annotation;
 use App\Models\Job;
-use App\Models\Reference;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Storage;
 use ZipArchive;
-use function foo\func;
 
 class SamplesGroupJobType extends AbstractJob
 {
@@ -38,6 +34,7 @@ class SamplesGroupJobType extends AbstractJob
         return [
             'jobs'        => 'A list of analysis job of the same type',
             'description' => 'An optional tsv file containing samples descriptions',
+            'de_novo'     => 'An optional boolean to ignore all pre-built samples descriptions',
         ];
     }
 
@@ -100,8 +97,10 @@ class SamplesGroupJobType extends AbstractJob
             }
         }
         $samplesGroupsJobs = [];
+        $descriptionFiles = [];
         foreach ($samplesGroups as $job) {
             $containedJobs = $job->getOutput('jobs');
+            $descriptionFiles[] = $job->absoluteJobPath($job->getOutput('description')['path']);
             if ($jobs !== null && is_array($jobs)) {
                 foreach ($containedJobs as $cjId) {
                     if (isset($others[$cjId])) {
@@ -114,7 +113,7 @@ class SamplesGroupJobType extends AbstractJob
             }
         }
 
-        return [array_filter(array_values($samplesGroupsJobs)), array_values($others)];
+        return [array_filter(array_values($samplesGroupsJobs)), array_values($others), $descriptionFiles];
     }
 
     /**
@@ -211,46 +210,61 @@ class SamplesGroupJobType extends AbstractJob
     /**
      * @param \App\Models\Job[] $models
      * @param string[]          $validCodes
+     * @param array             $preBuiltDescriptions
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
      */
-    private function filterDescriptionFile(array $models, array $validCodes): array
+    private function filterDescriptionFile(array $models, array $validCodes, array $preBuiltDescriptions): array
     {
         $inputDescription = $this->model->getParameter('description', null);
+        $deNovo = $this->getParameter('de_novo', false);
+        if ($deNovo) {
+            $preBuiltDescriptions = [];
+        }
         $dir = $this->getJobDirectory() . '/';
         if (empty($inputDescription) || !Storage::disk('public')->exists($dir . $inputDescription)) {
-            return $this->makeDescriptionFile($models);
+            $preBuiltDescriptions[] = realpath($this->getAbsoluteJobDirectory() . '/' . $inputDescription);
         }
-        $inputDescriptionPath = realpath($this->getAbsoluteJobDirectory() . '/' . $inputDescription);
+        $descriptionsListFile = $this->getJobFileAbsolute('descriptions_list_', '.txt');
+        @chmod($descriptionsListFile, 0777);
+        @file_put_contents($descriptionsListFile, implode(PHP_EOL, $preBuiltDescriptions));
+        $samplesListFile = $this->getJobFileAbsolute('samples_list_', '.txt');
+        @chmod($samplesListFile, 0777);
+        @file_put_contents($samplesListFile, implode(PHP_EOL, $validCodes));
         $descriptionRelative = $this->getJobFile('description_', '.tsv');
         $descriptionFile = $this->absoluteJobPath($descriptionRelative);
         $descriptionUrl = Storage::disk('public')->url($descriptionRelative);
+        $descriptorFile = $this->getJobFileAbsolute('description_descriptor_', '.tsv');
         $metas = [];
-        $inputFp = fopen($inputDescriptionPath, 'rb');
-        $outputFp = fopen($descriptionFile, 'wb');
-        if (!$inputFp) {
-            throw new ProcessingJobException('Unable to open description file.');
-        }
-        if (!$outputFp) {
-            fclose($inputFp);
-            throw new ProcessingJobException('Unable to open output file.');
-        }
-        $firstLine = true;
-        while (($data = fgetcsv($inputFp, 0, "\t")) !== false) {
-            $firstElement = array_shift($data); // The first element must be always the sample identifier
-            array_unshift($data, ($firstLine ? 'SampleGroup' : $this->model->sample_code));
-            if ($firstLine) {
-                $metas = $data;
-                $firstLine = false;
-            } elseif (!in_array($firstElement, $validCodes, true)) {
-                continue;
+        self::runCommand(
+            [
+                'Rscript',
+                self::scriptPath('make_descriptions.R'),
+                '-d',
+                $descriptionsListFile,
+                '-g',
+                $this->model->sample_code,
+                '-s',
+                $samplesListFile,
+                '-o',
+                $descriptionFile,
+                '-p',
+                $descriptorFile,
+            ],
+            $this->model->getAbsoluteJobDirectory(),
+            null,
+            function ($type, $buffer) {
+                $this->log(trim($buffer));
             }
-            array_unshift($data, $firstElement);
-            fputcsv($outputFp, $data, "\t");
+        );
+        if (!file_exists($descriptionFile)) {
+            throw new ProcessingJobException('Unable to create samples description file');
         }
-        fclose($outputFp);
-        fclose($inputFp);
+        if (!file_exists($descriptorFile)) {
+            throw new ProcessingJobException('Unable to create samples descriptor file');
+        }
+        @chmod($descriptionFile, 0777);
 
         return [$descriptionRelative, $descriptionUrl, $metas];
     }
@@ -450,7 +464,7 @@ class SamplesGroupJobType extends AbstractJob
         $models = $this->processValidJobs($jobs);
         $models = $this->waitForCompletion($models);
         $this->log('All jobs have been completed.');
-        [$samplesGroupsJobs, $otherJobs] = $this->processSamplesGroups($models);
+        [$samplesGroupsJobs, $otherJobs, $preBuiltDescriptions] = $this->processSamplesGroups($models);
         $type = $this->checkJobsTypes($otherJobs);
         if (count($samplesGroupsJobs) > 0) {
             if ($this->checkJobsTypes($samplesGroupsJobs) !== $type) {
@@ -467,7 +481,8 @@ class SamplesGroupJobType extends AbstractJob
         $this->log('Processing description file.');
         [$descriptionRelative, $descriptionUrl, $metadata] = $this->filterDescriptionFile(
             $models,
-            $validCodes
+            $validCodes,
+            $preBuiltDescriptions
         ); // TODO create one big description file
         [$sampleComposeFile, $sampleComposeContent, $hasTranscripts] = $this->makeSampleComposeFile($models);
         $this->log('Creating raw output zip file.');

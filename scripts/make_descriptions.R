@@ -43,11 +43,35 @@ remove.duplicated.samples <- function (input) {
   return (input)
 }
 
+describe.columns <- function (input) {
+  cols    <- character(ncol(input) - 1)
+  type    <- character(ncol(input) - 1)
+  content <- character(ncol(input) - 1)
+  for (i in 2:ncol(input)) {
+    col <- input[[i]]
+    cols[i - 1] <- colnames(input)[i]
+    if (is.numeric(col)) {
+      cols[i - 1]    <- "numeric"
+      content[i - 1] <- paste(range(col, na.rm = TRUE), collapse = ";")
+    } else {
+      cols[i - 1]    <- "string"
+      content[i - 1] <- paste(levels(factor(col)), collapse = ";")
+    }
+  }
+  return (data.frame(
+    column=cols,
+    type=type,
+    content=content,
+    stringsAsFactors = FALSE
+  ))
+}
+
 option_list <- list(
   make_option(c("-d", "--descriptions"), type="character", default=NULL, help="text file containing a list of description matrices", metavar="character"),
-  make_option(c("-g", "--group"), type="character", default=FALSE, help="text file containing sample group name", metavar="character"),
+  make_option(c("-g", "--group"), type="character", default=FALSE, help="sample group name", metavar="character"),
   make_option(c("-s", "--samples"), type="character", default=FALSE, help="a list of valid sample names", metavar="character"),
-  make_option(c("-o", "--output"), type="character", default=NULL, help="output file", metavar="character")
+  make_option(c("-o", "--output"), type="character", default=NULL, help="output file", metavar="character"),
+  make_option(c("-p", "--doutput"), type="character", default=NULL, help="output file containing variables descriptor", metavar="character")
 ); 
 
 opt_parser <- OptionParser(option_list=option_list)
@@ -73,13 +97,19 @@ if (is.null(opt$output)) {
   stop("Output file is required!", call.=FALSE)
 }
 
+if (is.null(opt$doutput)) {
+  print_help(opt_parser)
+  stop("Variables descriptor file is required!", call.=FALSE)
+}
+
 input         <- readLines(opt$descriptions)
 samples       <- readLines(opt$samples)
 default.group <- opt$group
 descriptions  <- read.descriptions(input, samples, default.group)
 final.df      <- rbind.fill(Filter(function (x) (nrow(x) > 0), remove.duplicated.samples(remove.invalid.samples(descriptions, samples))))
 write.table(final.df, file = opt$output, append = FALSE, quote = TRUE, sep = "\t", row.names = FALSE, col.names = TRUE)
-
+df.description <- describe.columns(final.df)
+write.table(df.description, file = opt$doutput, append = FALSE, quote = TRUE, sep = "\t", row.names = FALSE, col.names = FALSE)
 
 
 
