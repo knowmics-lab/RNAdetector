@@ -7,6 +7,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import TableSortLabel from '@material-ui/core/TableSortLabel';
 import TableCell from '@material-ui/core/TableCell';
+import Checkbox from '@material-ui/core/Checkbox';
 import type { TableColumn } from './types';
 import type { SortingSpec } from '../../../types/common';
 import * as Api from '../../../api';
@@ -21,14 +22,22 @@ type Props = {
   columns: TableColumn[],
   sorting: SortingSpec,
   sortable: boolean,
-  changeSorting: SortingSpec => void
+  changeSorting: SortingSpec => void,
+  hasCheckbox?: boolean,
+  selectedAny?: boolean,
+  selectedAll?: boolean,
+  handleSelect?: () => void
 };
 
 export default function Header({
   columns,
   sorting,
   sortable,
-  changeSorting
+  changeSorting,
+  hasCheckbox,
+  selectedAny,
+  selectedAll,
+  handleSelect
 }: Props) {
   const classes = useStyles();
   const sf = column => column.sortingField || column.dataField;
@@ -47,6 +56,15 @@ export default function Header({
   return (
     <TableHead>
       <TableRow>
+        {hasCheckbox && (
+          <TableCell padding="checkbox">
+            <Checkbox
+              indeterminate={selectedAny}
+              checked={selectedAll}
+              onChange={handleSelect}
+            />
+          </TableCell>
+        )}
         {columns.map(column =>
           column !== 'actions' ? (
             <TableCell
@@ -83,3 +101,10 @@ export default function Header({
     </TableHead>
   );
 }
+
+Header.defaultProps = {
+  hasCheckbox: false,
+  selectedAny: false,
+  selectedAll: false,
+  handleSelect: undefined
+};

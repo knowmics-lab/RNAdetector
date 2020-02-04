@@ -125,5 +125,21 @@ export default {
     const result = await Connector.callGet(`job-types`);
     const { data } = result.data;
     return data;
+  },
+  async fetchAllByType(type: string): Promise<Job[]> {
+    const result = await Connector.callGet(`jobs`, {
+      per_page: 0,
+      deep_type: type,
+      completed: true
+    });
+    const { data } = result.data;
+    return data.map(x => ({
+      ...x,
+      links: {
+        self: x.self,
+        upload: x.upload,
+        submit: x.submit
+      }
+    }));
   }
 };

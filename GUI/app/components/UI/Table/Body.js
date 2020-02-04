@@ -3,6 +3,7 @@ import React from 'react';
 import TableBody from '@material-ui/core/TableBody';
 import TableRow from '@material-ui/core/TableRow';
 import TableCell from '@material-ui/core/TableCell';
+import Checkbox from '@material-ui/core/Checkbox';
 import type { ReadOnlyData, RowActionType, TableColumn } from './types';
 import RowActions from './RowActions';
 
@@ -39,7 +40,10 @@ type Props = {
   keyField: string,
   columns: TableColumn[],
   actions: RowActionType[],
-  size: string
+  size: string,
+  hasCheckbox?: boolean,
+  selectedItems?: boolean[],
+  handleSelect?: mixed => void
 };
 
 export default function Body({
@@ -47,24 +51,52 @@ export default function Body({
   keyField,
   columns,
   actions,
-  size
+  size,
+  hasCheckbox,
+  selectedItems,
+  handleSelect
 }: Props) {
+  const isSelected = id =>
+    hasCheckbox && selectedItems ? selectedItems.includes(id) : false;
   return (
     <TableBody>
       {Array.isArray(data) &&
         data.length > 0 &&
-        data.map(row => (
-          <TableRow
-            hover
-            role="checkbox"
-            tabIndex={-1}
-            key={`row-${row[keyField]}`}
-          >
-            {columns.map(column =>
-              Cell(column, row, `row-${row[keyField]}`, actions, keyField, size)
-            )}
-          </TableRow>
-        ))}
+        data.map(row => {
+          const id = row[keyField];
+          return (
+            <TableRow
+              hover
+              role="checkbox"
+              tabIndex={-1}
+              key={`row-${id}`}
+              selected={isSelected(id)}
+              onClick={() => (handleSelect ? handleSelect(id) : undefined)}
+            >
+              {hasCheckbox && (
+                <TableCell padding="checkbox">
+                  <Checkbox checked={isSelected(id)} />
+                </TableCell>
+              )}
+              {columns.map(column =>
+                Cell(
+                  column,
+                  row,
+                  `row-${row[keyField]}`,
+                  actions,
+                  keyField,
+                  size
+                )
+              )}
+            </TableRow>
+          );
+        })}
     </TableBody>
   );
 }
+
+Body.defaultProps = {
+  hasCheckbox: false,
+  selectedItems: [],
+  handleSelect: undefined
+};

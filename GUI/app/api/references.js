@@ -8,7 +8,6 @@ import type {
 } from '../types/references';
 import type { SortingSpec, ResponseType, SimpleMapType } from '../types/common';
 import type { Job } from '../types/jobs';
-import type { AnnotationType } from '../types/annotations';
 
 export default {
   async create(
