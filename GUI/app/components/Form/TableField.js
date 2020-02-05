@@ -106,11 +106,11 @@ class TableField extends React.Component<TableProps, TableState> {
           });
         })
         .catch(e => (typeof onError === 'function' ? onError(e) : undefined))
-        .finally(() =>
+        .finally(() => {
           this.setState({
             fetching: false
-          })
-        );
+          });
+        });
     }
   }
 
@@ -232,13 +232,11 @@ class TableField extends React.Component<TableProps, TableState> {
         className={classes.root}
         error={this.hasError()}
       >
-        <FormLabel className={classes.label}>
-          {label}
-        </FormLabel>
+        <FormLabel className={classes.label}>{label}</FormLabel>
         <TableContainer className={classes.container}>
           {isLoading && (
             <div className={classes.loading}>
-              <LinearProgress/>
+              <LinearProgress />
             </div>
           )}
           <Table stickyHeader size={size}>

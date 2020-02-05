@@ -39,11 +39,13 @@ export default {
     code: string,
     name: string,
     jobs: (Job | number)[],
-    descriptionFile?: ?string
+    descriptionFile?: ?string,
+    de_novo: boolean = false
   ): Promise<ResponseType<Job>> {
     return realJobSubmit(code, name, 'samples_group_job_type', {
       jobs: jobs.map(j => (typeof j === 'object' ? j.id : j)),
-      description: descriptionFile || undefined
+      description: descriptionFile || undefined,
+      de_novo
     });
   },
   async createLongRNA(

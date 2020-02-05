@@ -30,6 +30,14 @@
           "configured": true,
           "key": "main-menu-circRNAAnalysis",
           "to": "/analysis/circRNA"
+        },
+        {
+          "icon": "fas fa-layer-group",
+          "text": "New Samples Group",
+          "collapsible": false,
+          "configured": true,
+          "key": "main-menu-sampleGroup",
+          "to": "/analysis/sampleGroup"
         }
       ]
     },

@@ -27,7 +27,6 @@ import SwitchField from '../Form/SwitchField';
 import type { LongRNAAnalysisConfig } from '../../types/analysis';
 import type { SimpleMapType } from '../../types/common';
 import type { Job } from '../../types/jobs';
-import TableField from '../Form/TableField';
 
 type Props = {
   refreshJobs: () => void,

@@ -9,5 +9,6 @@
   "CREATE_ANNOTATION": "/annotations/new",
   "ANALYSIS_LONG_RNA": "/analysis/longRNA",
   "ANALYSIS_SMALL_RNA": "/analysis/smallRNA",
-  "ANALYSIS_CIRC_RNA": "/analysis/circRNA"
+  "ANALYSIS_CIRC_RNA": "/analysis/circRNA",
+  "CREATE_SAMPLE_GROUP": "/analysis/sampleGroup"
 }
