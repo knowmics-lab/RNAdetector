@@ -193,7 +193,7 @@ class TableField extends React.Component<TableProps, TableState> {
       name,
       formik: { touched }
     } = this.props;
-    return getIn(touched, name, false) && this.getError();
+    return getIn(touched, name, false) && !!this.getError();
   }
 
   render() {
