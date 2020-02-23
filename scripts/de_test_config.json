@@ -1,0 +1,46 @@
+{
+  "description.file": "/media/alaimos/My Passport/31/description_rage-overexpression-example.tsv",
+  "data.file": "/media/alaimos/My Passport/31/harmonized_output_rage-overexpression-example.txt",
+  "data.type": "gene",
+  "conditions.variables": ["SampleGroup", "SampleType"],
+  "contrasts": [
+    ["MCF7_EN", "MCF7_RA"],
+    ["SK_EN", "SK_RA"],
+    ["MDA_EN", "MDA_RA"]
+  ],
+  "output.directory": "/home/alaimos/Scrivania/report_ernestina",
+  "parameters": {
+    "pcut": 0.05,
+    "log.offset": 1,
+    "when.apply.filter": "prenorm",
+    "norm": "edger",
+    "norm.args": {
+      "method": "TMM"
+    },
+    "stats": ["deseq", "edger", "limma"],
+    "stats.args": {
+      "deseq": {
+        "fitType": "parametric"
+      }
+    },
+    "filters": {
+      "length": {
+        "length": 100
+      },
+      "avg.reads": {
+        "average.per.bp": 100,
+        "quantile": 0.25
+      },
+      "expression": {
+        "median": true,
+        "mean": false,
+        "quantile": null,
+        "known": null
+      }
+    },
+    "adjust.method": "qvalue",
+    "meta.p.method": "simes",
+    "fig.formats": ["png", "jpg", "pdf"],
+    "num.cores": 4
+  }
+}

@@ -1,0 +1,58 @@
+- pcut: 0.05; a p-value cutoff for exporting differentially genes.
+- log.offset: 1; an offset to be added to values during logarithmic transformations in order to avoid Infinity.
+- when.apply.filter: "prenorm" (default), "postnorm"; when to apply the exon and/or gene filters, relative to normalization
+- normalization: "edger" (default), "deseq"
+  Se normalization è "edger":
+    - method: "TMM" (default),"TMMwsp","RLE","upperquartile","none"
+    Se method è "TMM" o "TMMwsp"
+      - logratioTrim: 0.3; amount of trim to use on log-ratios ("M" values)
+      - sumTrim: 0.05; amount of trim to use on the combined absolute levels ("A" values)
+      - doWeighting: TRUE; logical, whether to compute (asymptotic binomial precision) weights
+      - Acutoff: -1e10; cutoff on "A" values to use before trimming
+    Se method è "upperquartile"
+      - p: 0.75; percentile (between 0 and 1) of the counts that is aligned when method="upperquartile"
+  Se normalization è "deseq"
+    locfunc: "median" (default), "shorth";  A function to compute a location for a sample. For low counts, the shorth function may give better results.
+
+- Statistics: "deseq", "edger", "limma"; uno o più valori
+  Parametri per "deseq":
+    - fitType: "parametric", "local", "mean"; The type of fitting of dispersions to the mean intensity.
+                                                  parametric - fit a dispersion-mean relation of the form: dispersion = asymptDisp + extraPois / mean via a robust gamma-family GLM.
+                                                  local - fit a local regression of log dispersions over log base mean. The points are weighted by normalized mean count in the local regression.
+                                                  mean - use the mean of gene-wise dispersion estimates.
+  Parametri per "limma":
+    - normalize.method: "none" (default), "scale", "quantile", "cyclicloess"; The microarray-style normalization method to be applied to the logCPM values.
+  Parametri per "edger":
+    - main.method: "classic" (default), "glm"; Il tipo di analisi da eseguire
+      Se main.method è "classic":
+        - rowsum.filter: 5; genes with total count (across all samples) below this value will be filtered out before estimating the dispersion.
+        - prior.df. 10; prior degrees of freedom
+        - trend: "movingave" (default), "loess", "none"; method for estimating dispersion trend.
+        - tag.method: "grid" (default), "optimize"; method for maximizing the posterior likelihood. Possible values are "grid" (default) for interpolation on grid points or "optimize" to call the function of the same name
+      Se main.method è "glm":
+        - glm.method: "CoxReid" (default), "Pearson" or "deviance"; method for estimating the dispersion
+        - trend.method: "auto" (default), "bin.spline", "bin.loess", "power", or "spline"; method (low-level function) used to estimated the trended dispersions
+
+- Filters:
+    - length: 500; genes/transcripts are accepted for further analysis if they are above length (its parameter) kb
+    - Average Reads:  (a gene is accepted for further analysis if it has more average reads than the quantile of the average count distribution per "average.per.bp" base pairs
+                      the reads of each gene are averaged per "average.per.bp" based on each gene's length and the "quantile" quantile of the average counts distribution is
+                      calculated for each sample. Genes passing the filter should have an average read count larger than the maximum of the vector of the quantiles calculated above.
+        - average.per.bp: 100;
+        - quantile: 0.75;
+    - Expression:  a filter based on the overall expression of a gene
+        - median: TRUE (default)/FALSE; genes below the median of the overall count distribution are not accepted (this filter has been used to distinguish between "expressed" and "not expressed" genes in several cases, e.g. (Mokry et al., NAR, 2011)
+        - mean:   FALSE (default)/TRUE; genes below the mean of the overall count distribution are not accepted
+        - quantile: NA (default)/ number in [0,1]; genes below the "quantile" quantile of the overall count distribution are not accepted
+        - known: NA (default) / a list of genes: a set of known not-expressed genes in the system under investigation are used to estimate an expression cutoff.
+                                                 Genes are filtered based on a "true biological" cutoff instead of a statistical cutoff. The value are names (depends on the annotation).
+                                                 The 90th quantile of this distribution is then the expression cutoff
+    - Presence: (a gene is considered for statistical testing if "frac"% of samples have more than "min.count" reads)
+        - frac: 0.25
+        - min.count: 10,
+        - per.condition: FALSE (default)/TRUE; the check is on all samples or group by group
+- qc.plots: "mds","biodetection","countsbio","saturation","readnoise","filtered", "correl","pairwise","boxplot","lengthbias","meandiff", "meanvar","rnacomp","deheatmap","volcano","biodist","venn" === indeciso se aggiungere o no questo parametro ===
+- adjust.method: "qvalue" (DEFAULT), "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "none"
+- meta.p.method: "simes" (default), "bonferroni", "minp", "maxp", "weight", "pandora", "dperm.min", "dperm.max", "dperm.weight", "fisher", "fperm", "whitlock" or "none"
+- fig.format: "png", "jpg", "tiff", "bmp", "pdf"; ONE or MORE values === indeciso se aggiungere o no questo parametro ===
+- num.cores: numero di core
