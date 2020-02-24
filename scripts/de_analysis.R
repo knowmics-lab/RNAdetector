@@ -101,6 +101,15 @@ pcut <- max(min(pcut, 1), 0)
 when.apply.filter <- check.vector(params$when.apply.filter, "prenorm")
 norm.algo <- check.vector(params$norm, "edger")
 norm.algo.params <- check.list(params$norm.args, get.defaults("normalization", norm.algo))
+if (norm.algo == "deseq") {
+  if (!is.null(norm.algo.params$locfunc) && is.character(norm.algo.params$locfunc)) {
+    if (norm.algo.params$locfunc == 'shorth') {
+      norm.algo.params$locfunc <- genefilter::shorth
+    } else {
+      norm.algo.params$locfunc <- stats::median
+    }
+  }
+}
 stats.algo <- check.vector(params$stats, "limma")
 stats.algo.params <- check.list(params$stats.args)
 stats.algo.params <- setNames(lapply(stats.algo, function (a) {
@@ -116,41 +125,43 @@ for (f in names(gene.filters)) {
   }
 }
 
-result <- metaseqr(
-  counts=data,
-  sample.list=samples.list,
-  contrast=contrasts.list,
-  id.col = 1,
-  name.col = 2,
-  gc.col = 8,
-  annotation = "embedded",
-  org = "custom",
-  trans.level = config$data.type,
-  count.type = "gene",
-  when.apply.filter = when.apply.filter,
-  normalization = norm.algo,
-  norm.args = norm.algo.params,
-  statistics = stats.algo,
-  stat.args = stats.algo.params,
-  adjust.method = check.vector(params$adjust.method, "qvalue"),
-  meta.p = check.vector(params$meta.p.method, "simes"),
-  gene.filters = gene.filters,
-  qc.plots=c(
-    "mds", "biodetection", "countsbio", "saturation", "readnoise",
-    "filtered", "correl", "pairwise", "boxplot", "lengthbias", 
-    "meandiff", "meanvar", "rnacomp", "deheatmap", "volcano", 
-    "biodist","venn"
-  ),
-  fig.format=check.vector(params$fig.formats, c("png","pdf")),
-  export.where=output.dir,
-  export.what = c(
-    "annotation", "p.value", "adj.p.value", "meta.p.value", 
-    "adj.meta.p.value", "fold.change", "stats", "counts", 
-    "flags"
-  ),
-  export.scale = c("natural", "log2", "vst"),
-  export.values = c("raw", "normalized"),
-  export.stats = c("mean", "median", "sd", "mad", "cv", "rcv"),
-  export.counts.table = TRUE
-)
+suppressWarnings({
+  metaseqr(
+    counts=data,
+    sample.list=samples.list,
+    contrast=contrasts.list,
+    id.col = 1,
+    name.col = 2,
+    gc.col = 8,
+    annotation = "embedded",
+    org = "custom",
+    trans.level = config$data.type,
+    count.type = "gene",
+    when.apply.filter = when.apply.filter,
+    normalization = norm.algo,
+    norm.args = norm.algo.params,
+    statistics = stats.algo,
+    stat.args = stats.algo.params,
+    adjust.method = check.vector(params$adjust.method, "qvalue"),
+    meta.p = check.vector(params$meta.p.method, "simes"),
+    gene.filters = gene.filters,
+    qc.plots=c(
+      "mds", "biodetection", "countsbio", "saturation", "readnoise",
+      "filtered", "correl", "pairwise", "boxplot", "lengthbias", 
+      "meandiff", "meanvar", "deheatmap", "volcano", #"rnacomp", 
+      "biodist","venn"
+    ),
+    fig.format=check.vector(params$fig.formats, c("png","pdf")),
+    export.where=config$output.directory,
+    export.what = c(
+      "annotation", "p.value", "adj.p.value", "meta.p.value", 
+      "adj.meta.p.value", "fold.change", "stats", "counts", 
+      "flags"
+    ),
+    export.scale = c("natural", "log2", "vst"),
+    export.values = c("raw", "normalized"),
+    export.stats = c("mean", "median", "sd", "mad", "cv", "rcv"),
+    export.counts.table = TRUE
+  )
+})
 
