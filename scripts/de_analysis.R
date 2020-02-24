@@ -125,7 +125,8 @@ result <- metaseqr(
   gc.col = 8,
   annotation = "embedded",
   org = "custom",
-  count.type = config$data.type,
+  trans.level = config$data.type,
+  count.type = "gene",
   when.apply.filter = when.apply.filter,
   normalization = norm.algo,
   norm.args = norm.algo.params,
@@ -147,12 +148,9 @@ result <- metaseqr(
     "adj.meta.p.value", "fold.change", "stats", "counts", 
     "flags"
   ),
-  export.scale = c("natural","log2","log10","vst"),
-  export.values = c("normalized"),
-  export.stats = c("mean","median","sd","mad","cv","rcv"),
+  export.scale = c("natural", "log2", "vst"),
+  export.values = c("raw", "normalized"),
+  export.stats = c("mean", "median", "sd", "mad", "cv", "rcv"),
   export.counts.table = TRUE
 )
-
-
-
 
