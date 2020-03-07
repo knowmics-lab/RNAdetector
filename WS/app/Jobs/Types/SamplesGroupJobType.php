@@ -46,12 +46,13 @@ class SamplesGroupJobType extends AbstractJob
     public static function outputSpec(): array
     {
         return [
-            'jobs'           => 'A list of the valid job identifiers',
-            'codes'          => 'A list of the valid job sample codes',
-            'description'    => 'An optional path/url of the samples descriptions file (filtered by valid codes)',
-            'metadata'       => 'An optional list of available metadata for this sample group (columns of the description file)',
-            'outputFile'     => 'The raw output files',
-            'harmonizedFile' => 'The harmonized output file',
+            'jobs'                      => 'A list of the valid job identifiers',
+            'codes'                     => 'A list of the valid job sample codes',
+            'description'               => 'An optional path/url of the samples descriptions file (filtered by valid codes)',
+            'metadata'                  => 'An optional list of available metadata for this sample group (columns of the description file)',
+            'outputFile'                => 'The raw output files',
+            'harmonizedFile'            => 'The harmonized output file',
+            'harmonizedTranscriptsFile' => 'An optional transcripts harmonized output file',
         ];
     }
 

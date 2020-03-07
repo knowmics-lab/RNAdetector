@@ -96,12 +96,12 @@ class Job extends Model
         return $query->where('job_type', '=', $type)->orWhere(
             static function (Builder $builder) use ($type) {
                 return $builder->where('job_type', '=', 'samples_group_job_type')
-                               ->whereRaw('JSON_CONTAINS_PATH(job_parameters, \'one\', \'$.jobs\')')
+                               ->whereRaw('JSON_CONTAINS_PATH(job_output, \'one\', \'$.jobs\')')
                                ->whereExists(
                                    static function (\Illuminate\Database\Query\Builder $query) use ($type) {
                                        $query->select(DB::raw(1))
                                              ->from('jobs', 'j1')
-                                             ->whereRaw('j1.id = jobs.job_parameters->>"$.jobs[0]"')
+                                             ->whereRaw('j1.id = jobs.job_output->>"$.jobs[0]"')
                                              ->where('j1.job_type', '=', $type);
                                    }
                                );
