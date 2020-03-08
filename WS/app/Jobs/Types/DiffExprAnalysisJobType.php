@@ -13,6 +13,7 @@ namespace App\Jobs\Types;
 use App\Exceptions\ProcessingJobException;
 use App\Jobs\Types\Traits\HasCommonParameters;
 use App\Models\Job;
+use App\Utils;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -237,56 +238,54 @@ class DiffExprAnalysisJobType extends AbstractJob
         $statEdger = 'stats_args.' . self::EDGER;
         $statLimma = 'stats_args.' . self::LIMMA;
 
-        return array_merge(
-            [
-                'source_sample_group'              => ['required', Rule::exists('jobs', 'id')],
-                'sample_type'                      => ['required', Rule::in(self::VALID_SAMPLE_TYPE)],
-                'condition_variables'              => ['required', 'array'],
-                'contrasts'                        => ['required', 'array', 'min:1'],
-                'contrasts.*.control'              => ['required', 'string'],
-                'contrasts.*.case'                 => ['required', 'string'],
-                'parameters'                       => ['filled', 'array'],
-                'pcut'                             => ['filled', 'numeric', 'min:0', 'max:1'],
-                'log_offset'                       => ['filled', 'numeric'],
-                'when_apply_filter'                => ['filled', Rule::in(self::VALID_WHEN_APPLY_FILTERS)],
-                'norm'                             => ['filled', Rule::in(self::VALID_NORM_METHODS)],
-                'norm_args'                        => ['filled', 'array'],
-                'norm_args.method'                 => ['filled', Rule::in(self::VALID_NORM_ARGS_METHOD)],
-                'norm_args.locfunc'                => ['filled', Rule::in(self::VALID_NORM_ARGS_LOCFUNC)],
-                'stats'                            => ['filled', 'array', Rule::in(self::VALID_DEGS_METHODS)],
-                'stats_args'                       => ['filled', 'array'],
-                $statDeseq                         => ['filled', 'array'],
-                $statDeseq . '.fitType'            => ['filled', Rule::in(self::VALID_DESEQ_FITTYPE)],
-                $statEdger                         => ['filled', 'array'],
-                $statEdger . '.main_method'        => ['filled', Rule::in(self::VALID_EDGER_MAIN_METHOD)],
-                $statEdger . '.rowsum_filter'      => ['filled', 'numeric'],
-                $statEdger . '.trend'              => ['filled', Rule::in(self::VALID_EDGER_TREND)],
-                $statEdger . '.tag_method'         => ['filled', Rule::in(self::VALID_EDGER_TAG_METHOD)],
-                $statEdger . '.glm_method'         => ['filled', Rule::in(self::VALID_EDGER_GLM_METHOD)],
-                $statEdger . '.trend_method'       => ['filled', Rule::in(self::VALID_EDGER_GLM_TREND_METHOD)],
-                $statLimma                         => ['filled', 'array'],
-                $statLimma . '.normalize_method'   => ['filled', Rule::in(self::VALID_LIMMA_NORMALIZE_METHOD)],
-                'filters'                          => ['filled', 'array'],
-                'filters.length'                   => ['filled', 'nullable', 'array'],
-                'filters.length.length'            => ['filled', 'nullable', 'numeric'],
-                'filters.avg_reads'                => ['filled', 'nullable', 'array'],
-                'filters.avg_reads.average_per_bp' => ['filled', 'numeric'],
-                'filters.avg_reads.quantile'       => ['filled', 'numeric', 'min:0', 'max:1'],
-                'filters.expression'               => ['filled', 'nullable', 'array'],
-                'filters.expression.median'        => ['filled', 'boolean'],
-                'filters.expression.mean'          => ['filled', 'boolean'],
-                'filters.expression.quantile'      => ['filled', 'nullable', 'numeric', 'min:0', 'max:1'],
-                'filters.expression.known'         => ['filled', 'nullable', 'array'],
-                'filters.presence'                 => ['filled', 'nullable', 'array'],
-                'filters.presence.frac'            => ['filled', 'numeric', 'min:0', 'max:1'],
-                'filters.presence.min_count'       => ['filled', 'numeric'],
-                'filters.presence.per_condition'   => ['filled', 'boolean'],
-                'adjust_method'                    => ['filled', Rule::in(self::VALID_ADJUST_METHOD)],
-                'meta_p_method'                    => ['filled', Rule::in(self::VALID_METAP_METHOD)],
-                'fig_formats'                      => ['filled', 'array', Rule::in(self::VALID_FIG_FORMATS)],
-                'num_cores'                        => ['filled', 'integer'],
-            ]
-        );
+        return [
+            'source_sample_group'              => ['required', Rule::exists('jobs', 'id')],
+            'sample_type'                      => ['required', Rule::in(self::VALID_SAMPLE_TYPE)],
+            'condition_variables'              => ['required', 'array'],
+            'contrasts'                        => ['required', 'array', 'min:1'],
+            'contrasts.*.control'              => ['required', 'string'],
+            'contrasts.*.case'                 => ['required', 'string'],
+            'parameters'                       => ['filled', 'array'],
+            'pcut'                             => ['filled', 'numeric', 'min:0', 'max:1'],
+            'log_offset'                       => ['filled', 'numeric'],
+            'when_apply_filter'                => ['filled', Rule::in(self::VALID_WHEN_APPLY_FILTERS)],
+            'norm'                             => ['filled', Rule::in(self::VALID_NORM_METHODS)],
+            'norm_args'                        => ['filled', 'array'],
+            'norm_args.method'                 => ['filled', Rule::in(self::VALID_NORM_ARGS_METHOD)],
+            'norm_args.locfunc'                => ['filled', Rule::in(self::VALID_NORM_ARGS_LOCFUNC)],
+            'stats'                            => ['filled', 'array', Rule::in(self::VALID_DEGS_METHODS)],
+            'stats_args'                       => ['filled', 'array'],
+            $statDeseq                         => ['filled', 'array'],
+            $statDeseq . '.fitType'            => ['filled', Rule::in(self::VALID_DESEQ_FITTYPE)],
+            $statEdger                         => ['filled', 'array'],
+            $statEdger . '.main_method'        => ['filled', Rule::in(self::VALID_EDGER_MAIN_METHOD)],
+            $statEdger . '.rowsum_filter'      => ['filled', 'numeric'],
+            $statEdger . '.trend'              => ['filled', Rule::in(self::VALID_EDGER_TREND)],
+            $statEdger . '.tag_method'         => ['filled', Rule::in(self::VALID_EDGER_TAG_METHOD)],
+            $statEdger . '.glm_method'         => ['filled', Rule::in(self::VALID_EDGER_GLM_METHOD)],
+            $statEdger . '.trend_method'       => ['filled', Rule::in(self::VALID_EDGER_GLM_TREND_METHOD)],
+            $statLimma                         => ['filled', 'array'],
+            $statLimma . '.normalize_method'   => ['filled', Rule::in(self::VALID_LIMMA_NORMALIZE_METHOD)],
+            'filters'                          => ['filled', 'array'],
+            'filters.length'                   => ['filled', 'nullable', 'array'],
+            'filters.length.length'            => ['filled', 'nullable', 'numeric'],
+            'filters.avg_reads'                => ['filled', 'nullable', 'array'],
+            'filters.avg_reads.average_per_bp' => ['filled', 'numeric'],
+            'filters.avg_reads.quantile'       => ['filled', 'numeric', 'min:0', 'max:1'],
+            'filters.expression'               => ['filled', 'nullable', 'array'],
+            'filters.expression.median'        => ['filled', 'boolean'],
+            'filters.expression.mean'          => ['filled', 'boolean'],
+            'filters.expression.quantile'      => ['filled', 'nullable', 'numeric', 'min:0', 'max:1'],
+            'filters.expression.known'         => ['filled', 'nullable', 'array'],
+            'filters.presence'                 => ['filled', 'nullable', 'array'],
+            'filters.presence.frac'            => ['filled', 'numeric', 'min:0', 'max:1'],
+            'filters.presence.min_count'       => ['filled', 'numeric'],
+            'filters.presence.per_condition'   => ['filled', 'boolean'],
+            'adjust_method'                    => ['filled', Rule::in(self::VALID_ADJUST_METHOD)],
+            'meta_p_method'                    => ['filled', Rule::in(self::VALID_METAP_METHOD)],
+            'fig_formats'                      => ['filled', 'array', Rule::in(self::VALID_FIG_FORMATS)],
+            'num_cores'                        => ['filled', 'integer'],
+        ];
     }
 
     /**
@@ -440,6 +439,45 @@ class DiffExprAnalysisJobType extends AbstractJob
     }
 
     /**
+     * @param array  $groupOutput
+     * @param string $sampleType
+     * @param array  $conditionVariables
+     * @param array  $validContrasts
+     * @param array  $parameters
+     *
+     * @return array
+     * @throws \App\Exceptions\ProcessingJobException
+     */
+    private function prepareConfigFile(
+        array $groupOutput,
+        string $sampleType,
+        array $conditionVariables,
+        array $validContrasts,
+        array $parameters
+    ): array {
+        $configFile = $this->getJobFileAbsolute('deg_config_', '.json');
+        $degReportDirectory = $this->model->getJobFile('deg_report_');
+        $degReport = $this->model->absoluteJobPath($degReportDirectory);
+        $degReportUrl = \Storage::disk('public')->url($degReportDirectory);
+        $dataField = $sampleType === self::VALID_SAMPLE_TYPE[1] ? 'harmonizedTranscriptsFile' : 'harmonizedFile';
+        $jsonContent = [
+            'description.file'     => $this->absoluteJobPath($groupOutput['description']['path']),
+            'data.file'            => $groupOutput[$dataField]['path'],
+            'data.type'            => $sampleType,
+            'conditions.variables' => $conditionVariables,
+            'contrasts'            => $validContrasts,
+            'output.directory'     => $degReport,
+            'parameters'           => $parameters,
+        ];
+        file_put_contents($configFile, json_encode($jsonContent));
+        if (!file_exists($configFile)) {
+            throw new ProcessingJobException('Unable to create analysis config file.');
+        }
+
+        return [$configFile, $degReportDirectory, $degReport, $degReportUrl];
+    }
+
+    /**
      * Handles all the computation for this job.
      * This function should throw a ProcessingJobException if something went wrong during the computation.
      * If no exceptions are thrown the job is considered as successfully completed.
@@ -466,52 +504,47 @@ class DiffExprAnalysisJobType extends AbstractJob
         $conditions = $this->prepareAvailableConditions($conditionVariables, $metadata);
         $validContrasts = $this->checkAndPrepareContrasts($contrasts, $conditions);
         $parameters = $this->prepareParameters($parameters);
-        $dataField = $sampleType === self::VALID_SAMPLE_TYPE[1] ? 'harmonizedTranscriptsFile' : 'harmonizedFile';
-        $jsonContent = [
-            'description.file'     => $this->absoluteJobPath($groupOutput['description']['path']),
-            'data.file'            => $groupOutput[$dataField]['path'],
-            'data.type'            => $sampleType,
-            'conditions.variables' => $conditionVariables,
-            'contrasts'            => $validContrasts,
-            'output.directory'     => ''/* @TODO */,
-            'parameters'           => $parameters,
-        ];
-        /*
-        $formatted_input = $this->model->getParameter('formatted_input');
-        $sample_info = $this->model->getParameter('sample_info');
-        $DiffExprAnalysisEnable = (bool)$this->model->getParameter('DiffExprAnalysisEnable', false);
-        $DEA_tool = $this->model->getParameter('DEA_tool', self::LIMMA);
-        if ($DiffExprAnalysisEnable) {
-            switch ($DEA_tool) {
-                case self::DESEQ:
-                    $this->log('Starting differential expression analysis with DESeq 2');
-                    [$outputFile, $outputUrl] = $this->runDeseq($formatted_input, $sample_info);
-                    $this->log('Differential expression analysis completed');
-                    break;
-                case self::EDGER:
-                    $this->log('Starting differential expression analysis with edgeR');
-                    [$outputFile, $outputUrl] = $this->runEdger($formatted_input, $sample_info);
-                    $this->log('Differential expression analysis completed');
-                    break;
-                case self::LIMMA:
-                    $this->log('Starting differential expression analysis with LIMMA');
-                    [$outputFile, $outputUrl] = $this->runLimma($formatted_input, $sample_info);
-                    $this->log('Differential expression analysis completed');
-                    break;
-                default:
-                    throw new ProcessingJobException("Invalid differential expression analysis tool");
-            }
-        } else {
-            $this->log('Starting normalization of raw reads counts');
-            [$outputFile, $outputUrl] = $this->runNormalization($formatted_input);
-            $this->log('Normalization completed');
-        }
-        $this->model->setOutput(
+        [$configFile, $degReportDirectory, $degReport, $degReportUrl] = $this->prepareConfigFile(
+            $groupOutput,
+            $sampleType,
+            $conditionVariables,
+            $validContrasts,
+            $parameters
+        );
+        AbstractJob::runCommand(
             [
-                'outputFile' => ['path' => $outputFile, 'url' => $outputUrl],
+                'Rscript',
+                self::scriptPath('de_analysis.R'),
+                '-c',
+                $configFile,
+            ],
+            $this->model->getAbsoluteJobDirectory(),
+            null,
+            function ($type, $buffer) {
+                $this->log(trim($buffer));
+            }
+        );
+        if (!file_exists($degReport) && !is_dir($degReport) && !file_exists($degReport . '/index.html')) {
+            throw new ProcessingJobException('Unable to create output report.');
+        }
+        $this->log('DEGs Analysis completed.');
+        $degReportZip = $this->model->getJobFile('deg_report_', '.zip');
+        $degReportZipAbsolute = $this->model->absoluteJobPath($degReportZip);
+        $degReportZipUrl = \Storage::disk('public')->url($degReportZip);
+        $this->log('Building report archive.');
+        if (!Utils::makeZipArchive($degReport, $degReportZipAbsolute)) {
+            throw new ProcessingJobException('Unknown error during output archive creation.');
+        }
+        if (!file_exists($degReportZipAbsolute)) {
+            throw new ProcessingJobException('Unable to create output archive.');
+        }
+        $this->log('Archive built.');
+        $this->setOutput(
+            [
+                'outputFile' => ['path' => $degReportZip, 'url' => $degReportZipUrl],
+                'reportFile' => ['path' => $degReportDirectory . '/index.html', 'url' => $degReportUrl . '/index.html'],
             ]
         );
-        $this->log('Analysis completed.');*/
         $this->model->save();
     }
 

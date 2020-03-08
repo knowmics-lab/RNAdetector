@@ -10,9 +10,13 @@ namespace App;
 use App\Exceptions\CommandException;
 use App\Exceptions\IgnoredException;
 use App\Exceptions\ProcessingJobException;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 use Throwable;
+use ZipArchive;
 
 final class Utils
 {
@@ -66,6 +70,36 @@ final class Utils
         }
 
         return new ProcessingJobException($e->getMessage(), $code, $e);
+    }
+
+    /**
+     * Build a zip archive from a folder
+     *
+     * @param string $inputFolder
+     * @param string $zipArchive
+     *
+     * @return bool
+     */
+    public static function makeZipArchive(string $inputFolder, string $zipArchive): bool
+    {
+        $rootPath = realpath($inputFolder);
+        if (!file_exists($rootPath) && !is_dir($rootPath)) {
+            return false;
+        }
+        $zip = new ZipArchive();
+        $zip->open($zipArchive, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+        /** @var SplFileInfo[] $files */
+        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($rootPath), RecursiveIteratorIterator::LEAVES_ONLY);
+        foreach ($files as $name => $file) {
+            if (!$file->isDir()) {
+                $filePath = $file->getRealPath();
+                $relativePath = substr($filePath, strlen($rootPath) + 1);
+                $zip->addFile($filePath, $relativePath);
+            }
+        }
+        $zip->close();
+
+        return true;
     }
 
 }
