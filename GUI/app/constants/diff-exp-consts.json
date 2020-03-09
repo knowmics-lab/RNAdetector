@@ -1,0 +1,102 @@
+{
+  "when_apply_filter": {
+    "prenorm": "Before normalization",
+    "postnorm": "After normalization"
+  },
+  "norm": {
+    "edger": "edgeR",
+    "deseq": "DESeq2"
+  },
+  "norm_args_method": {
+    "TMM": "",
+    "TMMwsp": "",
+    "RLE": "",
+    "upperquartile": "",
+    "none": ""
+  },
+  "norm_args_locfunc": {
+    "median": "",
+    "shorth": ""
+  },
+  "stats": {
+    "limma": "Limma",
+    "deseq": "DESeq2",
+    "edger": "edgeR"
+  },
+  "stats_args": {
+    "limma": {
+      "normalize_method": {
+        "none": "",
+        "scale": "",
+        "quantile": "",
+        "cyclicloess": ""
+      }
+    },
+    "deseq": {
+      "main_method": {
+        "classic": "",
+        "glm": ""
+      },
+      "trend": {
+        "movingave": "",
+        "loess": "",
+        "none": ""
+      },
+      "tag_method": {
+        "grid": "",
+        "optimize": ""
+      },
+      "glm_method": {
+        "CoxReid": "",
+        "Pearson": "",
+        "deviance": ""
+      },
+      "trend_method": {
+        "auto": "",
+        "bin.spline": "",
+        "bin.loess": "",
+        "power": "",
+        "spline": ""
+      }
+    },
+    "edger": {
+      "fitType": {
+        "parametric": "Parametric fit of dispersions ",
+        "local": "Local regression of log dispersions",
+        "mean": "Gene-wise dispersion mean"
+      }
+    }
+  },
+  "adjust_method": {
+    "qvalue": "Q-value",
+    "holm": "Holm correction",
+    "hochberg": "Hochberg correction",
+    "hommel": "Hommel correction",
+    "bonferroni": "Bonferroni correction",
+    "BH": "Benjamini & Hochberg correction",
+    "BY": "Benjamini & Yekutieli correction",
+    "none": "None"
+  },
+  "meta_p_method": {
+    "simes": "",
+    "bonferroni": "Bonferroni",
+    "minp": "",
+    "maxp": "",
+    "weight": "",
+    "pandora": "",
+    "dperm.min": "",
+    "dperm.max": "",
+    "dperm.weight": "",
+    "fisher": "",
+    "fperm": "",
+    "whitlock": "",
+    "none": ""
+  },
+  "fig_formats": {
+    "png": "PNG",
+    "jpg": "JPEG",
+    "tiff": "TIFF",
+    "bmp": "BMP",
+    "pdf": "PDF"
+  }
+}

@@ -6,6 +6,8 @@ import type { Job } from '../types/jobs';
 import Connector from './connector';
 import type {
   CircRNAAnalysisConfig,
+  ContrastType,
+  DiffExpAnalysisConfig,
   LongRNAAnalysisConfig,
   SmallRNAAnalysisConfig
 } from '../types/analysis';
@@ -68,5 +70,17 @@ export default {
     parameters: CircRNAAnalysisConfig
   ): Promise<ResponseType<Job>> {
     return realJobSubmit(code, name, 'circ_rna_job_type', parameters);
+  },
+  async createDiffExpAnalysis(
+    code: string,
+    name: string,
+    parameters: DiffExpAnalysisConfig
+  ): Promise<ResponseType<Job>> {
+    const analysisParameters = { ...parameters };
+    if (typeof parameters.source_sample_group === 'object') {
+      analysisParameters.source_sample_group =
+        parameters.source_sample_group.id;
+    }
+    return realJobSubmit(code, name, 'diff_expr_analysis_job_type', parameters);
   }
 };
