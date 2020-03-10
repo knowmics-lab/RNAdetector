@@ -48,7 +48,9 @@ export type SimpleMapType<T> = { [string]: T };
 
 export type RecursiveMapType<T> = { [string]: T | RecursiveMapType<T> };
 
-export type MapType = { [string]: string | number | boolean | MapType };
+export type MapType = {
+  [string]: string | number | boolean | MapType | MapType[]
+};
 
 export type SortingDirection = 'asc' | 'desc';
 

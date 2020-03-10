@@ -24,6 +24,7 @@ type Props = {
   sortable: boolean,
   changeSorting: SortingSpec => void,
   hasCheckbox?: boolean,
+  single?: boolean,
   selectedAny?: boolean,
   selectedAll?: boolean,
   handleSelect?: () => void
@@ -35,6 +36,7 @@ export default function Header({
   sortable,
   changeSorting,
   hasCheckbox,
+  single,
   selectedAny,
   selectedAll,
   handleSelect
@@ -58,11 +60,13 @@ export default function Header({
       <TableRow>
         {hasCheckbox && (
           <TableCell padding="checkbox">
-            <Checkbox
-              indeterminate={selectedAny}
-              checked={selectedAll}
-              onChange={handleSelect}
-            />
+            {!single && (
+              <Checkbox
+                indeterminate={selectedAny}
+                checked={selectedAll}
+                onChange={handleSelect}
+              />
+            )}
           </TableCell>
         )}
         {columns.map(column =>

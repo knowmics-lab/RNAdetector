@@ -10,5 +10,6 @@
   "ANALYSIS_LONG_RNA": "/analysis/longRNA",
   "ANALYSIS_SMALL_RNA": "/analysis/smallRNA",
   "ANALYSIS_CIRC_RNA": "/analysis/circRNA",
-  "CREATE_SAMPLE_GROUP": "/analysis/sampleGroup"
+  "CREATE_SAMPLE_GROUP": "/analysis/sampleGroup",
+  "ANALYSIS_DIFF_EXPR": "/analysis/diffExpr"
 }

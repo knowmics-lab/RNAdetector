@@ -8,15 +8,15 @@
     "deseq": "DESeq2"
   },
   "norm_args_method": {
-    "TMM": "",
-    "TMMwsp": "",
-    "RLE": "",
-    "upperquartile": "",
-    "none": ""
+    "TMM": "Trimmed mean of M-values",
+    "TMMwsp": "TMM with singleton pairing (better for data with high proportion of zeros)",
+    "RLE": "Relative Log Expression",
+    "upperquartile": "Upper-quantile normalization",
+    "none": "None"
   },
   "norm_args_locfunc": {
-    "median": "",
-    "shorth": ""
+    "median": "Median",
+    "shorth": "Shorth Estimator (better for low counts)"
   },
   "stats": {
     "limma": "Limma",
@@ -26,40 +26,40 @@
   "stats_args": {
     "limma": {
       "normalize_method": {
-        "none": "",
-        "scale": "",
-        "quantile": "",
-        "cyclicloess": ""
-      }
-    },
-    "deseq": {
-      "main_method": {
-        "classic": "",
-        "glm": ""
-      },
-      "trend": {
-        "movingave": "",
-        "loess": "",
-        "none": ""
-      },
-      "tag_method": {
-        "grid": "",
-        "optimize": ""
-      },
-      "glm_method": {
-        "CoxReid": "",
-        "Pearson": "",
-        "deviance": ""
-      },
-      "trend_method": {
-        "auto": "",
-        "bin.spline": "",
-        "bin.loess": "",
-        "power": "",
-        "spline": ""
+        "none": "None",
+        "scale": "Column Scaling (forces columns to have the same median)",
+        "quantile": "Quantile normalization (forces columns to have the same empirical distribution)",
+        "cyclicloess": "Loess normalization"
       }
     },
     "edger": {
+      "main_method": {
+        "classic": "Exact Test for differences in the mean",
+        "glm": "Generalized log-linear model"
+      },
+      "trend": {
+        "movingave": "Moving Average Estimation",
+        "loess": "Loess smoother Estimation",
+        "none": "Use common dispersion"
+      },
+      "tag_method": {
+        "grid": "Interpolation on grid points",
+        "optimize": "Optimization through objective function "
+      },
+      "glm_method": {
+        "CoxReid": "Cox-Reid Estimation",
+        "Pearson": "Pearson Estimation",
+        "deviance": "Deviance Estimation"
+      },
+      "trend_method": {
+        "auto": "Automatic detection",
+        "bin.spline": "Discretized estimation using cubic regression spline",
+        "bin.loess": "Discretized estimation using linear lowess curve",
+        "power": "Log-linear estimation",
+        "spline": "Regression spline estimation"
+      }
+    },
+    "deseq": {
       "fitType": {
         "parametric": "Parametric fit of dispersions ",
         "local": "Local regression of log dispersions",
@@ -78,19 +78,16 @@
     "none": "None"
   },
   "meta_p_method": {
-    "simes": "",
+    "simes": "Simes method",
     "bonferroni": "Bonferroni",
-    "minp": "",
-    "maxp": "",
-    "weight": "",
-    "pandora": "",
-    "dperm.min": "",
-    "dperm.max": "",
-    "dperm.weight": "",
-    "fisher": "",
-    "fperm": "",
-    "whitlock": "",
-    "none": ""
+    "minp": "Minimum p-value",
+    "maxp": "Maximum p-value",
+    "dperm.min": "Minimum p-value with random permutations",
+    "dperm.max": "Maximum p-value with random permutations",
+    "fisher": "Fisher method",
+    "fperm": "Fisher method with random permutations",
+    "whitlock": "Whitlock method",
+    "none": "Disable meta-analysis"
   },
   "fig_formats": {
     "png": "PNG",

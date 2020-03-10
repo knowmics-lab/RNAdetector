@@ -1,8 +1,10 @@
 // @flow
 
+export type TypeOfNotification = 'success' | 'warning' | 'error' | 'info';
+
 export type Notification = {
   message: string,
-  variant: 'success' | 'warning' | 'error' | 'info',
+  variant: TypeOfNotification,
   duration: ?number
 };
 
@@ -13,3 +15,5 @@ export type Notifications = { [string]: PushedNotification };
 export type NotificationsState = {
   +notifications: Notifications
 };
+
+export type PushNotificationFunction = (string, ?TypeOfNotification) => void;

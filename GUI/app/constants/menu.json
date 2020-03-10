@@ -38,6 +38,14 @@
           "configured": true,
           "key": "main-menu-sampleGroup",
           "to": "/analysis/sampleGroup"
+        },
+        {
+          "icon": "fas fa-layer-group",
+          "text": "Differential Expression",
+          "collapsible": false,
+          "configured": true,
+          "key": "main-menu-diffExpr",
+          "to": "/analysis/diffExpr"
         }
       ]
     },

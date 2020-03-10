@@ -19,12 +19,14 @@ export type TableProps = {
   label: string,
   required?: boolean,
   helperText?: string,
+  single?: boolean,
   name: string,
   size?: 'small' | 'medium',
   columns: TableColumn[],
   keyField?: string,
   getData: () => Promise<{ +[string]: * }[]>,
   formik: FormikContextType,
+  onChange?: (*) => void,
   onError?: (*) => void,
   classes: {
     root: *,
@@ -73,7 +75,9 @@ class TableField extends React.Component<TableProps, TableState> {
     size: 'small',
     keyField: 'id',
     required: false,
+    single: false,
     helperText: '',
+    onChange: undefined,
     onError: undefined
   };
 
@@ -135,31 +139,52 @@ class TableField extends React.Component<TableProps, TableState> {
   getSelected = () => {
     const {
       name,
-      formik: { values }
+      formik: { values },
+      single
     } = this.props;
-    return getIn(values, name) || [];
+    const v = getIn(values, name);
+    if (single) {
+      return v ? [v] : [];
+    }
+    return v || [];
   };
 
   putSelected = k => {
     const {
       name,
-      formik: { setFieldTouched, setFieldValue }
+      formik: { setFieldTouched, setFieldValue },
+      single,
+      onChange
     } = this.props;
-    const selected = this.getSelected();
-    setFieldTouched(name, true);
-    let newSelected;
-    if (selected.includes(k)) {
-      newSelected = selected.filter(v => v !== k);
+    if (single) {
+      const selected = this.getSelected();
+      if (selected.includes(k)) {
+        setFieldValue(name, null);
+        if (onChange) onChange(null);
+      } else {
+        setFieldValue(name, k);
+        if (onChange) onChange(k);
+      }
     } else {
-      newSelected = [...selected, k];
+      const selected = this.getSelected();
+      setFieldTouched(name, true);
+      let newSelected;
+      if (selected.includes(k)) {
+        newSelected = selected.filter(v => v !== k);
+      } else {
+        newSelected = [...selected, k];
+      }
+      setFieldValue(name, newSelected);
+      if (onChange) onChange(newSelected);
     }
-    setFieldValue(name, newSelected);
   };
 
   putAll = () => {
     const { data } = this.state;
     if (!data) return;
+    const { single, onChange } = this.props;
     let { keyField } = this.props;
+    if (single) return;
     keyField = keyField || 'id';
     const selected = this.getSelected();
     const selectedAll =
@@ -171,12 +196,12 @@ class TableField extends React.Component<TableProps, TableState> {
     setFieldTouched(name, true);
     if (selectedAll) {
       setFieldValue(name, []);
+      if (onChange) onChange([]);
     } else {
-      setFieldValue(
-        name,
-        // $FlowFixMe
-        data.map(d => d[keyField])
-      );
+      // $FlowFixMe
+      const newSelected = data.map(d => d[keyField]);
+      setFieldValue(name, newSelected);
+      if (onChange) onChange(newSelected);
     }
   };
 
@@ -197,7 +222,14 @@ class TableField extends React.Component<TableProps, TableState> {
   }
 
   render() {
-    const { classes, columns, required, label, helperText } = this.props;
+    const {
+      classes,
+      columns,
+      required,
+      label,
+      helperText,
+      single
+    } = this.props;
 
     let { keyField, size } = this.props;
 
@@ -242,6 +274,7 @@ class TableField extends React.Component<TableProps, TableState> {
           <Table stickyHeader size={size}>
             <TableHeader
               hasCheckbox
+              single={single}
               handleSelect={this.putAll}
               selectedAll={selectedAll}
               selectedAny={selectedAny}
