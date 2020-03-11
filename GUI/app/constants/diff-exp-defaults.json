@@ -1,64 +1,66 @@
 {
-  "code": "",
-  "name": "",
-  "source_sample_group": null,
-  "sample_type": "gene",
-  "condition_variables": [],
-  "contrasts": [],
-  "parameters": {
-    "pcut": 0.05,
-    "log_offset": 1,
-    "when_apply_filter": "prenorm",
-    "norm": "edger",
-    "norm_args": {
-      "method": "TMM",
-      "locfunc": "median"
-    },
-    "stats": [
-      "limma"
-    ],
-    "stats_args": {
-      "deseq": {
-        "fitType": "parametric"
+  "defaults": {
+    "code": "",
+    "name": "",
+    "source_sample_group": null,
+    "sample_type": "gene",
+    "condition_variables": [],
+    "contrasts": [],
+    "parameters": {
+      "pcut": 0.05,
+      "log_offset": 1,
+      "when_apply_filter": "prenorm",
+      "norm": "edger",
+      "norm_args": {
+        "method": "TMM",
+        "locfunc": "median"
       },
-      "edger": {
-        "main_method": "classic",
-        "rowsum_filter": 5,
-        "trend": "movingave",
-        "tag_method": "grid",
-        "glm_method": "CoxReid",
-        "trend_method": "auto"
+      "stats": [
+        "limma"
+      ],
+      "stats_args": {
+        "deseq": {
+          "fitType": "parametric"
+        },
+        "edger": {
+          "main_method": "classic",
+          "rowsum_filter": 5,
+          "trend": "movingave",
+          "tag_method": "grid",
+          "glm_method": "CoxReid",
+          "trend_method": "auto"
+        },
+        "limma": {
+          "normalize_method": "none"
+        }
       },
-      "limma": {
-        "normalize_method": "none"
-      }
-    },
-    "filters": {
-      "length": {
-        "length": 500
+      "filters": {
+        "length": {
+          "length": 500
+        },
+        "avg_reads": {
+          "average_per_bp": 100,
+          "quantile": 0.75
+        },
+        "expression": {
+          "median": true,
+          "mean": false,
+          "quantile": null,
+          "known": []
+        },
+        "presence": {
+          "frac": null,
+          "min_count": null,
+          "per_condition": false
+        }
       },
-      "avg_reads": {
-        "average_per_bp": 100,
-        "quantile": 0.75
-      },
-      "expression": {
-        "median": true,
-        "mean": false,
-        "quantile": null,
-        "known": []
-      },
-      "presence": {
-        "frac": null,
-        "min_count": null,
-        "per_condition": false
-      }
-    },
-    "adjust_method": "qvalue",
-    "meta_p_method": "simes",
-    "fig_formats": [
-      "png",
-      "pdf"
-    ],
-    "num_cores": 1
+      "adjust_method": "qvalue",
+      "meta_p_method": "simes",
+      "fig_formats": [
+        "png",
+        "pdf"
+      ],
+      "num_cores": 1
+    }
   }
 }

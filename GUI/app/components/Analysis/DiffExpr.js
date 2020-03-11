@@ -1,4 +1,4 @@
-/* eslint-disable react/no-unused-prop-types,no-unused-vars */
+/* eslint-disable react/no-unused-prop-types,no-unused-vars,camelcase */
 // @flow
 import * as React from 'react';
 import { withStyles } from '@material-ui/core/styles';
@@ -8,10 +8,13 @@ import Box from '@material-ui/core/Box';
 import FormGroup from '@material-ui/core/FormGroup';
 import Grid from '@material-ui/core/Grid';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import { Formik, Form } from 'formik';
+import { Formik, Form, FieldArray } from 'formik';
 import * as Yup from 'yup';
 import Backdrop from '@material-ui/core/Backdrop';
 import { InputLabel } from '@material-ui/core';
+import Button from '@material-ui/core/Button';
+import Icon from '@material-ui/core/Icon';
+import IconButton from '@material-ui/core/IconButton';
 import * as Api from '../../api';
 import * as DiffExpConsts from '../../constants/diff-exp-consts';
 import * as DiffExpDefaults from '../../constants/diff-exp-defaults';
@@ -24,6 +27,7 @@ import type { Job } from '../../types/jobs';
 import TableField from '../Form/TableField';
 import type { PushNotificationFunction } from '../../types/notifications';
 import { SubmitButton } from '../UI/Button';
+import FileSelector from '../UI/FileSelector';
 
 type Props = {
   refreshJobs: () => void,
@@ -71,26 +75,39 @@ type State = {
   isLoading: boolean,
   isSaving: boolean,
   validationErrors: *,
-  selectedJob: ?Job
+  selectedJob: ?Job,
+  variables: { [string]: string },
+  variablesMeta: { [string]: string[] }
 };
 
 class DiffExpr extends React.Component<Props, State> {
   props: Props;
 
+  cachedContrasts: ?{
+    key: ?string,
+    contrasts: ?{ [string]: string }
+  };
+
   constructor(props) {
     super(props);
+    this.cachedContrasts = null;
     this.state = {
       isLoading: false,
       isSaving: false,
       validationErrors: {},
-      selectedJob: null
+      selectedJob: null,
+      variables: {},
+      variablesMeta: {}
     };
   }
 
   loadJob = id => {
     if (!id) {
+      this.cachedContrasts = null;
       this.setState({
-        selectedJob: null
+        selectedJob: null,
+        variables: {},
+        variablesMeta: {}
       });
     } else {
       this.setState({
@@ -98,12 +115,16 @@ class DiffExpr extends React.Component<Props, State> {
       });
       const { pushNotification } = this.props;
       Api.Jobs.fetchJobById(id)
-        .then(selectedJob =>
+        // eslint-disable-next-line promise/always-return
+        .then(selectedJob => {
+          this.cachedContrasts = null;
           this.setState({
             isLoading: false,
-            selectedJob
-          })
-        )
+            selectedJob,
+            variables: this.getVariables(selectedJob),
+            variablesMeta: this.getMeta(selectedJob)
+          });
+        })
         .catch(e => {
           pushNotification(`An error occurred: ${e.message}!`, 'error');
           this.setState({
@@ -113,18 +134,81 @@ class DiffExpr extends React.Component<Props, State> {
     }
   };
 
-  getVariables() {
-    const { selectedJob } = this.state;
+  // eslint-disable-next-line class-methods-use-this
+  getMeta(selectedJob: Job): { [string]: string[] } {
     if (
       !selectedJob ||
       !selectedJob.output ||
       !Array.isArray(selectedJob.output.metadata)
     ) {
-      return [];
+      return {};
     }
-    return selectedJob.output.metadata
-      .map(f => (f.type === 'string' ? f.field : null))
-      .filter(v => v !== null);
+    return Object.fromEntries(
+      selectedJob.output.metadata
+        .filter(f => f.type === 'string')
+        // $FlowFixMe
+        .map(f => [f.field, f.content])
+    );
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getVariables(selectedJob: Job): { [string]: string } {
+    if (
+      !selectedJob ||
+      !selectedJob.output ||
+      !Array.isArray(selectedJob.output.metadata)
+    ) {
+      return {};
+    }
+    return Object.fromEntries(
+      selectedJob.output.metadata
+        // $FlowFixMe
+        .map(f => (f.type === 'string' ? f.field : null))
+        .filter(v => v !== null)
+        // $FlowFixMe
+        .map(v => [v, v])
+    );
+  }
+
+  recursiveConditionBuilder(variables: string[], prefix: string) {
+    const { variablesMeta } = this.state;
+    const [first, ...rest] = variables;
+    let results: [string, string][] = [];
+    variablesMeta[first].forEach(v => {
+      const elem = `${prefix}${v}`;
+      if (rest.length === 0) {
+        results.push([elem, elem]);
+      } else {
+        results = [
+          ...results,
+          ...this.recursiveConditionBuilder(rest, `${elem}_`)
+        ];
+      }
+    });
+    return results;
+  }
+
+  getContrasts(conditionVariables: ?(string[])): { [string]: string } {
+    if (!conditionVariables) return {};
+    if (conditionVariables.length <= 0) return {};
+    const { selectedJob } = this.state;
+    if (!selectedJob) return {};
+    const key = JSON.stringify(conditionVariables);
+    if (
+      this.cachedContrasts &&
+      this.cachedContrasts.key === key &&
+      this.cachedContrasts.contrasts
+    ) {
+      return this.cachedContrasts.contrasts;
+    }
+    const contrasts = Object.fromEntries(
+      this.recursiveConditionBuilder(conditionVariables, '')
+    );
+    this.cachedContrasts = {
+      key,
+      contrasts
+    };
+    return contrasts;
   }
 
   getValidationSchema = () =>
@@ -168,7 +252,7 @@ class DiffExpr extends React.Component<Props, State> {
         <TextField label="Code" name="code" required />
         <TextField label="Analysis Name" name="name" required />
         <TableField
-          name="jobs"
+          name="source_sample_group"
           required
           single
           getData={() => Api.Jobs.fetchAllByType('samples_group_job_type')}
@@ -197,45 +281,101 @@ class DiffExpr extends React.Component<Props, State> {
     );
   };
 
+  addHandle = helpers => e => {
+    e.preventDefault();
+    helpers.push({ case: '', control: '' });
+  };
+
+  removeHandle = (helpers, i) => e => {
+    e.preventDefault();
+    helpers.remove(i);
+  };
+
+  makeSampleForm = (i, single, values, helpers) => {
+    const { classes } = this.props;
+    return (
+      <FormGroup row className={classes.formControl} key={`sample-${i}`}>
+        <Grid container justify="space-around" alignItems="center" spacing={3}>
+          <Grid item xs>
+            <SelectField
+              label="Case"
+              name={`contrasts.${i}.case`}
+              options={values}
+              addEmpty
+            />
+          </Grid>
+          <Grid item xs>
+            <SelectField
+              label="Case"
+              name={`contrasts.${i}.control`}
+              options={values}
+              addEmpty
+            />
+          </Grid>
+          {!single && (
+            <Grid item xs={1}>
+              <IconButton onClick={this.removeHandle(helpers, i)}>
+                <Icon className="fas fa-trash" />
+              </IconButton>
+            </Grid>
+          )}
+        </Grid>
+      </FormGroup>
+    );
+  };
+
   getStep1 = values => {
-    const { classes, pushNotification } = this.props;
-    const { analysis } = values;
+    const { classes } = this.props;
+    const { variables } = this.state;
+    const { condition_variables, contrasts } = values;
+    const availableValues = this.getContrasts(condition_variables);
+    const emptyValues =
+      availableValues && Object.keys(availableValues).length === 0;
+    const single = !contrasts || contrasts.length <= 1;
     return (
       <>
         <Typography className={classes.instructions}>
-          Here you can choose which samples will be included in this group. If
-          you select another sample group, all its samples and annotations will
-          be included (Annotations are ignored if De Novo is selected).
+          Here you can choose which variables will be used to define the
+          contrasts. After selecting the variables, you will be able to add one
+          or more contrasts each with a case and a control.
         </Typography>
-        <TableField
-          name="jobs"
+        <SelectField
+          label="Select condition variables:"
+          name="condition_variables"
+          options={variables}
           required
-          getData={() => Api.Jobs.fetchAllByType(analysis)}
-          onError={e =>
-            pushNotification(`An error occurred: ${e.message}!`, 'error')
-          }
-          label="Select one or more analysis"
-          columns={[
-            {
-              dataField: 'sample_code',
-              label: 'Code'
-            },
-            {
-              dataField: 'name',
-              label: 'Name'
-            },
-            {
-              dataField: 'readable_type',
-              sortingField: 'job_type',
-              label: 'Type'
-            },
-            {
-              dataField: 'created_at_diff',
-              sortingField: 'created_at',
-              label: 'Created at'
-            }
-          ]}
+          multiple
         />
+        {!emptyValues && (
+          <FieldArray
+            name="contrasts"
+            render={helpers => (
+              <>
+                {contrasts &&
+                  contrasts.map((s, i) =>
+                    this.makeSampleForm(i, single, availableValues, helpers)
+                  )}
+                <FormGroup row className={classes.formControl}>
+                  <Grid
+                    container
+                    direction="row-reverse"
+                    alignItems="center"
+                    spacing={3}
+                  >
+                    <Grid item xs="auto">
+                      <Button
+                        variant="outlined"
+                        onClick={this.addHandle(helpers)}
+                      >
+                        <Icon className="fas fa-plus" /> Add a contrast
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </FormGroup>
+              </>
+            )}
+          />
+        )}
       </>
     );
   };
@@ -250,16 +390,53 @@ class DiffExpr extends React.Component<Props, State> {
           expression analysis. Finally, to proceed with the creation of a new
           sample group, click on the &quot;Save&quot; button.
         </Typography>
-        <FormGroup row className={classes.formControl}>
-          <Grid container alignItems="center" spacing={3}>
-            <Grid item xs="auto">
-              <InputLabel>Select the optional description table</InputLabel>
-            </Grid>
-            <Grid item xs>
-              TODO
-            </Grid>
-          </Grid>
-        </FormGroup>
+        <TextField
+          label="p-value Threshold"
+          name="parameters.pcut"
+          required
+          type="number"
+          helperText="A p-value cutoff for exporting differentially genes."
+        />
+        <TextField
+          label="Log offset"
+          name="parameters.log_offset"
+          required
+          type="number"
+          helperText="An offset to be added to values during logarithmic transformations in order to avoid Infinity."
+        />
+        <SelectField
+          label="When filtering should be applied?"
+          name="parameters.when_apply_filter"
+          options={DiffExpConsts.when_apply_filter}
+        />
+        <SelectField
+          label="Which method should be used for p-value adjustment?"
+          name="parameters.adjust_method"
+          options={DiffExpConsts.adjust_method}
+          required
+        />
+        <SelectField
+          label="Which method should be used for p-value meta-analysis?"
+          name="parameters.meta_p_method"
+          options={DiffExpConsts.meta_p_method}
+          required
+        />
+        <SelectField
+          label="Which formats should be used to export figures?"
+          name="parameters.fig_formats"
+          options={DiffExpConsts.fig_formats}
+          multiple
+          required
+        />
+        <TextField
+          label="Number of threads"
+          name="parameters.num_cores"
+          type="number"
+          helperText={`Do not select more than ${Math.floor(
+            Api.Utils.cpuCount() / 3
+          )} cores if you wish to submit multiple analysis.`}
+          required
+        />
       </>
     );
   };
@@ -311,7 +488,7 @@ class DiffExpr extends React.Component<Props, State> {
               Differential Expression Analysis
             </Typography>
             <Formik
-              initialValues={DiffExpDefaults}
+              initialValues={DiffExpDefaults.defaults}
               initialErrors={validationErrors}
               validationSchema={this.getValidationSchema()}
               onSubmit={v => {
