@@ -337,7 +337,6 @@ class DiffExprAnalysisJobType extends AbstractJob
     private function recursiveConditionBuilder(array $variables, array $meta, array &$result, string $prefix = ''): void
     {
         $first = array_shift($variables);
-        $result = [];
         foreach ($meta[$first] as $value) {
             $elem = $prefix . $value;
             if (count($variables) > 0) {
