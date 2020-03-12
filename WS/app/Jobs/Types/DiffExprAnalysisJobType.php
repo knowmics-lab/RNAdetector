@@ -136,6 +136,7 @@ class DiffExprAnalysisJobType extends AbstractJob
         'glm_method'        => 'glm.method',
         'trend_method'      => 'trend.method',
         'normalize_method'  => 'normalize.method',
+        'avg_reads'         => 'avg.reads',
         'average_per_bp'    => 'average.per.bp',
         'adjust_method'     => 'adjust.method',
         'meta_p_method'     => 'meta.p.method',
