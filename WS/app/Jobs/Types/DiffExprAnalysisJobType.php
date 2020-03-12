@@ -401,6 +401,25 @@ class DiffExprAnalysisJobType extends AbstractJob
     }
 
     /**
+     * @param array $arr
+     *
+     * @return array
+     */
+    private static function mapKeys(array $arr): array
+    {
+        $res = [];
+        foreach ($arr as $key => $value) {
+            $mapKey = self::PARAMETERS_KEY_CONVERSION[$key] ?? $key;
+            if (is_array($value)) {
+                $value = self::mapKeys($arr);
+            }
+            $res[$mapKey] = $value;
+        }
+
+        return $res;
+    }
+
+    /**
      * @param array $parameters
      *
      * @return array
@@ -412,14 +431,14 @@ class DiffExprAnalysisJobType extends AbstractJob
             $mapKey = self::PARAMETERS_KEY_CONVERSION[$par] ?? $par;
             switch ($par) {
                 case 'norm_args':
-                    $finalParameters[$mapKey] = array_merge($val, $parameters[$par] ?? []);
+                    $finalParameters[$mapKey] = self::mapKeys(array_merge($val, $parameters[$par] ?? []));
                     break;
                 case 'stats_args':
                     $args = $parameters[$par] ?? [];
                     $stats = $parameters['stats'] ?? self::DEFAULT_PARAMETERS['stats'];
                     $finalParameters[$mapKey] = [];
                     foreach ($stats as $s) {
-                        $finalParameters[$mapKey][$s] = array_merge($val[$s], $args[$s] ?? []);
+                        $finalParameters[$mapKey][$s] = self::mapKeys(array_merge($val[$s], $args[$s] ?? []));
                     }
                     break;
                 case 'filters':
@@ -427,7 +446,9 @@ class DiffExprAnalysisJobType extends AbstractJob
                     $finalParameters[$mapKey] = [];
                     foreach (array_keys($val) as $f) {
                         $filterArgs = $args[$f] ?? $val[$f];
-                        $finalParameters[$mapKey] = ($filterArgs !== null) ? array_merge(self::FILTER_DEFAULTS[$f], $filterArgs) : null;
+                        $finalParameters[$mapKey][$f] = ($filterArgs !== null) ? self::mapKeys(
+                            array_merge(self::FILTER_DEFAULTS[$f], $filterArgs)
+                        ) : null;
                     }
                     break;
                 default:
