@@ -1,4 +1,4 @@
-/* eslint-disable react/no-unused-prop-types,no-unused-vars,camelcase */
+/* eslint-disable react/no-unused-prop-types,camelcase */
 // @flow
 import * as React from 'react';
 import { withStyles } from '@material-ui/core/styles';
@@ -11,7 +11,6 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import { Formik, Form, FieldArray, Field } from 'formik';
 import * as Yup from 'yup';
 import Backdrop from '@material-ui/core/Backdrop';
-import { InputLabel } from '@material-ui/core';
 import Button from '@material-ui/core/Button';
 import Icon from '@material-ui/core/Icon';
 import IconButton from '@material-ui/core/IconButton';
@@ -27,12 +26,6 @@ import type { Job } from '../../types/jobs';
 import TableField from '../Form/TableField';
 import type { PushNotificationFunction } from '../../types/notifications';
 import { SubmitButton } from '../UI/Button';
-import FileSelector from '../UI/FileSelector';
-import type {
-  ContrastType,
-  DiffExpParameters,
-  SampleTypes
-} from '../../types/analysis';
 
 type Props = {
   refreshJobs: () => void,
@@ -74,12 +67,6 @@ const style = theme => ({
     color: '#fff'
   }
 });
-
-const SUPPORTED_ANALYSIS = {
-  long_rna_job_type: 'Long RNA',
-  small_rna_job_type: 'Small RNA',
-  circ_rna_job_type: 'Circ RNA'
-};
 
 type State = {
   isLoading: boolean,
