@@ -879,7 +879,10 @@ class DiffExpr extends React.Component<Props, State> {
                   formParams.filters.expression.quantile === ''
                     ? null
                     : formParams.filters.expression.quantile,
-                known: formParams.filters.expression.known
+                known:
+                  formParams.filters.expression.known.length === 0
+                    ? null
+                    : formParams.filters.expression.known
               }
             : null,
           presence: enabled.includes('presence')
