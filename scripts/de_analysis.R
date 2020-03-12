@@ -118,7 +118,7 @@ stats.algo.params <- setNames(lapply(stats.algo, function (a) {
 default.filters <- get.defaults("gene.filter", "")
 gene.filters <- check.list(params$filters)
 for (f in names(gene.filters)) {
-  if (is.null(default.filters[[f]])) {
+  if (is.null(gene.filters[[f]])) {
     gene.filters[[f]] <- NULL 
   } else {
     gene.filters[[f]] <- modifyList(default.filters[[f]], gene.filters[[f]])
