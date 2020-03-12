@@ -441,16 +441,18 @@ class DiffExprAnalysisJobType extends AbstractJob
     }
 
     /**
-     * @param array  $groupOutput
-     * @param string $sampleType
-     * @param array  $conditionVariables
-     * @param array  $validContrasts
-     * @param array  $parameters
+     * @param \App\Models\Job $sourceSampleGroup
+     * @param array           $groupOutput
+     * @param string          $sampleType
+     * @param array           $conditionVariables
+     * @param array           $validContrasts
+     * @param array           $parameters
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
      */
     private function prepareConfigFile(
+        Job $sourceSampleGroup,
         array $groupOutput,
         string $sampleType,
         array $conditionVariables,
@@ -463,8 +465,8 @@ class DiffExprAnalysisJobType extends AbstractJob
         $degReportUrl = \Storage::disk('public')->url($degReportDirectory);
         $dataField = $sampleType === self::VALID_SAMPLE_TYPE[1] ? 'harmonizedTranscriptsFile' : 'harmonizedFile';
         $jsonContent = [
-            'description.file'     => $this->absoluteJobPath($groupOutput['description']['path']),
-            'data.file'            => $groupOutput[$dataField]['path'],
+            'description.file'     => $sourceSampleGroup->absoluteJobPath($groupOutput['description']['path']),
+            'data.file'            => $sourceSampleGroup->absoluteJobPath($groupOutput[$dataField]['path']),
             'data.type'            => $sampleType,
             'conditions.variables' => $conditionVariables,
             'contrasts'            => $validContrasts,
@@ -507,6 +509,7 @@ class DiffExprAnalysisJobType extends AbstractJob
         $validContrasts = $this->checkAndPrepareContrasts($contrasts, $conditions);
         $parameters = $this->prepareParameters($parameters);
         [$configFile, $degReportDirectory, $degReport, $degReportUrl] = $this->prepareConfigFile(
+            $sourceSampleGroup,
             $groupOutput,
             $sampleType,
             $conditionVariables,

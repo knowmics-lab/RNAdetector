@@ -840,7 +840,9 @@ class DiffExpr extends React.Component<Props, State> {
     const parameters = {
       source_sample_group: values.source_sample_group,
       sample_type: values.sample_type,
-      condition_variables: values.condition_variables,
+      condition_variables: this.sortConditionVariables(
+        values.condition_variables
+      ),
       contrasts: values.contrasts,
       parameters: {
         pcut: formParams.pcut,
