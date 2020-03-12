@@ -411,7 +411,7 @@ class DiffExprAnalysisJobType extends AbstractJob
         foreach ($arr as $key => $value) {
             $mapKey = self::PARAMETERS_KEY_CONVERSION[$key] ?? $key;
             if (is_array($value)) {
-                $value = self::mapKeys($arr);
+                $value = self::mapKeys($value);
             }
             $res[$mapKey] = $value;
         }
