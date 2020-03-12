@@ -102,4 +102,27 @@ final class Utils
         return true;
     }
 
+    /**
+     * Recursively set chmod
+     *
+     * @param string $inputFolder
+     * @param int    $mode
+     *
+     * @return bool
+     */
+    public static function recursiveChmod(string $inputFolder, int $mode): bool
+    {
+        $rootPath = realpath($inputFolder);
+        if (!file_exists($rootPath) && !is_dir($rootPath)) {
+            return false;
+        }
+        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($rootPath));
+        foreach ($files as $name => $file) {
+            @chmod($file->getRealPath(), 0777);
+        }
+        @chmod($rootPath, 0777);
+
+        return true;
+    }
+
 }

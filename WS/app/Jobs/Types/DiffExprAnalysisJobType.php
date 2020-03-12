@@ -499,6 +499,7 @@ class DiffExprAnalysisJobType extends AbstractJob
         if (!file_exists($configFile)) {
             throw new ProcessingJobException('Unable to create analysis config file.');
         }
+        @chmod($configFile, 0777);
 
         return [$configFile, $degReportDirectory, $degReport, $degReportUrl];
     }
@@ -554,6 +555,7 @@ class DiffExprAnalysisJobType extends AbstractJob
         if (!file_exists($degReport) && !is_dir($degReport) && !file_exists($degReport . '/index.html')) {
             throw new ProcessingJobException('Unable to create output report.');
         }
+        Utils::recursiveChmod($degReport, 0777);
         $this->log('DEGs Analysis completed.');
         $degReportZip = $this->model->getJobFile('deg_report_', '.zip');
         $degReportZipAbsolute = $this->model->absoluteJobPath($degReportZip);
@@ -562,6 +564,7 @@ class DiffExprAnalysisJobType extends AbstractJob
         if (!Utils::makeZipArchive($degReport, $degReportZipAbsolute)) {
             throw new ProcessingJobException('Unknown error during output archive creation.');
         }
+        @chmod($degReportZipAbsolute, 0777);
         if (!file_exists($degReportZipAbsolute)) {
             throw new ProcessingJobException('Unable to create output archive.');
         }
