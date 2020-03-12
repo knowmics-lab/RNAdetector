@@ -3,12 +3,22 @@
     "prenorm": "Before normalization",
     "postnorm": "After normalization"
   },
+  "sample_type": {
+    "gene": "Differentially Expressed Genes",
+    "transcript": "Differentially Expressed Transcripts"
+  },
+  "filters": {
+    "length": "Length",
+    "reads": "Average Reads",
+    "expression": "Expression",
+    "presence": "Presence"
+  },
   "norm": {
     "edger": "edgeR",
     "deseq": "DESeq2"
   },
   "norm_args_method": {
-    "TMM": "Trimmed mean of M-values",
+    "TMM": "Trimmed mean of M-values (TMM)",
     "TMMwsp": "TMM with singleton pairing (better for data with high proportion of zeros)",
     "RLE": "Relative Log Expression",
     "upperquartile": "Upper-quantile normalization",
@@ -16,7 +26,7 @@
   },
   "norm_args_locfunc": {
     "median": "Median",
-    "shorth": "Shorth Estimator (better for low counts)"
+    "shorth": "Shorth Estimator"
   },
   "stats": {
     "limma": "Limma",

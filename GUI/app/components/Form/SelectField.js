@@ -31,6 +31,7 @@ type SelectFieldProp = {
   label: string,
   name: string,
   options: SimpleMapType<string>,
+  helperText?: ?string,
   emptyText?: string,
   addEmpty?: boolean,
   required?: boolean,
@@ -39,6 +40,7 @@ type SelectFieldProp = {
 
 SelectField.defaultProps = {
   emptyText: 'None',
+  helperText: null,
   addEmpty: false,
   required: false,
   multiple: false
@@ -48,6 +50,7 @@ export default function SelectField({
   options,
   addEmpty,
   emptyText,
+  helperText,
   label,
   required,
   ...props
@@ -62,6 +65,8 @@ export default function SelectField({
   if (addEmpty) {
     entries.unshift(EMPTY_OPTION(emptyText));
   }
+  const hasHelperText = !!((touched && error) || helperText);
+  const displayedText = touched && error ? error : helperText;
   return (
     <FormControl
       className={classes.formControl}
@@ -80,7 +85,7 @@ export default function SelectField({
       >
         {entries}
       </Select>
-      {touched && error ? <FormHelperText>{error}</FormHelperText> : null}
+      {hasHelperText ? <FormHelperText>{displayedText}</FormHelperText> : null}
     </FormControl>
   );
 }

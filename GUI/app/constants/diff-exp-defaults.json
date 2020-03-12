@@ -35,6 +35,11 @@
         }
       },
       "filters": {
+        "enabled": [
+          "length",
+          "reads",
+          "expression"
+        ],
         "length": {
           "length": 500
         },
@@ -45,12 +50,12 @@
         "expression": {
           "median": true,
           "mean": false,
-          "quantile": null,
+          "quantile": "",
           "known": []
         },
         "presence": {
-          "frac": null,
-          "min_count": null,
+          "frac": 0.25,
+          "min_count": 10,
           "per_condition": false
         }
       },

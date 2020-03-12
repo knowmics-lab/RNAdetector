@@ -289,12 +289,14 @@ class DiffExprAnalysisJobType extends AbstractJob
     }
 
     /**
+     * @param \App\Models\Job $sourceSampleGroup
+     *
      * @return array
      */
-    private function prepareMetadata(): array
+    private function prepareMetadata(Job $sourceSampleGroup): array
     {
         $contents = [];
-        $groupOutput = $this->model->job_output;
+        $groupOutput = $sourceSampleGroup->job_output;
         foreach ($groupOutput['metadata'] as $m) {
             if ($m['type'] === 'string') {
                 $contents[$m['field']] = $m['content'];
@@ -495,11 +497,11 @@ class DiffExprAnalysisJobType extends AbstractJob
         if ($sourceSampleGroup->job_type !== 'samples_group_job_type') {
             throw new ProcessingJobException('Source sample group error: job type invalid.');
         }
-        $groupOutput = $this->model->job_output;
+        $groupOutput = $sourceSampleGroup->job_output;
         if ($sampleType === self::VALID_SAMPLE_TYPE[1] && !isset($groupOutput['harmonizedTranscriptsFile'])) {
             throw new ProcessingJobException('The selected sample group does not support transcripts differential expression analysis.');
         }
-        $metadata = $this->prepareMetadata();
+        $metadata = $this->prepareMetadata($sourceSampleGroup);
         $this->checkConditionVariables($conditionVariables, $metadata);
         $conditions = $this->prepareAvailableConditions($conditionVariables, $metadata);
         $validContrasts = $this->checkAndPrepareContrasts($contrasts, $conditions);

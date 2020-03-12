@@ -1,6 +1,6 @@
-- pcut: 0.05; a p-value cutoff for exporting differentially genes.
-- log.offset: 1; an offset to be added to values during logarithmic transformations in order to avoid Infinity.
-- when.apply.filter: "prenorm" (default), "postnorm"; when to apply the exon and/or gene filters, relative to normalization
+# pcut: 0.05; a p-value cutoff for exporting differentially genes.
+# log.offset: 1; an offset to be added to values during logarithmic transformations in order to avoid Infinity.
+# when.apply.filter: "prenorm" (default), "postnorm"; when to apply the exon and/or gene filters, relative to normalization
 - normalization: "edger" (default), "deseq"
   Se normalization è "edger":
     - method: "TMM" (default),"TMMwsp","RLE","upperquartile","none"
@@ -51,8 +51,7 @@
         - frac: 0.25
         - min.count: 10,
         - per.condition: FALSE (default)/TRUE; the check is on all samples or group by group
-- qc.plots: "mds","biodetection","countsbio","saturation","readnoise","filtered", "correl","pairwise","boxplot","lengthbias","meandiff", "meanvar","rnacomp","deheatmap","volcano","biodist","venn" === indeciso se aggiungere o no questo parametro ===
-- adjust.method: "qvalue" (DEFAULT), "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "none"
-- meta.p.method: "simes" (default), "bonferroni", "minp", "maxp", "weight", "pandora", "dperm.min", "dperm.max", "dperm.weight", "fisher", "fperm", "whitlock" or "none"
-- fig.format: "png", "jpg", "tiff", "bmp", "pdf"; ONE or MORE values === indeciso se aggiungere o no questo parametro ===
-- num.cores: numero di core
+# adjust.method: "qvalue" (DEFAULT), "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "none"
+# meta.p.method: "simes" (default), "bonferroni", "minp", "maxp", "weight", "pandora", "dperm.min", "dperm.max", "dperm.weight", "fisher", "fperm", "whitlock" or "none"
+# fig.format: "png", "jpg", "tiff", "bmp", "pdf"; ONE or MORE values === indeciso se aggiungere o no questo parametro ===
+# num.cores: numero di core
