@@ -54,7 +54,7 @@ class ListPackages extends Command
     public function handle()
     {
         try {
-            $this->line(json_encode(self::fetchPackages()));;
+            $this->line(json_encode(self::fetchPackages()));
         } catch (Throwable $e) {
             $this->line(
                 json_encode(
