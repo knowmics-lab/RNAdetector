@@ -22,7 +22,10 @@ export type TableState = {
   isLoading: boolean
 };
 
-export type RowActionFunction = ReadOnlyData => ChildrenArray<ReactElement<*>>;
+export type RowActionFunction = (
+  ReadOnlyData,
+  string
+) => ChildrenArray<ReactElement<*>>;
 
 export type RowActionObject = {
   shown: boolean | (ReadOnlyData => boolean),

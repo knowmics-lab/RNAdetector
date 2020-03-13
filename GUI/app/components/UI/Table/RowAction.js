@@ -16,7 +16,7 @@ function isF(x: mixed): boolean %checks {
 
 export default function RowAction({ action, data, size }: Props) {
   if (typeof action === 'function') {
-    return action(data);
+    return <>{action(data, size)}</>;
   }
   const shown = isF(action.shown) ? action.shown(data) : action.shown;
   if (!shown) return null;

@@ -26,8 +26,8 @@ export default {
   async genericDownload(
     jobId: number,
     outputVariable: string,
-    onStart?: () => void,
-    onCompleted?: () => void
+    onStart?: string => void,
+    onCompleted?: string => void
   ): Promise<void> {
     const job = await this.fetchJobById(jobId);
     if (
@@ -40,7 +40,12 @@ export default {
       if (typeof outputPath === 'string') {
         const outputUrl = Settings.getPublicUrl(outputPath);
         const outputFilename = path.basename(outputPath);
-        Downloader.downloadUrl(outputUrl, outputFilename, onStart, onCompleted);
+        Downloader.downloadUrl(
+          outputUrl,
+          outputFilename,
+          () => onStart && onStart(outputVariable),
+          () => onCompleted && onCompleted(outputVariable)
+        );
       }
     } else {
       throw new Error('Unable to find output path');
