@@ -544,6 +544,7 @@ class CircRnaJobType extends AbstractJob
         $this->log('CircRNA Analysis completed!');
         $this->model->setOutput(
             [
+                'type'           => self::OUT_TYPE_ANALYSIS_HARMONIZED,
                 'outputFile'     => [
                     'path' => $circOutput,
                     'url'  => $circOutputUrl,

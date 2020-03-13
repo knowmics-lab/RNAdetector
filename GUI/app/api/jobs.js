@@ -23,6 +23,29 @@ export default {
     const jobId = typeof job === 'object' ? job.id : job;
     return Settings.getLocalPath(`/public/jobs/${jobId}`);
   },
+  async genericDownload(
+    jobId: number,
+    outputVariable: string,
+    onStart?: () => void,
+    onCompleted?: () => void
+  ): Promise<void> {
+    const job = await this.fetchJobById(jobId);
+    if (
+      job.output &&
+      Object.prototype.hasOwnProperty.call(job.output, outputVariable) &&
+      typeof job.output[outputVariable] === 'object' &&
+      Object.prototype.hasOwnProperty.call(job.output[outputVariable], 'path')
+    ) {
+      const { path: outputPath } = job.output[outputVariable];
+      if (typeof outputPath === 'string') {
+        const outputUrl = Settings.getPublicUrl(outputPath);
+        const outputFilename = path.basename(outputPath);
+        Downloader.downloadUrl(outputUrl, outputFilename, onStart, onCompleted);
+      }
+    } else {
+      throw new Error('Unable to find output path');
+    }
+  },
   async download(
     jobId: number,
     onStart?: () => void,
@@ -58,6 +81,23 @@ export default {
       }
     } else {
       throw new Error('Unable to find output path');
+    }
+  },
+  async openReport(jobId: number): Promise<*> {
+    const job = await this.fetchJobById(jobId);
+    if (job.output && job.output.reportFile && job.output.reportFile.path) {
+      const { path: reportPath } = job.output.reportFile;
+      if (typeof reportPath === 'string') {
+        const reportUrl = Settings.getPublicUrl(reportPath);
+        const win = window.open(reportUrl, '_blank', 'nodeIntegration=no');
+        win.focus();
+        return win;
+        /* return electron.shell.openExternal(reportUrl, {
+          activate: true
+        }); */
+      }
+    } else {
+      throw new Error('This job does not contain any report file');
     }
   },
   async processDeletedList(deleted: number[]): Promise<number[]> {

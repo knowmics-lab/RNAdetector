@@ -571,6 +571,7 @@ class DiffExprAnalysisJobType extends AbstractJob
         $this->log('Archive built.');
         $this->setOutput(
             [
+                'type'       => self::OUT_TYPE_ANALYSIS_REPORT,
                 'outputFile' => ['path' => $degReportZip, 'url' => $degReportZipUrl],
                 'reportFile' => ['path' => $degReportDirectory . '/index.html', 'url' => $degReportUrl . '/index.html'],
             ]

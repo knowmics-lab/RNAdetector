@@ -257,6 +257,7 @@ class SmallRnaJobType extends AbstractJob
             }
         }
         $output = [
+            'type'           => self::OUT_TYPE_ANALYSIS_HARMONIZED,
             'outputFile'     => [
                 'path' => $outputFile,
                 'url'  => $outputUrl,
@@ -267,6 +268,7 @@ class SmallRnaJobType extends AbstractJob
             ],
         ];
         if ($harmonizedTxFile !== null) {
+            $output['type'] = self::OUT_TYPE_ANALYSIS_HARMONIZED_TRANSCRIPTS;
             $output['harmonizedTranscriptsFile'] = [
                 'path' => $harmonizedTxFile,
                 'url'  => $harmonizedTxUrl,

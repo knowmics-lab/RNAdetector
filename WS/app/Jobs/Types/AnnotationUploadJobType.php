@@ -106,7 +106,7 @@ class AnnotationUploadJobType extends AbstractJob
             ]
         )->save();
         $this->log('Job completed!');
-        $this->model->setOutput(['done' => true]);
+        $this->model->setOutput(['type' => self::OUT_TYPE_CONFIRMATION, 'done' => true]);
         $this->model->save();
     }
 

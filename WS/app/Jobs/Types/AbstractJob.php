@@ -45,6 +45,14 @@ abstract class AbstractJob
     protected const HISAT2                    = 'hisat2';
     protected const VALID_ALIGN_QUANT_METHODS = [self::SALMON, self::TOPHAT, self::HISAT2];
 
+    protected const OUT_TYPE_CONFIRMATION                                = 'confirmation';
+    protected const OUT_TYPE_ANALYSIS                                    = 'analysis';
+    protected const OUT_TYPE_ANALYSIS_HARMONIZED                         = 'analysis-harmonized';
+    protected const OUT_TYPE_ANALYSIS_HARMONIZED_TRANSCRIPTS             = 'analysis-harmonized-transcripts';
+    protected const OUT_TYPE_ANALYSIS_HARMONIZED_DESCRIPTION             = 'analysis-harmonized-description';
+    protected const OUT_TYPE_ANALYSIS_HARMONIZED_TRANSCRIPTS_DESCRIPTION = 'analysis-harmonized-transcripts-description';
+    protected const OUT_TYPE_ANALYSIS_REPORT                             = 'analysis-report';
+
     /**
      * @var \App\Models\Job
      */
@@ -230,3 +238,4 @@ abstract class AbstractJob
 
 
 }
+

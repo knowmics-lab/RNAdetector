@@ -494,6 +494,7 @@ class SamplesGroupJobType extends AbstractJob
             !$isCiri && $hasTranscripts
         );
         $output = [
+            'type'           => self::OUT_TYPE_ANALYSIS_HARMONIZED_DESCRIPTION,
             'jobs'           => $validJobs,
             'codes'          => $validCodes,
             'description'    => ['path' => $descriptionRelative, 'url' => $descriptionUrl],
@@ -502,6 +503,7 @@ class SamplesGroupJobType extends AbstractJob
             'harmonizedFile' => ['path' => $harmonizedPath, 'url' => $harmonizedUrl],
         ];
         if ($txPath !== null && $txUrl !== null) {
+            $output['type'] = self::OUT_TYPE_ANALYSIS_HARMONIZED_TRANSCRIPTS_DESCRIPTION;
             $output['harmonizedTranscriptsFile'] = ['path' => $txPath, 'url' => $txUrl];
         }
         $this->model->setOutput($output);

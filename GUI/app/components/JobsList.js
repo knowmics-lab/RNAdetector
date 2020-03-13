@@ -88,6 +88,14 @@ class JobsList extends React.Component<Props, State> {
     e.preventDefault();
   };
 
+  openReport = (e, row) => {
+    const { pushNotification } = this.props;
+    Api.Jobs.openReport(row.id).catch(ex =>
+      pushNotification(`An error occurred ${ex.message}`, 'error')
+    );
+    e.preventDefault();
+  };
+
   downloadResults = (e, row) => {
     const { pushNotification } = this.props;
     const jobId = row.id;
@@ -143,6 +151,7 @@ class JobsList extends React.Component<Props, State> {
     const cd = r => deletingJobs.includes(r.id);
     const cs = r => submittingJobs.includes(r.id);
     const cw = r => downloading.includes(r.id);
+    const isReport = r => r.type === 'diff_expr_analysis_job_type';
 
     return [
       {
@@ -182,6 +191,12 @@ class JobsList extends React.Component<Props, State> {
         icon: 'fas fa-folder-open',
         tooltip: 'Open results folder',
         onClick: this.openResultsFolder
+      },
+      {
+        shown: r => !cd(r) && r.status === 'completed' && !cw(r) && isReport(r),
+        icon: 'fas fa-eye',
+        tooltip: 'Show report',
+        onClick: this.openReport
       },
       {
         shown: r => !cd(r) && r.status !== 'processing',

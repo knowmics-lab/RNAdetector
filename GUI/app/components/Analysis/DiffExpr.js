@@ -832,8 +832,8 @@ class DiffExpr extends React.Component<Props, State> {
       ),
       contrasts: values.contrasts,
       parameters: {
-        pcut: formParams.pcut,
-        log_offset: formParams.log_offset,
+        pcut: +formParams.pcut,
+        log_offset: +formParams.log_offset,
         when_apply_filter: formParams.when_apply_filter,
         norm: formParams.norm,
         norm_args: {
@@ -849,23 +849,23 @@ class DiffExpr extends React.Component<Props, State> {
         filters: {
           length: enabled.includes('length')
             ? {
-                length: formParams.filters.length.length
+                length: +formParams.filters.length.length
               }
             : null,
           avg_reads: enabled.includes('reads')
             ? {
-                average_per_bp: formParams.filters.avg_reads.average_per_bp,
-                quantile: formParams.filters.avg_reads.quantile
+                average_per_bp: +formParams.filters.avg_reads.average_per_bp,
+                quantile: +formParams.filters.avg_reads.quantile
               }
             : null,
           expression: enabled.includes('expression')
             ? {
-                median: formParams.filters.expression.median,
-                mean: formParams.filters.expression.mean,
+                median: +formParams.filters.expression.median,
+                mean: +formParams.filters.expression.mean,
                 quantile:
                   formParams.filters.expression.quantile === ''
                     ? null
-                    : formParams.filters.expression.quantile,
+                    : +formParams.filters.expression.quantile,
                 known:
                   formParams.filters.expression.known.length === 0
                     ? null
@@ -874,16 +874,16 @@ class DiffExpr extends React.Component<Props, State> {
             : null,
           presence: enabled.includes('presence')
             ? {
-                frac: formParams.filters.presence.frac,
-                min_count: formParams.filters.presence.min_count,
-                per_condition: formParams.filters.presence.per_condition
+                frac: +formParams.filters.presence.frac,
+                min_count: +formParams.filters.presence.min_count,
+                per_condition: +formParams.filters.presence.per_condition
               }
             : null
         },
         adjust_method: formParams.adjust_method,
         meta_p_method: formParams.meta_p_method,
         fig_formats: formParams.fig_formats,
-        num_cores: formParams.num_cores
+        num_cores: +formParams.num_cores
       }
     };
     const data = await Api.Analysis.createDiffExpAnalysis(

@@ -241,6 +241,24 @@ app.on('ready', async () => {
     }
   );
 
+  /* mainWindow.webContents.on(
+    'new-window',
+    (event, url, frameName, disposition, options) => {
+      const baseOptions = {
+        parent: mainWindow,
+        width: 1024,
+        height: 728
+      };
+      const isModal = frameName === 'modal';
+      // eslint-disable-next-line no-param-reassign
+      event.newGuest = new BrowserWindow({
+        ...baseOptions,
+        ...options,
+        modal: isModal
+      });
+    }
+  ); */
+
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
   new AppUpdater();
