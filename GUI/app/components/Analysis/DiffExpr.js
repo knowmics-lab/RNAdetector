@@ -26,6 +26,7 @@ import type { Job } from '../../types/jobs';
 import TableField from '../Form/TableField';
 import type { PushNotificationFunction } from '../../types/notifications';
 import { SubmitButton } from '../UI/Button';
+import { OUT_TYPE_AHD, OUT_TYPE_AHT, OUT_TYPE_AHTD } from '../../api/jobs';
 
 type Props = {
   refreshJobs: () => void,
@@ -134,44 +135,47 @@ class DiffExpr extends React.Component<Props, State> {
   // eslint-disable-next-line class-methods-use-this
   getMeta(selectedJob: Job): { [string]: string[] } {
     if (
-      !selectedJob ||
-      !selectedJob.output ||
-      !Array.isArray(selectedJob.output.metadata)
-    ) {
-      return {};
-    }
-    return Object.fromEntries(
+      selectedJob &&
+      selectedJob.output &&
+      (selectedJob.output.type === OUT_TYPE_AHD ||
+        selectedJob.output.type === OUT_TYPE_AHTD) &&
       selectedJob.output.metadata
-        .filter(f => f.type === 'string')
-        // $FlowFixMe
-        .map(f => [f.field, f.content])
-    );
+    ) {
+      return Object.fromEntries(
+        selectedJob.output.metadata
+          .filter(f => f.type === 'string')
+          .map(f => [f.field, f.content])
+      );
+    }
+    return {};
   }
 
   // eslint-disable-next-line class-methods-use-this
   getVariables(selectedJob: Job): { [string]: string } {
     if (
-      !selectedJob ||
-      !selectedJob.output ||
-      !Array.isArray(selectedJob.output.metadata)
-    ) {
-      return {};
-    }
-    return Object.fromEntries(
+      selectedJob &&
+      selectedJob.output &&
+      (selectedJob.output.type === OUT_TYPE_AHD ||
+        selectedJob.output.type === OUT_TYPE_AHTD) &&
       selectedJob.output.metadata
-        // $FlowFixMe
-        .map(f => (f.type === 'string' ? f.field : null))
-        .filter(v => v !== null)
-        // $FlowFixMe
-        .map(v => [v, v])
-    );
+    ) {
+      return Object.fromEntries(
+        selectedJob.output.metadata
+          .filter(f => f.type === 'string')
+          .map(f => [f.field, f.field])
+      );
+    }
+    return {};
   }
 
   hasTranscripts(): boolean {
     const { selectedJob } = this.state;
     if (!selectedJob) return false;
     if (!selectedJob.output) return false;
-    return !!selectedJob.output.harmonizedTranscriptsFile;
+    return (
+      selectedJob.output.type === OUT_TYPE_AHT ||
+      selectedJob.output.type === OUT_TYPE_AHTD
+    );
   }
 
   recursiveConditionBuilder(variables: string[], prefix: string) {

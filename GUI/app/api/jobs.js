@@ -9,6 +9,14 @@ import type { SortingSpec } from '../types/common';
 import Connector from './connector';
 import Downloader from './downloader';
 
+export const OUT_TYPE_C = 'confirmation';
+export const OUT_TYPE_A = 'analysis';
+export const OUT_TYPE_AH = 'analysis-harmonized';
+export const OUT_TYPE_AHT = 'analysis-harmonized-transcripts';
+export const OUT_TYPE_AHD = 'analysis-harmonized-description';
+export const OUT_TYPE_AHTD = 'analysis-harmonized-transcripts-description';
+export const OUT_TYPE_AR = 'analysis-report';
+
 export default {
   getUploadUrl(job: number | Job): string {
     let jobId;
@@ -57,13 +65,11 @@ export default {
     onCompleted?: () => void
   ): Promise<void> {
     const job = await this.fetchJobById(jobId);
-    if (job.output && job.output.outputFile && job.output.outputFile.path) {
+    if (job.output && job.output.outputFile) {
       const { path: outputPath } = job.output.outputFile;
-      if (typeof outputPath === 'string') {
-        const outputUrl = Settings.getPublicUrl(outputPath);
-        const outputFilename = path.basename(outputPath);
-        Downloader.downloadUrl(outputUrl, outputFilename, onStart, onCompleted);
-      }
+      const outputUrl = Settings.getPublicUrl(outputPath);
+      const outputFilename = path.basename(outputPath);
+      Downloader.downloadUrl(outputUrl, outputFilename, onStart, onCompleted);
     } else {
       throw new Error('Unable to find output path');
     }
@@ -90,20 +96,14 @@ export default {
   },
   async openReport(jobId: number): Promise<*> {
     const job = await this.fetchJobById(jobId);
-    if (job.output && job.output.reportFile && job.output.reportFile.path) {
+    if (job.output.type === OUT_TYPE_AR) {
       const { path: reportPath } = job.output.reportFile;
-      if (typeof reportPath === 'string') {
-        const reportUrl = Settings.getPublicUrl(reportPath);
-        const win = window.open(reportUrl, '_blank', 'nodeIntegration=no');
-        win.focus();
-        return win;
-        /* return electron.shell.openExternal(reportUrl, {
-          activate: true
-        }); */
-      }
-    } else {
-      throw new Error('This job does not contain any report file');
+      const reportUrl = Settings.getPublicUrl(reportPath);
+      const win = window.open(reportUrl, '_blank', 'nodeIntegration=no');
+      win.focus();
+      return win;
     }
+    throw new Error('This job does not contain any report file');
   },
   async processDeletedList(deleted: number[]): Promise<number[]> {
     if (deleted.length === 0) return deleted;

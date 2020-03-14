@@ -9,6 +9,7 @@ import * as JobsActions from '../actions/jobs';
 import type { StateType } from '../reducers/types';
 import LogsDialog from './UI/LogsDialog';
 import * as Api from '../api';
+import { OUT_TYPE_AR } from '../api/jobs';
 
 const JobsTable = ConnectTable(
   (state: StateType) => ({
@@ -144,6 +145,8 @@ class JobsList extends React.Component<Props, State> {
     e.preventDefault();
   };
 
+  getSaveResultsMenu() {}
+
   getActions() {
     const { deletingJobs, submittingJobs } = this.props;
     const { downloading } = this.state;
@@ -151,11 +154,16 @@ class JobsList extends React.Component<Props, State> {
     const cd = r => deletingJobs.includes(r.id);
     const cs = r => submittingJobs.includes(r.id);
     const cw = r => downloading.includes(r.id);
-    const isReport = r => r.type === 'diff_expr_analysis_job_type';
+    const isReady = r => r.status === 'ready';
+    const isCompleted = r => r.status === 'completed';
+    const isReport = r => {
+      console.log(r);
+      return r.output && r.output.type === OUT_TYPE_AR;
+    };
 
     return [
       {
-        shown: r => !cd(r) && r.status === 'ready' && !cs(r),
+        shown: r => !cd(r) && isReady(r) && !cs(r),
         icon: 'fas fa-play',
         color: 'primary',
         onClick: this.handleSubmitJob,
@@ -163,37 +171,36 @@ class JobsList extends React.Component<Props, State> {
       },
       {
         disabled: true,
-        shown: r => !cd(r) && r.status === 'ready' && cs(r),
+        shown: r => !cd(r) && isReady(r) && cs(r),
         icon: 'fas fa-circle-notch fa-spin',
         color: 'primary',
         tooltip: 'Submitting...'
       },
       {
-        shown: r => !cd(r) && r.status !== 'ready' && r.status !== 'queued',
+        shown: r => !cd(r) && isReady(r) && r.status !== 'queued',
         icon: 'fas fa-file-alt',
         tooltip: 'Logs',
         onClick: this.handleLogsSelectJob
       },
       {
-        shown: r => !cd(r) && r.status === 'completed' && cw(r),
+        shown: r => !cd(r) && isCompleted(r) && cw(r),
         icon: 'fas fa-circle-notch fa-spin',
         tooltip: 'Saving...'
       },
       {
-        shown: r => !cd(r) && r.status === 'completed' && !cw(r),
+        shown: r => !cd(r) && isCompleted(r) && !cw(r),
         icon: 'fas fa-save',
         tooltip: 'Save results',
         onClick: this.downloadResults
       },
       {
-        shown: r =>
-          !cd(r) && r.status === 'completed' && Api.Settings.isLocal(),
+        shown: r => !cd(r) && isCompleted(r) && Api.Settings.isLocal(),
         icon: 'fas fa-folder-open',
         tooltip: 'Open results folder',
         onClick: this.openResultsFolder
       },
       {
-        shown: r => !cd(r) && r.status === 'completed' && !cw(r) && isReport(r),
+        shown: r => !cd(r) && isCompleted(r) && !cw(r) && isReport(r),
         icon: 'fas fa-eye',
         tooltip: 'Show report',
         onClick: this.openReport

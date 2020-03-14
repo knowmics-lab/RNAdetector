@@ -283,6 +283,7 @@
     "history": "^4.10.1",
     "immutable": "^4.0.0-rc.12",
     "lodash": "^4.17.15",
+    "material-ui-popup-state": "^1.5.3",
     "mimetype-to-fontawesome": "^2.0.0",
     "moment": "^2.24.0",
     "react": "^16.12.0",

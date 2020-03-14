@@ -30,6 +30,7 @@ class JobCollection extends ResourceCollection
                     'type'            => $item->job_type,
                     'readable_type'   => $item->resource->readableJobType(),
                     'status'          => $item->status,
+                    'output'          => $this->job_output,
                     'created_at'      => $item->created_at,
                     'created_at_diff' => $item->created_at->diffForHumans(),
                     'updated_at'      => $item->updated_at,
