@@ -25,7 +25,7 @@ export type TableState = {
 export type RowActionFunction = (
   ReadOnlyData,
   string
-) => ChildrenArray<ReactElement<*>>;
+) => ?ChildrenArray<ReactElement<*>>;
 
 export type RowActionObject = {
   shown: boolean | (ReadOnlyData => boolean),

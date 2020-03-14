@@ -1,15 +1,26 @@
-/* eslint-disable promise/always-return,promise/catch-or-return */
+/* eslint-disable promise/always-return,promise/catch-or-return,react/jsx-props-no-spreading */
 // @flow
 import * as React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
 import LinearProgress from '@material-ui/core/LinearProgress';
+import Icon from '@material-ui/core/Icon';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+import PopupState, { bindTrigger, bindMenu } from 'material-ui-popup-state';
 import { ConnectTable } from './UI/PaginatedRemoteTable';
 import * as JobsActions from '../actions/jobs';
 import type { StateType } from '../reducers/types';
 import LogsDialog from './UI/LogsDialog';
 import * as Api from '../api';
-import { OUT_TYPE_AR } from '../api/jobs';
+import {
+  OUT_TYPE_AR,
+  OUT_TYPE_DESCRIPTION,
+  OUT_TYPE_HARMONIZED,
+  OUT_TYPE_TRANSCRIPTS
+} from '../api/jobs';
+import IconButton from './UI/IconButton';
+import type { ReadOnlyData, RowActionType } from './UI/Table/types';
 
 const JobsTable = ConnectTable(
   (state: StateType) => ({
@@ -97,11 +108,13 @@ class JobsList extends React.Component<Props, State> {
     e.preventDefault();
   };
 
-  downloadResults = (e, row) => {
+  downloadResults = (outputVariable, row) => e => {
+    e.preventDefault();
     const { pushNotification } = this.props;
     const jobId = row.id;
-    Api.Jobs.download(
+    Api.Jobs.genericDownload(
       jobId,
+      outputVariable,
       () => {
         const { downloading } = this.state;
         this.setState({
@@ -115,7 +128,6 @@ class JobsList extends React.Component<Props, State> {
         });
       }
     ).catch(ex => pushNotification(`An error occurred ${ex.message}`, 'error'));
-    e.preventDefault();
   };
 
   handleLogsSelectJob = (e, row) => {
@@ -145,9 +157,90 @@ class JobsList extends React.Component<Props, State> {
     e.preventDefault();
   };
 
-  getSaveResultsMenu() {}
+  getSaveResultsMenu = (data: ReadOnlyData, size: string) => {
+    const { id, status } = data;
+    const type = data.output ? data.output.type : null;
+    const { deletingJobs } = this.props;
+    const { downloading } = this.state;
+    if (deletingJobs.includes(id) || status !== 'completed') {
+      return null;
+    }
+    if (downloading.includes(id)) {
+      return (
+        <IconButton
+          size={size}
+          color="inherit"
+          onClick={e => e.preventDefault()}
+          title="Saving..."
+        >
+          <Icon className="fas fa-circle-notch fa-spin" fontSize="inherit" />
+        </IconButton>
+      );
+    }
+    const items = [['outputFile', 'Save raw output', 'Raw output']];
+    if (type === OUT_TYPE_AR)
+      items[0] = ['outputFile', 'Save report', 'Report'];
+    if (OUT_TYPE_HARMONIZED.includes(type))
+      items.push([
+        'harmonizedFile',
+        'Save harmonized output',
+        'Harmonized output'
+      ]);
+    if (OUT_TYPE_TRANSCRIPTS.includes(type))
+      items.push([
+        'harmonizedTranscriptsFile',
+        'Save harmonized transcripts',
+        'Harmonized transcripts'
+      ]);
+    if (OUT_TYPE_DESCRIPTION.includes(type))
+      items.push(['description', 'Save metadata file', 'Metadata file']);
+    if (items.length === 1) {
+      return (
+        <IconButton
+          size={size}
+          color="inherit"
+          onClick={this.downloadResults(items[0][0], data)}
+          title={items[0][1]}
+        >
+          <Icon className="fas fa-save" fontSize="inherit" />
+        </IconButton>
+      );
+    }
+    return (
+      <PopupState variant="popover" popupId={`popup-menu-job-${id}`}>
+        {popupState => {
+          const iconProps = {
+            size,
+            color: 'inherit',
+            title: 'Save',
+            // $FlowFixMe: flow is stupid
+            ...bindTrigger(popupState)
+          };
+          return (
+            <>
+              <IconButton {...iconProps}>
+                <Icon className="fas fa-save" fontSize="inherit" />
+              </IconButton>
+              <Menu {...bindMenu(popupState)}>
+                {items.map(i => (
+                  <MenuItem
+                    onClick={e => {
+                      popupState.close();
+                      this.downloadResults(i[0], data)(e);
+                    }}
+                  >
+                    {i[2]}
+                  </MenuItem>
+                ))}
+              </Menu>
+            </>
+          );
+        }}
+      </PopupState>
+    );
+  };
 
-  getActions() {
+  getActions(): RowActionType[] {
     const { deletingJobs, submittingJobs } = this.props;
     const { downloading } = this.state;
 
@@ -156,11 +249,7 @@ class JobsList extends React.Component<Props, State> {
     const cw = r => downloading.includes(r.id);
     const isReady = r => r.status === 'ready';
     const isCompleted = r => r.status === 'completed';
-    const isReport = r => {
-      console.log(r);
-      return r.output && r.output.type === OUT_TYPE_AR;
-    };
-
+    const isReport = r => r.output && r.output.type === OUT_TYPE_AR;
     return [
       {
         shown: r => !cd(r) && isReady(r) && !cs(r),
@@ -182,17 +271,7 @@ class JobsList extends React.Component<Props, State> {
         tooltip: 'Logs',
         onClick: this.handleLogsSelectJob
       },
-      {
-        shown: r => !cd(r) && isCompleted(r) && cw(r),
-        icon: 'fas fa-circle-notch fa-spin',
-        tooltip: 'Saving...'
-      },
-      {
-        shown: r => !cd(r) && isCompleted(r) && !cw(r),
-        icon: 'fas fa-save',
-        tooltip: 'Save results',
-        onClick: this.downloadResults
-      },
+      this.getSaveResultsMenu,
       {
         shown: r => !cd(r) && isCompleted(r) && Api.Settings.isLocal(),
         icon: 'fas fa-folder-open',

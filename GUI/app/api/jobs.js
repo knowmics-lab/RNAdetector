@@ -16,6 +16,14 @@ export const OUT_TYPE_AHT = 'analysis-harmonized-transcripts';
 export const OUT_TYPE_AHD = 'analysis-harmonized-description';
 export const OUT_TYPE_AHTD = 'analysis-harmonized-transcripts-description';
 export const OUT_TYPE_AR = 'analysis-report';
+export const OUT_TYPE_HARMONIZED = [
+  OUT_TYPE_AH,
+  OUT_TYPE_AHT,
+  OUT_TYPE_AHD,
+  OUT_TYPE_AHTD
+];
+export const OUT_TYPE_TRANSCRIPTS = [OUT_TYPE_AHT, OUT_TYPE_AHTD];
+export const OUT_TYPE_DESCRIPTION = [OUT_TYPE_AHD, OUT_TYPE_AHTD];
 
 export default {
   getUploadUrl(job: number | Job): string {
