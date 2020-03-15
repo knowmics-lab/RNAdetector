@@ -168,6 +168,7 @@ class JobsList extends React.Component<Props, State> {
     if (downloading.includes(id)) {
       return (
         <IconButton
+          key={`action-button-job-${id}`}
           size={size}
           color="inherit"
           onClick={e => e.preventDefault()}
@@ -197,6 +198,7 @@ class JobsList extends React.Component<Props, State> {
     if (items.length === 1) {
       return (
         <IconButton
+          key={`action-button-job-${id}`}
           size={size}
           color="inherit"
           onClick={this.downloadResults(items[0][0], data)}
@@ -207,23 +209,29 @@ class JobsList extends React.Component<Props, State> {
       );
     }
     return (
-      <PopupState variant="popover" popupId={`popup-menu-job-${id}`}>
+      <PopupState
+        variant="popover"
+        popupId={`popup-menu-job-${id}`}
+        key={`popup-menu-job-${id}`}
+      >
         {popupState => {
           const iconProps = {
             size,
             color: 'inherit',
             title: 'Save',
             // $FlowFixMe: flow is stupid
-            ...bindTrigger(popupState)
+            ...bindTrigger(popupState),
+            key: `popup-button-job-${id}`
           };
           return (
             <>
               <IconButton {...iconProps}>
                 <Icon className="fas fa-save" fontSize="inherit" />
               </IconButton>
-              <Menu {...bindMenu(popupState)}>
+              <Menu {...bindMenu(popupState)} key={`popup-menu-job-${id}`}>
                 {items.map(i => (
                   <MenuItem
+                    key={`popup-menu-item-${i[0]}-job-${id}`}
                     onClick={e => {
                       popupState.close();
                       this.downloadResults(i[0], data)(e);

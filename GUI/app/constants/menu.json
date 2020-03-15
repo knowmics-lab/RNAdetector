@@ -41,7 +41,7 @@
         },
         {
           "icon": "fas fa-layer-group",
-          "text": "Differential Expression",
+          "text": "New DEGs Analysis",
           "collapsible": false,
           "configured": true,
           "key": "main-menu-diffExpr",

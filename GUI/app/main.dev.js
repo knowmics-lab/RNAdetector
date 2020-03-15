@@ -78,7 +78,8 @@ app.on('ready', async () => {
     width: 1024,
     height: 728,
     webPreferences: {
-      nodeIntegration: true
+      nodeIntegration: true,
+      nativeWindowOpen: true
     }
   });
 
@@ -241,23 +242,32 @@ app.on('ready', async () => {
     }
   );
 
-  /* mainWindow.webContents.on(
+  mainWindow.webContents.on(
     'new-window',
     (event, url, frameName, disposition, options) => {
-      const baseOptions = {
+      event.preventDefault();
+      const forcedOptions = {
         parent: mainWindow,
         width: 1024,
-        height: 728
+        height: 728,
+        webPreferences: {
+          nodeIntegration: false,
+          nativeWindowOpen: true,
+          webviewTag: false,
+          nodeIntegrationInSubFrames: false
+        }
       };
       const isModal = frameName === 'modal';
-      // eslint-disable-next-line no-param-reassign
-      event.newGuest = new BrowserWindow({
-        ...baseOptions,
+      const win = new BrowserWindow({
         ...options,
+        ...forcedOptions,
         modal: isModal
       });
+      win.setMenuBarVisibility(false);
+      // eslint-disable-next-line no-param-reassign
+      event.newGuest = win;
     }
-  ); */
+  );
 
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
