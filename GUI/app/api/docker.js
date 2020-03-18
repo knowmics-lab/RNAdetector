@@ -7,6 +7,7 @@ import Utils from './utils';
 // eslint-disable-next-line import/no-cycle
 import Settings from './settings';
 import type { ConfigObjectType } from '../types/settings';
+import type { Package } from '../types/local';
 
 const execFile = util.promisify(process.execFile);
 
@@ -154,5 +155,49 @@ export default {
       return result.data;
     }
     throw new Error(result.message);
+  },
+  async listPackages(
+    config: ConfigObjectType = Settings.getConfig()
+  ): Promise<Package[]> {
+    const result = await this.execDockerCommand(
+      ['php', '/rnadetector/ws/artisan', 'packages:list'],
+      config
+    );
+    if (!result.error) {
+      return result.packages;
+    }
+    throw new Error(result.message);
+  },
+  async execDockerCommandLive(
+    command: string[],
+    outputCallback: string => void,
+    errCallback: ?(string) => void = null,
+    config: ConfigObjectType = Settings.getConfig()
+  ): Promise<void> {
+    const status = await this.checkContainerStatus(config);
+    if (status === 'running') {
+      const child = process.execFile(config.dockerExecutablePath, [
+        'exec',
+        config.containerName,
+        ...command
+      ]);
+      child.stdout.on('data', data => outputCallback(data.toString()));
+      if (errCallback)
+        child.stderr.on('data', data => errCallback(data.toString()));
+    }
+    throw new Error('Unable to exec command. Container is not running');
+  },
+  installPackage(
+    name: string,
+    outputCallback: string => void,
+    errorCallback: (*) => void,
+    config: ConfigObjectType = Settings.getConfig()
+  ): void {
+    this.execDockerCommandLive(
+      ['php', '/rnadetector/ws/artisan', 'packages:install', name],
+      outputCallback,
+      null,
+      config
+    ).catch(e => errorCallback(e));
   }
 };

@@ -273,33 +273,3 @@ app.on('ready', async () => {
   // eslint-disable-next-line
   new AppUpdater();
 });
-
-/*
-let waitingDockerClose = false;
-let dockerClosed = false;
-
-app.on('before-quit', e => {
-  if (!dockerClosed) {
-    if (Settings.isConfigured() && Settings.isLocal() && !waitingDockerClose) {
-      console.log('Waiting for docker container to stop');
-      waitingDockerClose = true;
-      Docker.stopContainer()
-        .then(() => {
-          console.log('Docker container has been stopped! Quitting!');
-        })
-        .catch(ex => {
-          console.log('Docker container cannot be stopped! Stop it manually!');
-          console.log(ex);
-        })
-        .finally(() => {
-          waitingDockerClose = false;
-          dockerClosed = true;
-          app.quit();
-        });
-    }
-  }
-  if (waitingDockerClose) {
-    e.preventDefault();
-  }
-});
-*/

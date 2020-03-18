@@ -1,6 +1,14 @@
 {
   "items": [
     {
+      "icon": "fas fa-home",
+      "text": "Home",
+      "collapsible": false,
+      "configured": true,
+      "key": "main-menu-home",
+      "to": "/"
+    },
+    {
       "icon": "far fa-play-circle",
       "text": "Run Analysis",
       "collapsible": true,

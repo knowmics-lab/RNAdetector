@@ -90,7 +90,7 @@ function InternalLogsDialog({
   });
 
   return (
-    <Dialog fullScreen={fullScreen} open={isOpen} onClose={onClose}>
+    <Dialog fullScreen={fullScreen} open={isOpen} onClose={internalOnClose}>
       <DialogTitle>
         {jobId && hasJob ? `Logs of ${jobs.items[jobId].name}` : 'Logs'}
       </DialogTitle>

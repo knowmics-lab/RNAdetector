@@ -6,8 +6,10 @@ import Box from '@material-ui/core/Box';
 import capitalize from '@material-ui/core/utils/capitalize';
 import { ConnectTable } from './UI/PaginatedRemoteTable';
 import * as ReferencesActions from '../actions/references';
+import * as Api from '../api';
 import type { StateType } from '../reducers/types';
 import { CREATE_REFERENCE } from '../constants/routes';
+import SelectPackageDialog from './UI/SelectPackageDialog';
 
 const ReferencesTable = ConnectTable(
   (state: StateType) => ({
@@ -44,7 +46,8 @@ type Props = {
 };
 
 type State = {
-  currentPage: ?number
+  currentPage: ?number,
+  selectDialogOpen: boolean
 };
 
 class ReferencesList extends React.Component<Props, State> {
@@ -53,7 +56,8 @@ class ReferencesList extends React.Component<Props, State> {
   constructor(props) {
     super(props);
     this.state = {
-      currentPage: null
+      currentPage: null,
+      selectDialogOpen: false
     };
   }
 
@@ -100,6 +104,16 @@ class ReferencesList extends React.Component<Props, State> {
       },
       {
         align: 'right',
+        shown: Api.Settings.isLocal() && Api.Settings.isConfigured(),
+        icon: 'fas fa-download',
+        tooltip: 'Install from repository',
+        onClick: () =>
+          this.setState({
+            selectDialogOpen: true
+          })
+      },
+      {
+        align: 'right',
         shown: true,
         icon: 'fas fa-redo',
         disabled: s => s.isLoading,
@@ -109,8 +123,15 @@ class ReferencesList extends React.Component<Props, State> {
     ];
   }
 
+  closeSelectDialog = () => {
+    this.setState({
+      selectDialogOpen: false
+    });
+  };
+
   render() {
     const { classes } = this.props;
+    const { selectDialogOpen } = this.state;
 
     return (
       <Box className={classes.root}>
@@ -148,6 +169,10 @@ class ReferencesList extends React.Component<Props, State> {
             ]}
           />
         </div>
+        <SelectPackageDialog
+          open={selectDialogOpen}
+          onClose={this.closeSelectDialog}
+        />
       </Box>
     );
   }
