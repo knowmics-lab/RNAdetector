@@ -2,6 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import checkInternetConnection from 'check-internet-connected';
 import type { FileFilter } from '../types/common';
 import type { AnalysisFileTypes } from '../types/analysis';
 
@@ -90,5 +91,17 @@ export default {
   },
   capitalize(s: string) {
     return s.charAt(0).toUpperCase() + s.slice(1);
+  },
+  async isOnline(): Promise<boolean> {
+    try {
+      await checkInternetConnection({
+        timeout: 5000,
+        retries: 3,
+        domain: 'https://alpha.dmi.unict.it'
+      });
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 };

@@ -47,18 +47,40 @@ type Props = {
 
 type State = {
   currentPage: ?number,
-  selectDialogOpen: boolean
+  selectDialogOpen: boolean,
+  isOnline: boolean
 };
 
 class ReferencesList extends React.Component<Props, State> {
   props: Props;
 
+  timer: *;
+
   constructor(props) {
     super(props);
     this.state = {
       currentPage: null,
-      selectDialogOpen: false
+      selectDialogOpen: false,
+      isOnline: false
     };
+  }
+
+  componentDidMount(): void {
+    this.timer = setInterval(
+      () =>
+        Api.Utils.isOnline().then(r => {
+          this.setState({
+            isOnline: r
+          });
+        }),
+      5000
+    );
+  }
+
+  componentWillUnmount(): void {
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
   }
 
   handleReferenceDelete = (e, row) => {
@@ -91,6 +113,7 @@ class ReferencesList extends React.Component<Props, State> {
   }
 
   getToolbarActions() {
+    const { isOnline } = this.state;
     return [
       {
         align: 'right',
@@ -104,7 +127,8 @@ class ReferencesList extends React.Component<Props, State> {
       },
       {
         align: 'right',
-        shown: Api.Settings.isLocal() && Api.Settings.isConfigured(),
+        shown:
+          Api.Settings.isLocal() && Api.Settings.isConfigured() && isOnline,
         icon: 'fas fa-download',
         tooltip: 'Install from repository',
         onClick: () =>

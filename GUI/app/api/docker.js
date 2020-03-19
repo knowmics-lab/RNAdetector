@@ -172,6 +172,7 @@ export default {
     command: string[],
     outputCallback: string => void,
     errCallback: ?(string) => void = null,
+    exitCallback: ?(number) => void = null,
     config: ConfigObjectType = Settings.getConfig()
   ): Promise<void> {
     const status = await this.checkContainerStatus(config);
@@ -184,19 +185,23 @@ export default {
       child.stdout.on('data', data => outputCallback(data.toString()));
       if (errCallback)
         child.stderr.on('data', data => errCallback(data.toString()));
+      if (exitCallback) child.on('exit', code => exitCallback(code));
+    } else {
+      throw new Error('Unable to exec command. Container is not running');
     }
-    throw new Error('Unable to exec command. Container is not running');
   },
   installPackage(
     name: string,
     outputCallback: string => void,
     errorCallback: (*) => void,
+    exitCallback: number => void,
     config: ConfigObjectType = Settings.getConfig()
   ): void {
     this.execDockerCommandLive(
       ['php', '/rnadetector/ws/artisan', 'packages:install', name],
       outputCallback,
       null,
+      exitCallback,
       config
     ).catch(e => errorCallback(e));
   }
