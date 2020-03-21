@@ -12,7 +12,8 @@ export type ConfigObjectType = {
   +dataPath: string,
   +containerName: string,
   +apiKey: string,
-  +dockerExecutablePath: string
+  +dockerExecutablePath: string,
+  +socketPath?: ?string
 };
 
 export type SettingsStateType = {

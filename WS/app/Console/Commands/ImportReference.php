@@ -133,6 +133,8 @@ class ImportReference extends Command
         }
         @unlink($configFile);
         $this->info('Reference sequence imported correctly!');
+        @touch($genomePath . '/.installed');
+        @chmod($genomePath . '/.installed', 0777);
 
         return 0;
     }
@@ -188,15 +190,21 @@ class ImportReference extends Command
     public function handle()
     {
         $name = $this->argument('name');
-        $filename = env('REFERENCES_PATH') . '/' . $name . '.tar.bz2';
+        $referenceDir = env('REFERENCES_PATH') . '/' . $name;
+        $filename = $referenceDir . '.tar.bz2';
         if (!file_exists($filename)) {
             $this->error('Unable to find the reference archive.');
 
             return 1;
         }
+        if (file_exists($referenceDir) && is_dir($referenceDir) && file_exists($referenceDir . '/.installed')) {
+            $this->error('An archive with the same name has already been processed.');
+
+            return 2;
+        }
         $this->info('Extracting reference archive...');
         $this->extract($filename);
-        $this->recursiveChmod(env('REFERENCES_PATH') . '/' . $name, 0777);
+        $this->recursiveChmod($referenceDir, 0777);
         $this->info('Importing reference sequence...');
 
         return $this->import($name);

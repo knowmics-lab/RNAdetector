@@ -273,6 +273,7 @@
     "cp-file": "^7.0.0",
     "cpy": "^8.0.0",
     "devtron": "^1.4.0",
+    "dockerode": "^3.1.0",
     "electron-debug": "^3.0.1",
     "electron-dl": "^2.0.0",
     "electron-log": "^3.0.9",

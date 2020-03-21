@@ -3,6 +3,9 @@
 import process from 'child_process';
 import fs from 'fs-extra';
 import util from 'util';
+import { is } from 'electron-util';
+import Client from 'dockerode';
+import { Dock } from '@material-ui/icons';
 import Utils from './utils';
 // eslint-disable-next-line import/no-cycle
 import Settings from './settings';
@@ -12,6 +15,27 @@ import type { Package } from '../types/local';
 const execFile = util.promisify(process.execFile);
 
 export const DOCKER_IMAGE_NAME = 'alaimos/ubuntu-private:RNAdetector.v1.0';
+
+class Docker {
+  config: ConfigObjectType;
+
+  client: Client;
+
+  constructor(config: ConfigObjectType) {
+    this.config = config;
+    let socket;
+    if (config.socketPath) {
+      socket = config.socketPath;
+    } else if (is.windows) {
+      socket = '//./pipe/docker_engine';
+    } else {
+      socket = '/var/run/docker.sock';
+    }
+    this.client = new Client({
+      socketPath: socket
+    });
+  }
+}
 
 export default {
   getBootedFile(config: ConfigObjectType = Settings.getConfig()): string {
@@ -42,6 +66,8 @@ export default {
     });
   },
   async checkContainerStatus(config: ConfigObjectType = Settings.getConfig()) {
+    if (is.renderer && window && !window.docker)
+      window.docker = new Docker(Settings.getConfig());
     const { stdout } = await execFile(config.dockerExecutablePath, [
       'ps',
       '-a',
