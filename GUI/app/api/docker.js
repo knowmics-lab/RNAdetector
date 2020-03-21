@@ -5,7 +5,6 @@ import fs from 'fs-extra';
 import util from 'util';
 import { is } from 'electron-util';
 import Client from 'dockerode';
-import { Dock } from '@material-ui/icons';
 import Utils from './utils';
 // eslint-disable-next-line import/no-cycle
 import Settings from './settings';
@@ -14,12 +13,21 @@ import type { Package } from '../types/local';
 
 const execFile = util.promisify(process.execFile);
 
-export const DOCKER_IMAGE_NAME = 'alaimos/ubuntu-private:RNAdetector.v1.0';
+export const DOCKER_IMAGE_NAME = 'alaimos/rnadetector:v0.0.1';
+export const VALID_DOCKER_STATE = [
+  'created',
+  'running',
+  'paused',
+  'restarting',
+  'removing',
+  'exited',
+  'dead'
+];
 
 class Docker {
   config: ConfigObjectType;
 
-  client: Client;
+  client;
 
   constructor(config: ConfigObjectType) {
     this.config = config;
@@ -34,6 +42,127 @@ class Docker {
     this.client = new Client({
       socketPath: socket
     });
+  }
+
+  getBootedFile(): string {
+    return `${this.config.dataPath}/booted`;
+  }
+
+  getDbReadyFile(): string {
+    return `${this.config.dataPath}/database/ready`;
+  }
+
+  async waitContainerBooted() {
+    await Utils.waitExists(this.getDbReadyFile());
+    await Utils.waitExists(this.getBootedFile());
+  }
+
+  async cleanupBootedFile() {
+    await fs.remove(this.getBootedFile());
+  }
+
+  async checkContainerStatus() {
+    const containers = await this.client.listContainers({
+      all: true
+    });
+    const found = containers
+      .filter(c => c.Image === DOCKER_IMAGE_NAME)
+      .filter(c => c.Names.includes(`/${this.config.containerName}`));
+    if (found.length === 0) {
+      return 'not found';
+    }
+    if (VALID_DOCKER_STATE.includes(found[0].State)) {
+      return found[0].State;
+    }
+    throw new Error('unknown state');
+  }
+
+  async getContainer() {
+    const containers = await this.client.listContainers({
+      all: true
+    });
+    const found = containers
+      .filter(c => c.Image === DOCKER_IMAGE_NAME)
+      .filter(c => c.Names.includes(`/${this.config.containerName}`));
+    if (found.length === 0) {
+      return null;
+    }
+    return this.client.getContainer(found[0].Id);
+  }
+
+  async createContainer() {
+    const status = await this.checkContainerStatus();
+    if (status === 'not found') {
+      await this.cleanupBootedFile();
+      const container = await this.client.createContainer({
+        Image: DOCKER_IMAGE_NAME,
+        name: this.config.containerName,
+        ExposedPorts: {
+          '80/tcp': {}
+        },
+        Volumes: {
+          '/rnadetector/ws/storage/app/': {}
+        },
+        HostConfig: {
+          PortBindings: {
+            '80/tcp': [
+              {
+                HostPort: `${this.config.apiPort}`
+              }
+            ]
+          },
+          Binds: [`${this.config.dataPath}:/rnadetector/ws/storage/app/`]
+        }
+      });
+      await container.start();
+      await this.waitContainerBooted();
+    }
+  }
+
+  async startContainer() {
+    const status = await this.checkContainerStatus();
+    if (status === 'not found') return this.createContainer();
+    if (status === 'exited') {
+      await this.cleanupBootedFile();
+      const container = await this.getContainer();
+      if (container) {
+        await container.start();
+        if ((await this.checkContainerStatus()) !== 'running') {
+          throw new Error(
+            `Unable to start the container ${this.config.containerName}. Start it manually`
+          );
+        }
+        await this.waitContainerBooted();
+      } else {
+        throw new Error('Unable to find container');
+      }
+    }
+  }
+
+  async stopContainer() {
+    const status = await this.checkContainerStatus();
+    if (status === 'running') {
+      const container = await this.getContainer();
+      if (container) {
+        await container.stop();
+        await this.cleanupBootedFile();
+      } else {
+        throw new Error('Unable to find container');
+      }
+    }
+  }
+
+  async removeContainer() {
+    const status = await this.checkContainerStatus();
+    if (status === 'running') {
+      await this.stopContainer();
+    }
+    const container = await this.getContainer();
+    if (container) {
+      await container.remove();
+    } else {
+      throw new Error('Unable to find container');
+    }
   }
 }
 
