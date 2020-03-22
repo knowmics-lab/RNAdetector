@@ -29,6 +29,8 @@ class Docker {
 
   client;
 
+  container;
+
   constructor(config: ConfigObjectType) {
     this.config = config;
     let socket;
@@ -41,6 +43,67 @@ class Docker {
     }
     this.client = new Client({
       socketPath: socket
+    });
+  }
+
+  static liveDemuxStream(
+    stream,
+    onStdout: ?(Buffer) => void,
+    onStderr: ?(Buffer) => void,
+    onEnd: () => void
+  ): void {
+    let nextDataType = null;
+    let nextDataLength = -1;
+    let buffer = Buffer.from('');
+
+    const bufferSlice = (end: number) => {
+      const out = buffer.slice(0, end);
+      buffer = Buffer.from(buffer.slice(end, buffer.length));
+      return out;
+    };
+    const processData = data => {
+      if (data) {
+        buffer = Buffer.concat([buffer, data]);
+      }
+      if (nextDataType) {
+        if (buffer.length >= nextDataLength) {
+          const content = bufferSlice(nextDataLength);
+          if (onStdout && nextDataType === 1) {
+            onStdout(Buffer.from(content));
+          } else if (onStderr && nextDataType !== 1) {
+            onStderr(Buffer.from(content));
+          }
+          nextDataType = null;
+          processData();
+        }
+      } else if (buffer.length >= 8) {
+        const header = bufferSlice(8);
+        nextDataType = header.readUInt8(0);
+        nextDataLength = header.readUInt32BE(4);
+        processData();
+      }
+    };
+
+    stream.on('data', processData);
+    if (onEnd) {
+      stream.on('end', onEnd);
+    }
+  }
+
+  static async demuxStream(stream): Promise<[string, string]> {
+    return new Promise(resolve => {
+      let stdout = Buffer.from('');
+      let stderr = Buffer.from('');
+      Docker.liveDemuxStream(
+        stream,
+        content => {
+          stdout = Buffer.concat([stdout, content]);
+        },
+        content => {
+          stderr = Buffer.concat([stderr, content]);
+        },
+        () => resolve([stdout.toString(), stderr.toString()])
+      );
     });
   }
 
@@ -78,16 +141,19 @@ class Docker {
   }
 
   async getContainer() {
-    const containers = await this.client.listContainers({
-      all: true
-    });
-    const found = containers
-      .filter(c => c.Image === DOCKER_IMAGE_NAME)
-      .filter(c => c.Names.includes(`/${this.config.containerName}`));
-    if (found.length === 0) {
-      return null;
+    if (!this.container) {
+      const containers = await this.client.listContainers({
+        all: true
+      });
+      const found = containers
+        .filter(c => c.Image === DOCKER_IMAGE_NAME)
+        .filter(c => c.Names.includes(`/${this.config.containerName}`));
+      if (found.length === 0) {
+        return null;
+      }
+      this.container = this.client.getContainer(found[0].Id);
     }
-    return this.client.getContainer(found[0].Id);
+    return this.container;
   }
 
   async createContainer() {
@@ -163,6 +229,42 @@ class Docker {
     } else {
       throw new Error('Unable to find container');
     }
+  }
+
+  async execDockerCommand(Cmd: string[]): Promise<*> {
+    const status = await this.checkContainerStatus();
+    if (status === 'running') {
+      const container = await this.getContainer();
+      if (!container) throw new Error('Unable to get container instance');
+      const exec = await container.exec({
+        Cmd,
+        AttachStdout: true
+      });
+      const stream = await exec.start();
+      const [stdout] = await Docker.demuxStream(stream);
+      return JSON.parse(stdout);
+    }
+    throw new Error('Unable to exec command. Container is not running');
+  }
+
+  async generateAuthToken(): Promise<string> {
+    const result = await this.execDockerCommand(['/genkey.sh', '--json']);
+    if (!result.error) {
+      return result.data;
+    }
+    throw new Error(result.message);
+  }
+
+  async listPackages(): Promise<Package[]> {
+    const result = await this.execDockerCommand([
+      'php',
+      '/rnadetector/ws/artisan',
+      'packages:list'
+    ]);
+    if (!result.error) {
+      return result.packages;
+    }
+    throw new Error(result.message);
   }
 }
 
