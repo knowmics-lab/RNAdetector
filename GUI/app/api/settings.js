@@ -1,11 +1,8 @@
 // @flow
 import Store from 'electron-store';
 import { api } from 'electron-util';
-import fs from 'fs-extra';
-import axios from 'axios';
+import findFreePort from 'find-free-port';
 import configSchema from '../constants/config-schema.json';
-// eslint-disable-next-line import/no-cycle
-import Docker from './docker';
 import type { ConfigObjectType } from '../types/settings';
 import type { AxiosHeaders, SimpleMapType } from '../types/common';
 
@@ -24,7 +21,7 @@ export default {
         'dataPath',
         `${api.app.getPath('home')}/.RNADetector`
       ),
-      dockerExecutablePath: this.configStore.get('dockerExecutablePath'),
+      socketPath: this.configStore.get('socketPath'),
       containerName: this.configStore.get('containerName'),
       apiKey: this.configStore.get('apiKey'),
       autoStopDockerOnClose: this.configStore.get('autoStopDockerOnClose')
@@ -46,30 +43,30 @@ export default {
   isLocal() {
     return this.configStore.get('local');
   },
-  getApiUrl(config: ConfigObjectType = this.getConfig()): string {
+  getApiUrl(): string {
+    const config = this.getConfig();
     const path = config.apiPath.replace(/^\/|\/$/gm, '');
     return `${config.apiProtocol}://${config.apiHostname}:${config.apiPort}/${path}/`;
   },
-  getPublicUrl(
-    p: string = '',
-    config: ConfigObjectType = this.getConfig()
-  ): string {
+  getPublicUrl(p: string = ''): string {
+    const config = this.getConfig();
     const path = config.publicPath.replace(/^\/|\/$/gm, '');
     return `${config.apiProtocol}://${config.apiHostname}:${
       config.apiPort
     }/${path}/${p ? p.replace(/^\//, '') : ''}`;
   },
-  getLocalPath(p: string = '', config: ConfigObjectType = this.getConfig()) {
+  getLocalPath(p: string = '') {
+    const config = this.getConfig();
     return `${config.dataPath}/${p ? p.replace(/^\//, '') : ''}`;
   },
-  getAuthHeaders(
-    config: ConfigObjectType = this.getConfig()
-  ): SimpleMapType<string> {
+  getAuthHeaders(): SimpleMapType<string> {
+    const config = this.getConfig();
     return {
       Authorization: `Bearer ${config.apiKey}`
     };
   },
-  getAxiosHeaders(config: ConfigObjectType = this.getConfig()): AxiosHeaders {
+  getAxiosHeaders(): AxiosHeaders {
+    const config = this.getConfig();
     return {
       headers: {
         Accept: 'application/json',
@@ -78,80 +75,11 @@ export default {
       }
     };
   },
-  saveConfig(config: ConfigObjectType): Promise<ConfigObjectType> {
-    // eslint-disable-next-line no-async-promise-executor
-    return new Promise(async (resolve, reject) => {
-      try {
-        const oldConfig = this.getConfig();
-        const newConfig = await this.checkConfig(
-          {
-            ...oldConfig,
-            ...config,
-            configured: true
-          },
-          oldConfig
-        );
-        this.configStore.set(newConfig);
-        resolve(newConfig);
-      } catch (e) {
-        reject(e.message);
-      }
-    });
+  saveConfig(config: ConfigObjectType) {
+    return this.configStore.set(config);
   },
-  async checkUrl(config: ConfigObjectType) {
-    const {
-      data: { data }
-    } = await axios.get(`${this.getApiUrl(config)}ping`);
-    if (data !== 'pong') throw new Error('Invalid webservice URL');
-  },
-  async checkToken(config: ConfigObjectType) {
-    let data = null;
-    try {
-      const response = await axios.get(`${this.getApiUrl(config)}auth-ping`, {
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${config.apiKey}`
-        }
-      });
-      data = response.data.data;
-    } catch (e) {
-      throw new Error(`Invalid authentication token - ${e.message}`);
-    }
-    if (data !== 'pong') throw new Error('Invalid authentication token');
-  },
-  async checkConfig(
-    config: ConfigObjectType = this.getConfig(),
-    oldConfig: ?ConfigObjectType = null
-  ): Promise<ConfigObjectType> {
-    if (config.local) {
-      if (oldConfig && oldConfig.configured) {
-        if (
-          oldConfig.containerName !== config.containerName ||
-          oldConfig.dataPath !== config.dataPath ||
-          oldConfig.apiPort !== config.apiPort
-        ) {
-          await Docker.removeContainer(oldConfig);
-        }
-      }
-      if (!(await fs.pathExists(config.dataPath))) {
-        await fs.ensureDir(config.dataPath, 0o755);
-      }
-      await Docker.checkDockerProcess(config);
-      const status = await Docker.checkContainerStatus(config);
-      if (status !== 'running') {
-        await Docker.startContainer(config);
-      }
-      if (!config.apiKey) {
-        // eslint-disable-next-line no-param-reassign
-        config = {
-          ...config,
-          apiKey: await Docker.generateAuthToken(config)
-        };
-      }
-    }
-    await this.checkUrl(config);
-    await this.checkToken(config);
-    return config;
+  async findFreePort(start: number): Promise<number> {
+    const [port] = await findFreePort(start);
+    return port;
   }
 };

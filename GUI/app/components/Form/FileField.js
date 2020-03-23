@@ -25,7 +25,8 @@ export type FileFieldProps = {
   name: string,
   required?: boolean,
   dialogOptions?: DialogOptions,
-  separator?: string
+  separator?: string,
+  helperText?: ?string
 };
 
 FileField.defaultProps = {
@@ -39,6 +40,7 @@ export default function FileField({
   required,
   dialogOptions,
   separator,
+  helperText,
   ...props
 }: FileFieldProps) {
   const classes = useStyles();
@@ -69,6 +71,9 @@ export default function FileField({
   const handleMouseDown = event => {
     event.preventDefault();
   };
+  const hasHelperText = !!(touched && error) || helperText;
+  const text = touched && error ? error : helperText;
+
   return (
     <FormControl
       className={classes.formControl}
@@ -91,7 +96,7 @@ export default function FileField({
           </InputAdornment>
         }
       />
-      {touched && error ? <FormHelperText>{error}</FormHelperText> : null}
+      {hasHelperText ? <FormHelperText>{text}</FormHelperText> : null}
     </FormControl>
   );
 }

@@ -1,6 +1,8 @@
 // @flow
 import type { Action, Dispatch } from '../reducers/types';
 import * as Api from '../api';
+import Check from '../api/check';
+import { resetInstance } from '../api/docker';
 import { pushNotificationSimple } from './notifications';
 import type { ConfigObjectType } from '../types/settings';
 
@@ -12,7 +14,13 @@ export function saveSettings(newSettings: ConfigObjectType): Action {
   return async (dispatch: Dispatch) => {
     try {
       dispatch(settingsSaving());
-      dispatch(settingsSaved(await Api.Settings.saveConfig(newSettings)));
+      const checkedSettings = await Check.checkConfig(
+        newSettings,
+        Api.Settings.getConfig()
+      );
+      Api.Settings.saveConfig(checkedSettings);
+      resetInstance();
+      dispatch(settingsSaved(checkedSettings));
       dispatch(pushNotificationSimple(`Settings saved!`));
     } catch (e) {
       dispatch(settingsError());

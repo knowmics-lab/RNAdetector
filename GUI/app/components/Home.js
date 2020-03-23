@@ -2,22 +2,11 @@
 import React, { Component } from 'react';
 import { Typography } from '@material-ui/core';
 import TextInfoContent from '@mui-treasury/components/content/textInfo';
-import { SETTINGS } from '../constants/routes';
-import * as Api from '../api';
 
-type Props = {
-  redirect: mixed => void
-};
+type Props = {};
 
 export default class Home extends Component<Props> {
   props: Props;
-
-  componentDidMount() {
-    if (!Api.Settings.isConfigured()) {
-      const { redirect } = this.props;
-      redirect(SETTINGS);
-    }
-  }
 
   render() {
     return (

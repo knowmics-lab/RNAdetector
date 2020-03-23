@@ -282,6 +282,7 @@
     "electron-updater": "^4.2.0",
     "electron-util": "^0.13.0",
     "file-type": "^13.0.3",
+    "find-free-port": "^2.0.0",
     "formik": "^2.0.6",
     "fs-extra": "^8.1.0",
     "history": "^4.10.1",

@@ -10,7 +10,10 @@
   "apiProtocol": {
     "type": "string",
     "default": "http",
-    "enum": ["http", "https"]
+    "enum": [
+      "http",
+      "https"
+    ]
   },
   "apiHostname": {
     "type": "string",
@@ -33,9 +36,9 @@
   "dataPath": {
     "type": "string"
   },
-  "dockerExecutablePath": {
+  "socketPath": {
     "type": "string",
-    "default": "docker"
+    "default": ""
   },
   "containerName": {
     "type": "string",

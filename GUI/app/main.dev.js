@@ -123,7 +123,7 @@ app.on('ready', async () => {
   };
 
   mainWindow.on('close', e => {
-    if (Settings.isLocal() && !doQuit) {
+    if (Settings.isLocal() && Settings.isConfigured() && !doQuit) {
       e.preventDefault();
       if (Settings.autoStopDockerOnClose()) {
         stopDockerAndQuit();

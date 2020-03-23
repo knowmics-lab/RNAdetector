@@ -65,7 +65,7 @@ class Settings extends Component<Props> {
       apiPath: values.apiPath,
       publicPath: values.publicPath,
       dataPath: values.dataPath,
-      dockerExecutablePath: values.dockerExecutablePath,
+      socketPath: values.socketPath,
       containerName: values.containerName,
       apiKey: values.apiKey
     });
@@ -86,6 +86,11 @@ class Settings extends Component<Props> {
       publicPath: Yup.string().required(),
       local: Yup.boolean(),
       dataPath: Yup.string().when('local', {
+        is: true,
+        then: Yup.string().required(),
+        otherwise: Yup.string().notRequired()
+      }),
+      socketPath: Yup.string().when('local', {
         is: true,
         then: Yup.string().required(),
         otherwise: Yup.string().notRequired()
@@ -145,8 +150,8 @@ class Settings extends Component<Props> {
                     name="containerName"
                   />
                   <FileField
-                    label="Local docker executable"
-                    name="dockerExecutablePath"
+                    label="Local docker socket"
+                    name="socketPath"
                     dialogOptions={{ properties: ['openFile'], filters: [] }}
                   />
                 </Collapse>
