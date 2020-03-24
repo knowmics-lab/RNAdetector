@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Queue;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -11,7 +12,7 @@ class AppServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function register()
+    public function register(): void
     {
         //
     }
@@ -21,12 +22,16 @@ class AppServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function boot()
+    public function boot(): void
     {
-        $bootedFile = storage_path('app/booted');
-        if (!file_exists($bootedFile)) {
-            @touch($bootedFile);
-            @chmod($bootedFile, 0777);
-        }
+        Queue::looping(
+            static function () {
+                $bootedFile = storage_path('app/booted');
+                if (!file_exists($bootedFile)) {
+                    @touch($bootedFile);
+                    @chmod($bootedFile, 0777);
+                }
+            }
+        );
     }
 }

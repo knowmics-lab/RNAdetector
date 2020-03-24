@@ -11,6 +11,7 @@ DB_USER="rnadetector"
 DB_PASS="secret"
 MYSQL_CHARSET="utf8"
 MYSQL_COLLATION="utf8_unicode_ci"
+DB_CREATED="false"
 
 create_data_dir() {
     if [ ! -d ${MYSQL_DATA_DIR} ]; then
@@ -73,7 +74,9 @@ create_users_and_databases() {
         echo "Granting access to database \"${DB_NAME}\" for user \"${DB_USER}\"..."
         mysql --defaults-file=/etc/mysql/debian.cnf \
             -e "GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO '${DB_USER}' IDENTIFIED BY '${DB_PASS}';"
-        php /rnadetector/ws/artisan migrate --seed --force
+        if php /rnadetector/ws/artisan migrate --seed --force; then
+            export DB_CREATED="true"
+        fi
         /usr/bin/mysqladmin --defaults-file=/etc/mysql/debian.cnf shutdown
     fi
 }
@@ -99,7 +102,10 @@ chmod -R 777 "/rnadetector/ws/storage/"
 
 /etc/init.d/nginx start
 /etc/init.d/php7.3-fpm start
-/etc/init.d/supervisor start
 /etc/init.d/mysql start
+/etc/init.d/supervisor start
+if [ "$DB_CREATED" = "true" ]; then
+    touch "${MYSQL_DATA_DIR}/ready"
+fi
 
 exec "$@"
