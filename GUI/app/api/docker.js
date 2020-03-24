@@ -296,7 +296,6 @@ export class DockerManager {
       });
       const stream = await exec.start();
       const [stdout] = await DockerManager.demuxStream(stream);
-      console.log(stdout);
       return JSON.parse(stdout);
     }
     throw new Error('Unable to exec command. Container is not running');

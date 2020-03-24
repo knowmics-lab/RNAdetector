@@ -79,6 +79,7 @@ class Check {
           ...config,
           apiKey: await newManager.generateAuthToken()
         };
+        this.newConfig = config;
         newManager.config = config;
         if (reportStatus) reportStatus('Ok!\n');
       }

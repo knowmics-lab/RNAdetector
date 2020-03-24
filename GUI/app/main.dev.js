@@ -134,6 +134,7 @@ app.on('ready', async () => {
             // title: 'Close docker',
             message: 'Do you wish to close docker?',
             buttons: ['&Yes', '&No'],
+            cancelId: 1,
             type: 'question',
             checkboxLabel: 'Close without asking again?',
             checkboxChecked: Settings.autoStopDockerOnClose(),

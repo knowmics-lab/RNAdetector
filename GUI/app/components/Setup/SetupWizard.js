@@ -10,8 +10,10 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import Backdrop from '@material-ui/core/Backdrop';
-import { api } from 'electron-util';
+import { api, activeWindow } from 'electron-util';
 import { Collapse } from '@material-ui/core';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
 import { DockerManager, resetInstance } from '../../api/docker';
 import * as Api from '../../api';
 import SelectField from '../Form/SelectField';
@@ -22,6 +24,7 @@ import { SubmitButton } from '../UI/Button';
 import FileField from '../Form/FileField';
 import Check from '../../api/check';
 import type { ConfigObjectType } from '../../types/settings';
+import { settingsSaved as settingsSavedAction } from '../../actions/settings';
 
 type Props = {
   classes: {
@@ -33,7 +36,8 @@ type Props = {
     instructions: *,
     instructionsSmall: *,
     backdrop: *
-  }
+  },
+  settingsSaved: ConfigObjectType => void
 };
 
 const style = theme => ({
@@ -78,6 +82,7 @@ class SetupWizard extends React.Component<Props, State> {
 
   static settingsFromValues(values): ConfigObjectType {
     return {
+      configured: true,
       local: values.local,
       apiProtocol: values.apiProtocol,
       apiHostname: values.apiHostname,
@@ -249,6 +254,7 @@ class SetupWizard extends React.Component<Props, State> {
   formSubmit = async values => {
     this.setSaving(true);
     const newSettings = SetupWizard.settingsFromValues(values);
+    const { settingsSaved } = this.props;
     let log = '';
     try {
       if (newSettings.local) {
@@ -273,10 +279,15 @@ class SetupWizard extends React.Component<Props, State> {
         );
         log += 'Saving configuration...';
         this.setLog(log);
-        // Api.Settings.saveConfig(checkedSettings);
-        log += 'Ok!\n';
+        Api.Settings.saveConfig(checkedSettings);
+        log +=
+          'Ok!\nInstallation completed! Please wait for the interface to be reloaded.';
         this.setLog(log);
         resetInstance();
+        setTimeout(() => {
+          settingsSaved(Api.Settings.getConfig());
+          activeWindow().reload();
+        }, 1000);
       }
     } catch (e) {
       log += `An error occurred: ${e.message}\n`;
@@ -345,4 +356,17 @@ class SetupWizard extends React.Component<Props, State> {
   }
 }
 
-export default withStyles(style)(SetupWizard);
+function mapDispatchToProps(dispatch) {
+  return bindActionCreators(
+    {
+      settingsSaved: settingsSavedAction
+    },
+    dispatch
+  );
+}
+
+// $FlowFixMe: flow is stupid
+export default connect(
+  () => ({}),
+  mapDispatchToProps
+)(withStyles(style)(SetupWizard));

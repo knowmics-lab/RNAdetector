@@ -58,6 +58,7 @@ class Settings extends Component<Props> {
   formSubmit = values => {
     const { saveSettings } = this.props;
     saveSettings({
+      configured: true,
       local: values.local,
       apiProtocol: values.apiProtocol,
       apiHostname: values.apiHostname,
