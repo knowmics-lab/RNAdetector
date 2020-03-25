@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string                          $name
  * @property string                          $type
  * @property string                          $path
+ * @property string|null                     $map_path
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Annotation newModelQuery()
@@ -26,6 +27,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Annotation whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Annotation whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Annotation wherePath($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Annotation whereMapPath($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Annotation whereUpdatedAt($value)
  * @mixin \Eloquent
  */
@@ -44,6 +46,7 @@ class Annotation extends Model
         'name',
         'type',
         'path',
+        'map_path',
     ];
 
     /**
@@ -72,7 +75,10 @@ class Annotation extends Model
     public function delete()
     {
         if (file_exists($this->path)) {
-            unlink($this->path);
+            @unlink($this->path);
+        }
+        if ($this->map_path && file_exists($this->map_path)) {
+            @unlink($this->map_path);
         }
 
         return parent::delete();

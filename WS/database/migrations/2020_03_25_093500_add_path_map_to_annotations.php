@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddNameToJobsTable extends Migration
+class AddPathMapToAnnotations extends Migration
 {
     /**
      * Run the migrations.
@@ -14,9 +14,9 @@ class AddNameToJobsTable extends Migration
     public function up()
     {
         Schema::table(
-            'jobs',
+            'annotations',
             static function (Blueprint $table) {
-                $table->string('name')->after('id')->nullable()->default(null);
+                $table->string('map_path')->after('path')->nullable()->default(null);
             }
         );
     }
@@ -29,9 +29,9 @@ class AddNameToJobsTable extends Migration
     public function down()
     {
         Schema::table(
-            'jobs',
+            'annotations',
             static function (Blueprint $table) {
-                $table->removeColumn('name');
+                $table->dropColumn('map_path');
             }
         );
     }

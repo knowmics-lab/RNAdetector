@@ -17,7 +17,8 @@ use RecursiveIteratorIterator;
  * @property int                             $id
  * @property string                          $name
  * @property string                          $path
- * @property string                          $available_for
+ * @property string|null                     $map_path
+ * @property array                           $available_for
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Reference newModelQuery()
@@ -28,6 +29,7 @@ use RecursiveIteratorIterator;
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Reference whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Reference whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Reference wherePath($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Reference whereMapPath($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Reference whereUpdatedAt($value)
  * @mixin \Eloquent
  */
@@ -42,6 +44,7 @@ class Reference extends Model
     protected $fillable = [
         'name',
         'path',
+        'map_path',
         'available_for',
     ];
 
@@ -119,6 +122,9 @@ class Reference extends Model
     {
         if (file_exists($this->basedir())) {
             self::_deletePath($this->basedir());
+        }
+        if ($this->map_path && file_exists($this->map_path)) {
+            @unlink($this->map_path);
         }
 
         return parent::delete();

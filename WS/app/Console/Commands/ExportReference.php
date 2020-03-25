@@ -47,11 +47,13 @@ class ExportReference extends Command
         $configFile = $baseDir . '/spec.json';
         $configContent = [
             'indexedFor'  => $refModel->available_for,
+            'mapFile'     => ($refModel->map_path !== null),
             'annotations' => array_map(
                 static function (Annotation $model) {
                     return [
-                        'name' => $model->name,
-                        'type' => $model->type,
+                        'name'    => $model->name,
+                        'type'    => $model->type,
+                        'mapFile' => $model->map_path !== null,
                     ];
                 },
                 $annModel
@@ -85,6 +87,19 @@ class ExportReference extends Command
                 continue;
             }
             $res[] = $file;
+            if ($ann->map_path) {
+                if (!file_exists($ann->map_path)) {
+                    $this->warn('Unable to find map file for ' . $ann->name . '.');
+                    continue;
+                }
+                $mapFile = $baseDir . '/' . $ann->name . '_map.tsv';
+                @copy($ann->map_path, $mapFile);
+                if (!file_exists($mapFile)) {
+                    $this->warn('Unable to copy map file for ' . $ann->name . '.');
+                    continue;
+                }
+                $res[] = $mapFile;
+            }
         }
 
         return $res;
@@ -112,9 +127,13 @@ class ExportReference extends Command
             },
             $annotations
         );
-        //$outputFile = $outputDir . '/' . $reference . '.zip';
         $outputFile = $outputDir . '/' . $reference . '.tar.bz2';
         $baseDir = realpath($refModel->basedir());
+        $installedFile = $baseDir . '/.installed';
+        $hasInstalled = file_exists($installedFile);
+        if ($hasInstalled) {
+            @unlink($installedFile);
+        }
         $this->info('Creating config file...');
         $configFile = $this->makeConfigFile($refModel, $annModel, $baseDir);
         if (!file_exists($configFile)) {
@@ -144,6 +163,10 @@ class ExportReference extends Command
         @unlink($configFile);
         foreach ($annFiles as $file) {
             @unlink($file);
+        }
+        if ($hasInstalled) {
+            @touch($installedFile);
+            @chmod($installedFile, 0777);
         }
         $this->info('Completed! Results have been stored in ' . $outputFile);
 

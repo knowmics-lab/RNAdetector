@@ -82,6 +82,14 @@ class ImportReference extends Command
         $config = json_decode(file_get_contents($configFile), true);
 
         $indexedFor = (array)($config['indexedFor'] ?? []);
+        $mapFile = (bool)($config['mapFile'] ?? false);
+        $mapPath = null;
+        if ($mapFile) {
+            $realMapPath = realpath($genomePath . 'map_file.tsv');
+            if ($realMapPath !== false && file_exists($realMapPath)) {
+                $mapPath = $realMapPath;
+            }
+        }
         Reference::create(
             [
                 'name'          => $name,
@@ -92,6 +100,7 @@ class ImportReference extends Command
                     'salmon' => $indexedFor['salmon'] ?? false,
                     'hisat'  => $indexedFor['hisat'] ?? false,
                 ],
+                'map_path'      => $mapPath,
             ]
         )->save();
 
@@ -123,11 +132,28 @@ class ImportReference extends Command
                 $this->warn('Unable to write annotation file for ' . $annotation . '.');
                 continue;
             }
+            $annotationMapPath = null;
+            $hasMapPath = $annotationSpec['mapFile'] ?? false;
+            if ($hasMapPath) {
+                $annotationMapPathSourceFile = $genomePath . $annotation . '_map.tsv';
+                if (!file_exists($annotationMapPathSourceFile)) {
+                    $this->warn('Source path of map file for ' . $annotation . ' not found.');
+                } else {
+                    $annotationMapPathDestinationFile = env('ANNOTATIONS_PATH') . '/' . $annotation . '_map.tsv';
+                    @rename($annotationMapPathSourceFile, $annotationMapPathDestinationFile);
+                    if (!file_exists($annotationMapPathDestinationFile)) {
+                        $this->warn('Unable to write map file for ' . $annotation . '.');
+                    } else {
+                        $annotationMapPath = $annotationMapPathDestinationFile;
+                    }
+                }
+            }
             Annotation::create(
                 [
-                    'name' => $annotation,
-                    'type' => $type,
-                    'path' => realpath($annotationDestinationFile),
+                    'name'     => $annotation,
+                    'type'     => $type,
+                    'path'     => realpath($annotationDestinationFile),
+                    'map_path' => $annotationMapPath,
                 ]
             )->save();
         }

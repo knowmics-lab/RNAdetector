@@ -25,9 +25,10 @@ class AnnotationUploadJobType extends AbstractJob
     public static function parametersSpec(): array
     {
         return [
-            'name' => 'A name for this annotation',
-            'type' => 'The type of this annotation: gtf or bed (Default gtf)',
-            'file' => 'The file for this annotation',
+            'name'     => 'A name for this annotation',
+            'type'     => 'The type of this annotation: gtf or bed (Default gtf)',
+            'file'     => 'The file for this annotation',
+            'map_file' => 'An optional map file (tab-separated with two columns) where each line contains the ID of an annotation and its Entrez Gene Id (Mirbase mature name for miRNAs).',
         ];
     }
 
@@ -53,9 +54,10 @@ class AnnotationUploadJobType extends AbstractJob
     public static function validationSpec(Request $request): array
     {
         return [
-            'name' => ['required', 'alpha_dash', 'max:255'],
-            'type' => ['filled', Rule::in(['gtf', 'bed'])],
-            'file' => ['required', 'string'],
+            'name'     => ['required', 'alpha_dash', 'max:255'],
+            'type'     => ['filled', Rule::in(['gtf', 'bed'])],
+            'file'     => ['required', 'string'],
+            'map_file' => ['filled', 'string'],
         ];
     }
 
@@ -68,9 +70,13 @@ class AnnotationUploadJobType extends AbstractJob
     public function isInputValid(): bool
     {
         $file = $this->model->getParameter('file');
+        $mapFile = $this->model->getParameter('map_file');
         $disk = Storage::disk('public');
         $dir = $this->model->getJobDirectory() . '/';
         if (!$disk->exists($dir . $file)) {
+            return false;
+        }
+        if ($mapFile && !$disk->exists($dir . $mapFile)) {
             return false;
         }
 
@@ -91,18 +97,26 @@ class AnnotationUploadJobType extends AbstractJob
         $name = $this->model->getParameter('name');
         $type = $this->model->getParameter('type', 'gtf');
         $file = $this->model->getParameter('file');
-        $absoluteSourceFilename = $this->model->getAbsoluteJobDirectory() . '/' . $file;
+        $mapFile = $this->model->getParameter('map_file');
         $annotationFileName = env('ANNOTATIONS_PATH') . '/' . $name . '.' . $type;
-        rename($absoluteSourceFilename, $annotationFileName);
-        @chmod($annotationFileName, 0777);
+        $this->moveFile($file, $annotationFileName);
         if (!file_exists($annotationFileName)) {
             throw new ProcessingJobException('Unable to create annotation file.');
         }
+        $mapFileName = null;
+        if ($mapFile) {
+            $mapFileName = env('ANNOTATIONS_PATH') . '/' . $name . '_map.tsv';
+            $this->moveFile($mapFile, $mapFileName);
+            if (!file_exists($mapFileName)) {
+                throw new ProcessingJobException('Unable to create map file.');
+            }
+        }
         Annotation::create(
             [
-                'name' => $name,
-                'type' => $type,
-                'path' => $annotationFileName,
+                'name'     => $name,
+                'type'     => $type,
+                'path'     => $annotationFileName,
+                'map_path' => $mapFileName,
             ]
         )->save();
         $this->log('Job completed!');

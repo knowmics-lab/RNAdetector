@@ -32,6 +32,7 @@ class ReferenceUploadJobType extends AbstractJob
                 'salmon' => 'A boolean for enabling salmon indexing',
                 'hisat'  => 'A boolean for enabling hisat2 indexing',
             ],
+            'map_file'  => 'An optional map file (tab-separated with two columns) where each line contains the ID of a transcript/gene and its Entrez Gene Id (Mirbase mature name for miRNAs).',
         ];
     }
 
@@ -60,10 +61,11 @@ class ReferenceUploadJobType extends AbstractJob
             'name'         => ['required', 'alpha_dash', 'max:255'],
             'fastaFile'    => ['required', 'string'],
             'index'        => ['required', 'array'],
-            'index.bwa'    => ['required', 'boolean'],
-            'index.tophat' => ['required', 'boolean'],
-            'index.salmon' => ['required', 'boolean'],
-            'index.hisat'  => ['required', 'boolean'],
+            'index.bwa'    => ['filled', 'boolean'],
+            'index.tophat' => ['filled', 'boolean'],
+            'index.salmon' => ['filled', 'boolean'],
+            'index.hisat'  => ['filled', 'boolean'],
+            'map_file'     => ['filled', 'string'],
         ];
     }
 
@@ -76,9 +78,13 @@ class ReferenceUploadJobType extends AbstractJob
     public function isInputValid(): bool
     {
         $fastaFile = $this->model->getParameter('fastaFile');
+        $mapFile = $this->model->getParameter('map_file');
         $disk = Storage::disk('public');
         $dir = $this->model->getJobDirectory() . '/';
         if (!$disk->exists($dir . $fastaFile)) {
+            return false;
+        }
+        if ($mapFile && !$disk->exists($dir . $mapFile)) {
             return false;
         }
 
@@ -231,6 +237,7 @@ class ReferenceUploadJobType extends AbstractJob
         $name = $this->model->getParameter('name');
         $file = $this->model->getParameter('fastaFile');
         $index = (array)$this->model->getParameter('index', []);
+        $mapFile = $this->model->getParameter('map_file');
         $absoluteSourceFilename = $this->model->getAbsoluteJobDirectory() . '/' . $file;
         $referenceDirname = env('REFERENCES_PATH') . '/' . $name;
         $referenceFilename = $referenceDirname . '/reference.fa';
@@ -262,6 +269,14 @@ class ReferenceUploadJobType extends AbstractJob
         if ($hisat) {
             $this->indexHisat($referenceFilename, $referenceDirname);
         }
+        $mapFileName = null;
+        if ($mapFile) {
+            $mapFileName = $referenceDirname . '/map_file.tsv';
+            $this->moveFile($mapFile, $mapFileName);
+            if (!file_exists($mapFileName)) {
+                throw new ProcessingJobException('Unable to create map file.');
+            }
+        }
         Reference::create(
             [
                 'name'          => $name,
@@ -272,6 +287,7 @@ class ReferenceUploadJobType extends AbstractJob
                     'salmon' => $salmon,
                     'hisat'  => $hisat,
                 ],
+                'map_path'      => $mapFileName,
             ]
         )->save();
         $this->log('Job completed!');

@@ -185,6 +185,25 @@ abstract class AbstractJob
     }
 
     /**
+     * Move a file from a job directory to any destination
+     *
+     * @param string|null $source
+     * @param string      $destination
+     */
+    public function moveFile(?string $source, string $destination): void
+    {
+        if (!$source) {
+            return;
+        }
+        $absoluteSourceFilename = realpath($this->model->getAbsoluteJobDirectory() . '/' . $source);
+        if ($absoluteSourceFilename === false) {
+            return;
+        }
+        @rename($absoluteSourceFilename, $destination);
+        @chmod($destination, 0777);
+    }
+
+    /**
      * Returns the real path of a script
      *
      * @param string $script
