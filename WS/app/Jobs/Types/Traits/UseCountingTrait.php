@@ -43,21 +43,23 @@ trait UseCountingTrait
         $harmonizedRelative = $model->getJobFile('htseq_harmonized_', '.txt');
         $harmonized = $model->absoluteJobPath($harmonizedRelative);
         $harmonizedUrl = \Storage::disk('public')->url($harmonizedRelative);
+        $command = [
+            'bash',
+            AbstractJob::scriptPath('htseqcount.bash'),
+            '-a',
+            $annotation->path,
+            '-b',
+            $countingInputFile,
+            '-t',
+            $threads,
+            '-o',
+            $htseqOutput,
+            '-h',
+            $harmonized,
+        ];
+        AbstractJob::addMap($command, $annotation);
         AbstractJob::runCommand(
-            [
-                'bash',
-                AbstractJob::scriptPath('htseqcount.bash'),
-                '-a',
-                $annotation->path,
-                '-b',
-                $countingInputFile,
-                '-t',
-                $threads,
-                '-o',
-                $htseqOutput,
-                '-h',
-                $harmonized,
-            ],
+            $command,
             $model->getAbsoluteJobDirectory(),
             null,
             static function ($type, $buffer) use ($model) {
@@ -108,21 +110,23 @@ trait UseCountingTrait
         $harmonizedRelative = $model->getJobFile('featurecount_harmonized_', '.txt');
         $harmonized = $model->absoluteJobPath($harmonizedRelative);
         $harmonizedUrl = \Storage::disk('public')->url($harmonizedRelative);
+        $command = [
+            'bash',
+            AbstractJob::scriptPath('featurecounts.bash'),
+            '-a',
+            $annotation->path,
+            '-b',
+            $countingInputFile,
+            '-t',
+            $threads,
+            '-o',
+            $absoluteOutput,
+            '-h',
+            $harmonized,
+        ];
+        AbstractJob::addMap($command, $annotation);
         AbstractJob::runCommand(
-            [
-                'bash',
-                AbstractJob::scriptPath('featurecounts.bash'),
-                '-a',
-                $annotation->path,
-                '-b',
-                $countingInputFile,
-                '-t',
-                $threads,
-                '-o',
-                $absoluteOutput,
-                '-h',
-                $harmonized,
-            ],
+            $command,
             $model->getAbsoluteJobDirectory(),
             null,
             static function ($type, $buffer) use ($model) {
@@ -198,6 +202,7 @@ trait UseCountingTrait
             $command[] = '-s';
             $command[] = $secondTempFastQ;
         }
+        AbstractJob::addMap($command, $transcriptome);
         AbstractJob::runCommand(
             $command,
             $model->getAbsoluteJobDirectory(),

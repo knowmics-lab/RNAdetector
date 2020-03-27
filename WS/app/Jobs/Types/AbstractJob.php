@@ -31,27 +31,27 @@ use Symfony\Component\Process\Exception\ProcessFailedException;
 abstract class AbstractJob
 {
 
-    protected const FASTQ             = 'fastq';
-    protected const BAM               = 'BAM';
-    protected const SAM               = 'SAM';
-    protected const VALID_INPUT_TYPES = [self::FASTQ, self::BAM, self::SAM];
+    public const FASTQ             = 'fastq';
+    public const BAM               = 'BAM';
+    public const SAM               = 'SAM';
+    public const VALID_INPUT_TYPES = [self::FASTQ, self::BAM, self::SAM];
 
-    protected const HTSEQ_COUNTS           = 'htseq';
-    protected const FEATURECOUNTS_COUNTS   = 'feature-counts';
-    protected const SALMON                 = 'salmon';
-    protected const VALID_COUNTING_METHODS = [self::HTSEQ_COUNTS, self::FEATURECOUNTS_COUNTS, self::SALMON];
+    public const HTSEQ_COUNTS           = 'htseq';
+    public const FEATURECOUNTS_COUNTS   = 'feature-counts';
+    public const SALMON                 = 'salmon';
+    public const VALID_COUNTING_METHODS = [self::HTSEQ_COUNTS, self::FEATURECOUNTS_COUNTS, self::SALMON];
 
-    protected const TOPHAT                    = 'tophat';
-    protected const HISAT2                    = 'hisat2';
-    protected const VALID_ALIGN_QUANT_METHODS = [self::SALMON, self::TOPHAT, self::HISAT2];
+    public const TOPHAT                    = 'tophat';
+    public const HISAT2                    = 'hisat2';
+    public const VALID_ALIGN_QUANT_METHODS = [self::SALMON, self::TOPHAT, self::HISAT2];
 
-    protected const OUT_TYPE_CONFIRMATION                                = 'confirmation';
-    protected const OUT_TYPE_ANALYSIS                                    = 'analysis';
-    protected const OUT_TYPE_ANALYSIS_HARMONIZED                         = 'analysis-harmonized';
-    protected const OUT_TYPE_ANALYSIS_HARMONIZED_TRANSCRIPTS             = 'analysis-harmonized-transcripts';
-    protected const OUT_TYPE_ANALYSIS_HARMONIZED_DESCRIPTION             = 'analysis-harmonized-description';
-    protected const OUT_TYPE_ANALYSIS_HARMONIZED_TRANSCRIPTS_DESCRIPTION = 'analysis-harmonized-transcripts-description';
-    protected const OUT_TYPE_ANALYSIS_REPORT                             = 'analysis-report';
+    public const OUT_TYPE_CONFIRMATION                                = 'confirmation';
+    public const OUT_TYPE_ANALYSIS                                    = 'analysis';
+    public const OUT_TYPE_ANALYSIS_HARMONIZED                         = 'analysis-harmonized';
+    public const OUT_TYPE_ANALYSIS_HARMONIZED_TRANSCRIPTS             = 'analysis-harmonized-transcripts';
+    public const OUT_TYPE_ANALYSIS_HARMONIZED_DESCRIPTION             = 'analysis-harmonized-description';
+    public const OUT_TYPE_ANALYSIS_HARMONIZED_TRANSCRIPTS_DESCRIPTION = 'analysis-harmonized-transcripts-description';
+    public const OUT_TYPE_ANALYSIS_REPORT                             = 'analysis-report';
 
     /**
      * @var \App\Models\Job
@@ -124,7 +124,7 @@ abstract class AbstractJob
     abstract public static function validationSpec(Request $request): array;
 
     /**
-     * Returns an array of 4 functions one for each field of the sample group composition script input
+     * Returns an array of 5 functions one for each field of the sample group composition script input
      *
      * @return callable[]|null
      */
@@ -201,6 +201,26 @@ abstract class AbstractJob
         }
         @rename($absoluteSourceFilename, $destination);
         @chmod($destination, 0777);
+    }
+
+    /**
+     * Add the map path of a reference
+     *
+     * @param array                                        $command
+     * @param \App\Models\Annotation|\App\Models\Reference $annotation
+     *
+     * @return bool
+     */
+    public static function addMap(array &$command, $annotation): bool
+    {
+        if ($annotation->map_path !== null) {
+            $command[] = '-x';
+            $command[] = $annotation->map_path;
+
+            return true;
+        }
+
+        return false;
     }
 
     /**

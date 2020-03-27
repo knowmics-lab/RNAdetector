@@ -309,6 +309,16 @@ class LongRnaJobType extends AbstractJob
 
                 return $job->absoluteJobPath($output['path']);
             },
+            static function (Job $job) {
+                $algorithm = $job->getParameter('algorithm', self::SALMON);
+                $countingAlgorithm = $job->getParameter('countingAlgorithm', self::FEATURECOUNTS_COUNTS);
+                $transcriptome = $job->getParameter('transcriptome', env('HUMAN_TRANSCRIPTOME_NAME'));
+                $annotation = $job->getParameter('annotation', env('HUMAN_RNA_ANNOTATION_NAME'));
+
+                return ($algorithm === self::SALMON || $countingAlgorithm === self::SALMON) ?
+                    Reference::whereName($transcriptome)->firstOrFail()->map_path :
+                    Annotation::whereName($annotation)->firstOrFail()->map_path;
+            },
         ];
     }
 }

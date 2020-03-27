@@ -263,7 +263,8 @@ class CircRnaJobType extends AbstractJob
             $command[] = '-b';
             $command[] = $bedAnnotation->path;
         }
-        $output = AbstractJob::runCommand(
+        self::addMap($command, $bedAnnotation);
+        AbstractJob::runCommand(
             $command,
             $this->model->getAbsoluteJobDirectory(),
             null,
@@ -378,6 +379,7 @@ class CircRnaJobType extends AbstractJob
             '-h',
             $quantHarmonized,
         ];
+        self::addMap($command, $bedAnnotation);
         AbstractJob::runCommand(
             $command,
             $this->model->getAbsoluteJobDirectory(),
@@ -592,6 +594,12 @@ class CircRnaJobType extends AbstractJob
                 $bedAnnotation = Annotation::whereName($bedAnnotationName)->first();
 
                 return ($bedAnnotation !== null) ? $bedAnnotation->path : null;
+            },
+            static function (Job $job) {
+                $bedAnnotationName = $job->getParameter('bedAnnotation', 'Human_hg19_circRNAs_bed');
+                $bedAnnotation = Annotation::whereName($bedAnnotationName)->first();
+
+                return ($bedAnnotation !== null) ? $bedAnnotation->map_path : null;
             },
         ];
     }

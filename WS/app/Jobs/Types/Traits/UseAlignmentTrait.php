@@ -197,7 +197,7 @@ trait UseAlignmentTrait
         $harmonizedTx = $model->absoluteJobPath($harmonizedTxRelative);
         $harmonizedTxUrl = \Storage::disk('public')->url($harmonizedTxRelative);
         switch ($inputType) {
-            case 'fastq':
+            case AbstractJob::FASTQ:
                 $command = [
                     'bash',
                     AbstractJob::scriptPath('salmon_counting.sh'),
@@ -218,6 +218,7 @@ trait UseAlignmentTrait
                     $command[] = '-s';
                     $command[] = $secondInputFile;
                 }
+                AbstractJob::addMap($command, $transcriptome);
                 AbstractJob::runCommand(
                     $command,
                     $model->getAbsoluteJobDirectory(),
@@ -238,24 +239,26 @@ trait UseAlignmentTrait
                     ]
                 );
                 break;
-            case 'BAM':
+            case AbstractJob::BAM:
+                $command = [
+                    'bash',
+                    AbstractJob::scriptPath('salmon_counting_bam.sh'),
+                    '-r',
+                    $transcriptome->path,
+                    '-i',
+                    $firstInputFile,
+                    '-t',
+                    $threads,
+                    '-o',
+                    $salmonOutput,
+                    '-h',
+                    $harmonizedGene,
+                    '-n',
+                    $harmonizedTx,
+                ];
+                AbstractJob::addMap($command, $transcriptome);
                 AbstractJob::runCommand(
-                    [
-                        'bash',
-                        AbstractJob::scriptPath('salmon_counting_bam.sh'),
-                        '-r',
-                        $transcriptome->path,
-                        '-i',
-                        $firstInputFile,
-                        '-t',
-                        $threads,
-                        '-o',
-                        $salmonOutput,
-                        '-h',
-                        $harmonizedGene,
-                        '-n',
-                        $harmonizedTx,
-                    ],
+                    $command,
                     $model->getAbsoluteJobDirectory(),
                     null,
                     static function ($type, $buffer) use ($model) {
