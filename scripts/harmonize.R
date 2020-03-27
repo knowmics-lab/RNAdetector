@@ -50,7 +50,18 @@ read.gtf <- function (input.gtf, level = NULL, filter.features=NULL, one.by.one 
   return (a)
 }
 
-harmonize.ciri <- function (input.file, bedfile, output.file) {
+map.ids  <- function (tbl, map = NULL) {
+  if (is.null(map)) {
+    mapped           <- tbl
+    mapped$mapped_id <- NA
+  } else {
+    mapped <- tbl %>% left_join(map, by="id")
+  }
+  mapped <- mapped[,c("id", "mapped_id", "name", "chr", "start", "end", "strand", "counts")]
+  return(mapped)
+}
+
+harmonize.ciri <- function (input.file, bedfile, output.file, map.table) {
   m <- read.table(input.file, stringsAsFactors = FALSE, sep = "\t", skip = 1)
   m <- m[,c(1,1,2,3,4,11,5)]
   colnames(m) <- c("id", "name", "chr", "start", "end", "strand", "counts")
@@ -64,18 +75,20 @@ harmonize.ciri <- function (input.file, bedfile, output.file) {
     o <- findOverlaps(g, gr_obj, type = "equal")
     m$id[queryHits(o)] <- gr_obj$name[subjectHits(o)]
   }
+  m <- map.ids(m, map.table)
   write.table(m, file = output.file, quote = FALSE, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)
 }
 
-harmonize.ciri.quant <- function (input.file, output.file) {
+harmonize.ciri.quant <- function (input.file, output.file, map.table) {
   m <- read.gtf(input.file)
   m$length <- (m$end - m$start) + 1
   m <- m[,c("circ_id", "circ_id", "chr", "start", "end", "strand", "length", "bsj")]
   colnames(m) <- c("id", "name", "chr", "start", "end", "strand", "length", "counts")
+  m <- map.ids(m, map.table)
   write.table(m, file = output.file, quote = FALSE, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)
 }
 
-harmonize.htseq <- function (input.file, input.gtf, output.file) {
+harmonize.htseq <- function (input.file, input.gtf, output.file, map.table) {
   m <- read.table(input.file, stringsAsFactors = FALSE, sep = "\t")
   g <- read.gtf(input.gtf, level=c("gene", "transcript", "exon"), filter.features = c("gene_id", "gene_name"), one.by.one = TRUE)
   colnames(m) <- c("id", "counts")
@@ -92,10 +105,11 @@ harmonize.htseq <- function (input.file, input.gtf, output.file) {
   }
   m$length <- (m$end - m$start) + 1
   m <- m[,c("id", "name", "chr", "start", "end", "strand", "length", "counts")]
+  m <- map.ids(m, map.table)
   write.table(m, file = output.file, quote = FALSE, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)
 }
 
-harmonize.featureCounts <- function (input.file, input.gtf, output.file) {
+harmonize.featureCounts <- function (input.file, input.gtf, output.file, map.table) {
   m <- read.table(input.file, stringsAsFactors = FALSE, sep = "\t")
   m <- m[-1,]
   m[,7] <- as.numeric(m[,7])
@@ -114,10 +128,11 @@ harmonize.featureCounts <- function (input.file, input.gtf, output.file) {
   }
   m$length <- (m$end - m$start) + 1
   m <- m[,c("id", "name", "chr", "start", "end", "strand", "length", "counts")]
+  m <- map.ids(m, map.table)
   write.table(m, file = output.file, quote = FALSE, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)
 }
 
-harmonize.salmon <- function (input.file, input.annotation = NULL, output.file, output.transcripts) {
+harmonize.salmon <- function (input.file, input.annotation = NULL, output.file, output.transcripts, map.table) {
   m <- read.table(input.file, stringsAsFactors = FALSE, sep = "\t")
   ids <- strsplit(m[-1,1], "|", fixed = TRUE)
   val <- function (x,i) (ifelse(length(x) >= i, x[i], NA))
@@ -149,6 +164,7 @@ harmonize.salmon <- function (input.file, input.annotation = NULL, output.file, 
   ) %>% left_join(annotation, by=c("id"="tx_id"))
   df_tx <- unique(df_tx[,c("id", "tx_name", "chr", "start", "end", "strand", "length", "counts")])
   colnames(df_tx) <- c("id", "name", "chr", "start", "end", "strand", "length", "counts")
+  df_tx <- map.ids(df_tx, map.table)
   write.table(df_tx, file = output.transcripts, quote = FALSE, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)
   if (has_genes) {
     df_gn <- data.frame(
@@ -163,11 +179,12 @@ harmonize.salmon <- function (input.file, input.annotation = NULL, output.file, 
     ) %>% left_join(annotation, by=c("id"="gene_id"))
     df_gn <- unique(df_gn[,c("id", "gene_name", "chr", "start", "end", "strand", "length", "counts")])
     colnames(df_gn) <- c("id", "name", "chr", "start", "end", "strand", "length", "counts")
+    df_gn <- map.ids(df_gn, map.table)
     write.table(df_gn, file = output.file, quote = FALSE, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)   
   }
 }
 
-harmonize.stringtie <- function (input.gtf, gc.file, tc.file, output.file, output.transcripts) {
+harmonize.stringtie <- function (input.gtf, gc.file, tc.file, output.file, output.transcripts, map.table) {
   g  <- read.gtf(input.gtf, level=c("transcript", "exon"), filter.features = c("gene_id", "transcript_id", "ref_gene_name"), one.by.one = TRUE)
   gc <- read.csv(gc.file, header = TRUE, sep = ",", stringsAsFactors = FALSE)
   colnames(gc) <- c("id", "counts")
@@ -182,6 +199,8 @@ harmonize.stringtie <- function (input.gtf, gc.file, tc.file, output.file, outpu
   tc$length <- tc$end - tc$start + 1
   tc <- unique(tc[,c("id", "ref_gene_name", "chr", "start", "end", "strand", "length", "counts")])
   colnames(tc) <- c("id", "name", "chr", "start", "end", "strand", "length", "counts")
+  gc <- map.ids(gc, map.table)
+  tc <- map.ids(tc, map.table)
   write.table(gc, file = output.file, quote = FALSE, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)   
   write.table(tc, file = output.transcripts, quote = FALSE, sep = "\t", append = FALSE, row.names = FALSE, col.names = TRUE)   
 }
@@ -190,6 +209,7 @@ option_list <- list(
   make_option(c("-i", "--input"), type="character", default=NULL, help="input file", metavar="character"),
   make_option(c("-g", "--annotation"), type="character", default=NULL, help="input gtf file", metavar="character"),
   make_option(c("-a", "--algorithm"), type="character", default=NULL, help="counting algorithm", metavar="character"),
+  make_option(c("-m", "--map"), type="character", default=NULL, help="entrez id map", metavar = "character"),
   make_option(c("-o", "--goutput"), type="character", default=NULL, help="gene expression output file", metavar="character"),
   make_option(c("-t", "--toutput"), type="character", default=NULL, help="transcripts expression output file", metavar="character"),
   make_option(c("--stringtie-gene-counts"), type="character", default=NULL, help="stringtie gene counts file created by prepDE.py", metavar="character"),
@@ -242,28 +262,33 @@ if (opt$algorithm == "stringtie" && (is.null(opt[["stringtie-tx-counts"]]) || !f
   stop("Transcripts counts file is required for stringtie!", call.=FALSE)
 }
 
+map.table <- NULL
+if (!is.null(opt$map) && opt$map != "" && file.exists(opt$map)) {
+  map.table <- read.table(file = opt$map, header = FALSE, sep = "\t", stringsAsFactors = FALSE)
+  colnames(map.table) <- c("id", "mapped_id")
+}
+
 if (opt$algorithm == "ciri") {
-  harmonize.ciri(input.file = opt$input, bedfile = opt$annotation, output.file = opt$goutput)
+  harmonize.ciri(input.file = opt$input, bedfile = opt$annotation, 
+                 output.file = opt$goutput, map.table = map.table)
 } else if (opt$algorithm == "ciriquant") {
-  harmonize.ciri.quant(input.file = opt$input, output.file = opt$goutput)
+  harmonize.ciri.quant(input.file = opt$input, output.file = opt$goutput, 
+                       map.table = map.table)
 } else if (opt$algorithm == "htseq") {
-  harmonize.htseq(input.file = opt$input, input.gtf = opt$annotation, output.file = opt$goutput)
+  harmonize.htseq(input.file = opt$input, input.gtf = opt$annotation, 
+                  output.file = opt$goutput, map.table = map.table)
 } else if (opt$algorithm == "featurecounts") {
-  harmonize.featureCounts(input.file = opt$input, input.gtf = opt$annotation, output.file = opt$goutput)
+  harmonize.featureCounts(input.file = opt$input, input.gtf = opt$annotation, 
+                          output.file = opt$goutput, map.table = map.table)
 } else if (opt$algorithm == "salmon") {
-  harmonize.salmon(input.file = opt$input, output.file = opt$goutput, output.transcripts = opt$toutput)
+  harmonize.salmon(input.file = opt$input, output.file = opt$goutput, 
+                   output.transcripts = opt$toutput, map.table = map.table)
 } else if (opt$algorithm == "stringtie") {
   harmonize.stringtie(input.gtf = opt$input, gc.file = opt[["stringtie-gene-counts"]], 
-                      tc.file = opt[["stringtie-tx-counts"]], output.file = opt$goutput, output.transcripts = opt$toutput)
+                      tc.file = opt[["stringtie-tx-counts"]], 
+                      output.file = opt$goutput, 
+                      output.transcripts = opt$toutput, map.table = map.table)
 } else {
   print_help(opt_parser)
   stop(paste0("Algorithm ", opt$algorithm, " is not valid!"), call.=FALSE)
 }
-
-
-
-
-
-
-
-

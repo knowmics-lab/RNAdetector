@@ -9,6 +9,11 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * Class Job
+ * @mixin \App\Models\Job
+ * @package App\Http\Resources
+ */
 class Job extends JsonResource
 {
     /**

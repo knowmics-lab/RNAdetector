@@ -64,6 +64,9 @@ contrasts.list <- sapply(config$contrasts, function(x)(paste(x, collapse = "_vs_
 
 data$gc     <- 0
 common.cols <- c("id","name","chr","start","end","strand","length","gc")
+if (all("mapped_id" %in% colnames(data))) {
+  data$mapped_id <- NULL #### TEMPORANEO DA RIMUOVERE PER PATHWAY ANALYSIS
+}
 other.cols  <- setdiff(colnames(data), common.cols)
 data        <- data[,c(common.cols, other.cols)]
 

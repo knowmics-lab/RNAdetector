@@ -9,6 +9,7 @@
 #   -f FASTA reference genome.
 #   -m max spanning distance (default: 200,000)
 # FLAGS: -p for paired sequencing -1 to use CIRI1 instead of CIRI2
+#   -x map file
 #   -h HARMONIZED output file
 #   -b BED file for annotation
 ##############################################################################
@@ -24,6 +25,7 @@ while getopts "p1a:i:t:o:f:m:h:" opt; do
   o) OUTPUT=$OPTARG ;;
   f) FASTA_FILE=$OPTARG ;;
   m) SPANNING=$OPTARG ;;
+  x) MAP_FILE=$OPTARG ;;
   h) HARMONIZED=$OPTARG ;;
   b) BED_FILE=$OPTARG ;;
   \?)
@@ -112,15 +114,29 @@ if [ ! -z "$HARMONIZED" ]; then
   CURR_DIR=$(pwd)
   SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
   cd $CURR_DIR
-  if [ ! -z "$BED_FILE" ]; then
-    if ! Rscript "${SCRIPT_PATH}/harmonize.R" -i "$OUTPUT" -a "ciri" -o "$HARMONIZED" -a "$BED_FILE"; then
-      echo "Unable to harmonize output file"
-      exit 10
+  if [ ! -z "$MAP_FILE" ] && [ -f "$MAP_FILE" ]; then
+    if [ ! -z "$BED_FILE" ] && [ -f "$BED_FILE" ]; then
+      if ! Rscript "${SCRIPT_PATH}/harmonize.R" -i "$OUTPUT" -a "ciri" -o "$HARMONIZED" -a "$BED_FILE" -m "$MAP_FILE"; then
+        echo "Unable to harmonize output file"
+        exit 10
+      fi
+    else
+      if ! Rscript "${SCRIPT_PATH}/harmonize.R" -i "$OUTPUT" -a "ciri" -o "$HARMONIZED" -m "$MAP_FILE"; then
+        echo "Unable to harmonize output file"
+        exit 10
+      fi
     fi
   else
-    if ! Rscript "${SCRIPT_PATH}/harmonize.R" -i "$OUTPUT" -a "ciri" -o "$HARMONIZED"; then
-      echo "Unable to harmonize output file"
-      exit 10
+    if [ ! -z "$BED_FILE" ] && [ -f "$BED_FILE" ]; then
+      if ! Rscript "${SCRIPT_PATH}/harmonize.R" -i "$OUTPUT" -a "ciri" -o "$HARMONIZED" -a "$BED_FILE"; then
+        echo "Unable to harmonize output file"
+        exit 10
+      fi
+    else
+      if ! Rscript "${SCRIPT_PATH}/harmonize.R" -i "$OUTPUT" -a "ciri" -o "$HARMONIZED"; then
+        echo "Unable to harmonize output file"
+        exit 10
+      fi
     fi
   fi
   chmod 777 "$HARMONIZED"

@@ -6,6 +6,7 @@
 #	-b INPUT BAM (BAM_PATH or ALIGNMENT_PATH)
 # 	-t NUMBER OF THREADS
 #	-o OUTPUT file
+#   -x map file
 #   -h HARMONIZED output file
 ##############################################################################
 while getopts ":a:b:t:o:h:" opt; do
@@ -14,6 +15,7 @@ while getopts ":a:b:t:o:h:" opt; do
     b) INPUT_BAM=$OPTARG ;;
     t) THREADS=$OPTARG ;;
     o) OUTPUT=$OPTARG ;;
+    x) MAP_FILE=$OPTARG ;;
     h) HARMONIZED=$OPTARG ;;
     \?)
         echo "Invalid option: -$OPTARG"
@@ -25,6 +27,11 @@ while getopts ":a:b:t:o:h:" opt; do
         ;;
     esac
 done
+
+exiterror() {
+    echo "$1"
+    exit $2
+}
 
 #### Check parameters ####
 # Check GTF annotation files
@@ -73,9 +80,7 @@ if [ ! -z "$HARMONIZED" ]; then
     CURR_DIR=$(pwd)
     SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
     cd $CURR_DIR
-    if ! Rscript "${SCRIPT_PATH}/harmonize.R" -i "$OUTPUT" -g "$GTF_FILE" -a "featurecounts" -o "$HARMONIZED"; then
-        echo "Unable to harmonize output file"
-        exit 9
-    fi
+    [ ! -z "$MAP_FILE" ] && [ -f "$MAP_FILE" ] && (Rscript "${SCRIPT_PATH}/harmonize.R" -i "$OUTPUT" -g "$GTF_FILE" -a "featurecounts" -o "$HARMONIZED" -m "$MAP_FILE" || exiterror "Unable to harmonize output file" 9)
+    ([ -z "$MAP_FILE" ] || [ ! -f "$MAP_FILE" ]) && (Rscript "${SCRIPT_PATH}/harmonize.R" -i "$OUTPUT" -g "$GTF_FILE" -a "featurecounts" -o "$HARMONIZED" || exiterror "Unable to harmonize output file" 9)
     chmod 777 "$HARMONIZED"
 fi

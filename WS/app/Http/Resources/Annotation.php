@@ -4,6 +4,11 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * Class Annotation
+ * @mixin \App\Models\Annotation
+ * @package App\Http\Resources
+ */
 class Annotation extends JsonResource
 {
     /**
@@ -20,6 +25,7 @@ class Annotation extends JsonResource
                 'id'              => $this->id,
                 'name'            => $this->name,
                 'type'            => $this->type,
+                'has_map'         => $this->map_path !== null && file_exists($this->map_path),
                 'created_at'      => $this->created_at,
                 'created_at_diff' => $this->created_at->diffForHumans(),
                 'updated_at'      => $this->updated_at,

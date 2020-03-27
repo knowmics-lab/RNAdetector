@@ -6,6 +6,7 @@
 #   -i input BAM file
 # 	-t NUMBER OF THREADS
 #	-o OUTPUT file
+#   -x map file
 #   -h HARMONIZED gene counts
 #   -n HARMONIZED transcripts counts
 ##############################################################################
@@ -15,6 +16,7 @@ while getopts ":r:i:t:o:h:n:" opt; do
     i) INPUT_BAM=$OPTARG ;;
     t) THREADS=$OPTARG ;;
     o) OUTPUT=$OPTARG ;;
+    x) MAP_FILE=$OPTARG ;;
     h) HARMONIZED=$OPTARG ;;
     n) HARMONIZED_TX=$OPTARG ;;
     \?)
@@ -92,9 +94,16 @@ if [ ! -z "$HARMONIZED" ]; then
     CURR_DIR=$(pwd)
     SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
     cd $CURR_DIR
-    if ! Rscript "${SCRIPT_PATH}/harmonize.R" -i "$OUTPUT" -a "salmon" -o "$HARMONIZED" -t "$HARMONIZED_TX"; then
-        echo "Unable to harmonize output file"
-        exit 9
+    if [ ! -z "$MAP_FILE" ] && [ -f "$MAP_FILE" ]; then
+        if ! Rscript "${SCRIPT_PATH}/harmonize.R" -i "$OUTPUT" -a "salmon" -o "$HARMONIZED" -t "$HARMONIZED_TX" -m "$MAP_FILE"; then
+            echo "Unable to harmonize output file"
+            exit 9
+        fi
+    else
+        if ! Rscript "${SCRIPT_PATH}/harmonize.R" -i "$OUTPUT" -a "salmon" -o "$HARMONIZED" -t "$HARMONIZED_TX"; then
+            echo "Unable to harmonize output file"
+            exit 9
+        fi
     fi
     chmod 777 "$HARMONIZED"
     chmod 777 "$HARMONIZED_TX"
