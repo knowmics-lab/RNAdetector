@@ -15,6 +15,7 @@ import LogsDialog from './UI/LogsDialog';
 import * as Api from '../api';
 import {
   OUT_TYPE_AR,
+  OUT_TYPE_C,
   OUT_TYPE_DESCRIPTION,
   OUT_TYPE_HARMONIZED,
   OUT_TYPE_TRANSCRIPTS
@@ -162,7 +163,11 @@ class JobsList extends React.Component<Props, State> {
     const type = data.output ? data.output.type : null;
     const { deletingJobs } = this.props;
     const { downloading } = this.state;
-    if (deletingJobs.includes(id) || status !== 'completed') {
+    if (
+      deletingJobs.includes(id) ||
+      status !== 'completed' ||
+      type === OUT_TYPE_C
+    ) {
       return null;
     }
     if (downloading.includes(id)) {
@@ -257,6 +262,7 @@ class JobsList extends React.Component<Props, State> {
     const cw = r => downloading.includes(r.id);
     const isReady = r => r.status === 'ready';
     const isCompleted = r => r.status === 'completed';
+    const isConfirmation = r => r.output && r.output.type === OUT_TYPE_C;
     const isReport = r => r.output && r.output.type === OUT_TYPE_AR;
     return [
       {
@@ -282,7 +288,11 @@ class JobsList extends React.Component<Props, State> {
       },
       this.getSaveResultsMenu,
       {
-        shown: r => !cd(r) && isCompleted(r) && Api.Settings.isLocal(),
+        shown: r =>
+          !cd(r) &&
+          isCompleted(r) &&
+          Api.Settings.isLocal() &&
+          !isConfirmation(r),
         icon: 'fas fa-folder-open',
         tooltip: 'Open results folder',
         onClick: this.openResultsFolder
