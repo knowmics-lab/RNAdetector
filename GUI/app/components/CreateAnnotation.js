@@ -88,11 +88,7 @@ class CreateAnnotation extends React.Component<Props, State> {
     super(props);
     this.state = {
       isSaving: false,
-      isUploading: false,
-      uploadFile: '',
-      uploadedBytes: 0,
-      uploadedPercent: 0,
-      uploadTotal: 0,
+      ...Api.Upload.ui.initUploadState(),
       annotationFile: null,
       mapFile: null,
       validationErrors: {}
@@ -274,30 +270,17 @@ class CreateAnnotation extends React.Component<Props, State> {
           if (mapFile) files.push(mapFile);
           // eslint-disable-next-line no-restricted-syntax
           for (const f of files) {
-            this.setState({
-              isUploading: true,
-              uploadFile: f.name,
-              uploadedBytes: 0,
-              uploadedPercent: 0,
-              uploadTotal: 0
-            });
+            Api.Upload.ui.uploadStart(this.setState.bind(this), f.name);
             // eslint-disable-next-line no-await-in-loop
             await Api.Upload.upload(
               job,
               f.path,
               f.name,
               f.type,
-              (uploadedPercent, uploadedBytes, uploadTotal) =>
-                this.setState({
-                  uploadedPercent,
-                  uploadedBytes,
-                  uploadTotal
-                })
+              Api.Upload.ui.makeOnProgress(this.setState.bind(this))
             );
           }
-          this.setState({
-            isUploading: false
-          });
+          Api.Upload.ui.uploadEnd(this.setState.bind(this));
           pushNotification('Annotation file uploaded! Starting job...');
           await Api.Jobs.submitJob(job.id);
           pushNotification('Job queued!');

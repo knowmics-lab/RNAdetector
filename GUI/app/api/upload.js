@@ -111,7 +111,10 @@ export default {
     uploadStart(setState: (*) => void, uploadFile: string): void {
       setState({
         isUploading: true,
-        uploadFile
+        uploadFile,
+        uploadedBytes: 0,
+        uploadedPercent: 0,
+        uploadTotal: 0
       });
     },
     uploadEnd(setState: (*) => void): void {

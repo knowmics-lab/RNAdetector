@@ -13,7 +13,8 @@ export default {
   async create(
     name: string,
     fastaFile: string,
-    availableFor: string[]
+    availableFor: string[],
+    map_file: ?string = null
   ): Promise<ResponseType<Job>> {
     const result = await Connector.callPost('jobs', {
       name: `Create and index reference ${name}`,
@@ -26,7 +27,8 @@ export default {
             v,
             availableFor.includes(v)
           ])
-        )
+        ),
+        map_file
       }
     });
     if (result.validationErrors) {

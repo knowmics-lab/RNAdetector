@@ -274,7 +274,8 @@ class JobsList extends React.Component<Props, State> {
         tooltip: 'Submitting...'
       },
       {
-        shown: r => !cd(r) && isReady(r) && r.status !== 'queued',
+        shown: r =>
+          !cd(r) && ['processing', 'completed', 'failed'].includes(r.status),
         icon: 'fas fa-file-alt',
         tooltip: 'Logs',
         onClick: this.handleLogsSelectJob

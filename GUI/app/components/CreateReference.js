@@ -21,7 +21,6 @@ import Wizard from './UI/Wizard';
 import FileSelector from './UI/FileSelector';
 import type { File } from './UI/FileSelector';
 import UploadProgress from './UI/UploadProgress';
-import type { UsesUpload } from '../types/ui';
 
 type Props = {
   refreshJobs: () => void,
@@ -72,9 +71,15 @@ const style = theme => ({
 
 type State = {
   isSaving: boolean,
-  files: File[],
+  isUploading: boolean,
+  uploadFile: string,
+  uploadedBytes: number,
+  uploadedPercent: number,
+  uploadTotal: number,
+  fastaFile: ?File,
+  mapFile: ?File,
   validationErrors: *
-} & UsesUpload;
+};
 
 class CreateReference extends React.Component<Props, State> {
   props: Props;
@@ -84,7 +89,8 @@ class CreateReference extends React.Component<Props, State> {
     this.state = {
       isSaving: false,
       ...Api.Upload.ui.initUploadState(),
-      files: [],
+      fastaFile: null,
+      mapFile: null,
       validationErrors: {}
     };
   }
@@ -141,15 +147,15 @@ class CreateReference extends React.Component<Props, State> {
     );
   };
 
-  handleFileAdd = f =>
-    this.setState(oldState => ({
-      files: [...oldState.files, ...f]
-    }));
+  handleFileAdd = (field: string) => f =>
+    this.setState({
+      [field]: f[0]
+    });
 
-  handleFileRemove = f =>
-    this.setState(oldState => ({
-      files: oldState.files.filter(o => o.path !== f.path)
-    }));
+  handleFileRemove = (field: string) => () =>
+    this.setState({
+      [field]: null
+    });
 
   getStep2 = () => {
     const { classes } = this.props;
@@ -163,17 +169,31 @@ class CreateReference extends React.Component<Props, State> {
     return (
       <>
         <Typography className={classes.instructions}>
-          Select the FASTA file you wish to use and click &quot;Save&quot; to
-          start the upload process.
+          Select the FASTA file you wish to upload and click &quot;Save&quot; to
+          start the upload process. If you are uploading a transcriptome and you
+          wish to enable pathway analysis support, please upload also a TSV file
+          mapping transcripts and gene ids to Entrez Ids.
         </Typography>
         <FormGroup row className={classes.formControl}>
-          <Grid container justify="center" alignItems="center">
-            <FileSelector
-              onFileRemove={this.handleFileRemove}
-              onFileAdd={this.handleFileAdd}
-              filters={[{ name: 'FASTA files', extensions: ['fa', 'fasta'] }]}
-              disabled={isUploading}
-            />
+          <Grid container justify="center" alignItems="flex-start">
+            <Grid item xs>
+              <FileSelector
+                title="Select FASTA file"
+                onFileRemove={this.handleFileRemove('fastaFile')}
+                onFileAdd={this.handleFileAdd('fastaFile')}
+                filters={[{ name: 'FASTA files', extensions: ['fa', 'fasta'] }]}
+                disabled={isUploading}
+              />
+            </Grid>
+            <Grid item xs>
+              <FileSelector
+                title="Select map file"
+                onFileRemove={this.handleFileRemove('mapFile')}
+                onFileAdd={this.handleFileAdd('mapFile')}
+                filters={[{ name: 'TSV files', extensions: ['tsv', 'txt'] }]}
+                disabled={isUploading}
+              />
+            </Grid>
           </Grid>
         </FormGroup>
         <UploadProgress
@@ -221,17 +241,17 @@ class CreateReference extends React.Component<Props, State> {
       refreshJobs,
       refreshReferences
     } = this.props;
-    const { files } = this.state;
-    if (files.length !== 1) {
+    const { fastaFile, mapFile } = this.state;
+    if (!fastaFile) {
       pushNotification('You must select a FASTA file.', 'error');
     } else {
-      const file = files[0];
       this.setSaving(true);
       try {
         const data = await Api.References.create(
           values.name,
-          file.name,
-          values.availableFor
+          fastaFile.name,
+          values.availableFor,
+          mapFile ? mapFile.name : null
         );
         if (data.validationErrors) {
           pushNotification(
@@ -244,14 +264,20 @@ class CreateReference extends React.Component<Props, State> {
           pushNotification(
             'A new indexing job has been created! Uploading FASTA file...'
           );
-          Api.Upload.ui.uploadStart(this.setState.bind(this), file.name);
-          await Api.Upload.upload(
-            job,
-            file.path,
-            file.name,
-            file.type,
-            Api.Upload.ui.makeOnProgress(this.setState.bind(this))
-          );
+          const files = [fastaFile];
+          if (mapFile) files.push(mapFile);
+          // eslint-disable-next-line no-restricted-syntax
+          for (const f of files) {
+            Api.Upload.ui.uploadStart(this.setState.bind(this), f.name);
+            // eslint-disable-next-line no-await-in-loop
+            await Api.Upload.upload(
+              job,
+              f.path,
+              f.name,
+              f.type,
+              Api.Upload.ui.makeOnProgress(this.setState.bind(this))
+            );
+          }
           Api.Upload.ui.uploadEnd(this.setState.bind(this));
           pushNotification('FASTA file uploaded! Starting indexing job...');
           await Api.Jobs.submitJob(job.id);
