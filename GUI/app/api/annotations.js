@@ -13,7 +13,8 @@ export default {
   async create(
     name: string,
     type: AnnotationType,
-    file: string
+    file: string,
+    map_file: ?string = null
   ): Promise<ResponseType<Job>> {
     const result = await Connector.callPost('jobs', {
       name: `Create annotation ${name}`,
@@ -21,7 +22,8 @@ export default {
       parameters: {
         name,
         type,
-        file
+        file,
+        map_file
       }
     });
     if (result.validationErrors) {

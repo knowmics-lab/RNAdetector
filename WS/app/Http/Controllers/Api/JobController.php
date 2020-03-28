@@ -118,7 +118,7 @@ class JobController extends Controller
         $validParameters = $validParameters['parameters'] ?? [];
         $job = Job::create(
             [
-                'sample_code'    => $validValues['sample_code'],
+                'sample_code'    => $validValues['sample_code'] ?? null,
                 'name'           => $validValues['name'],
                 'job_type'       => $type,
                 'status'         => Job::READY,

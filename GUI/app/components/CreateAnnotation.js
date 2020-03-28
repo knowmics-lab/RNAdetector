@@ -76,7 +76,8 @@ type State = {
   uploadedBytes: number,
   uploadedPercent: number,
   uploadTotal: number,
-  files: File[],
+  annotationFile: ?File,
+  mapFile: ?File,
   validationErrors: *
 };
 
@@ -92,7 +93,8 @@ class CreateAnnotation extends React.Component<Props, State> {
       uploadedBytes: 0,
       uploadedPercent: 0,
       uploadTotal: 0,
-      files: [],
+      annotationFile: null,
+      mapFile: null,
       validationErrors: {}
     };
   }
@@ -142,15 +144,15 @@ class CreateAnnotation extends React.Component<Props, State> {
     );
   };
 
-  handleFileAdd = f =>
-    this.setState(oldState => ({
-      files: [...oldState.files, ...f]
-    }));
+  handleFileAdd = (field: string) => f =>
+    this.setState({
+      [field]: f[0]
+    });
 
-  handleFileRemove = f =>
-    this.setState(oldState => ({
-      files: oldState.files.filter(o => o.path !== f.path)
-    }));
+  handleFileRemove = (field: string) => () =>
+    this.setState({
+      [field]: null
+    });
 
   getStep2 = values => {
     const { classes } = this.props;
@@ -170,17 +172,30 @@ class CreateAnnotation extends React.Component<Props, State> {
     return (
       <>
         <Typography className={classes.instructions}>
-          Select the file you wish to use and click &quot;Save&quot; to start
-          the upload process.
+          Select the annotation file and an optional map to Entrez id if you
+          wish to use pathway analysis and click &quot;Save&quot; to start the
+          upload process.
         </Typography>
         <FormGroup row className={classes.formControl}>
-          <Grid container justify="center" alignItems="center">
-            <FileSelector
-              onFileRemove={this.handleFileRemove}
-              onFileAdd={this.handleFileAdd}
-              filters={filters}
-              disabled={isUploading}
-            />
+          <Grid container justify="center" alignItems="flex-start">
+            <Grid item xs>
+              <FileSelector
+                title="Select annotation file"
+                onFileRemove={this.handleFileRemove('annotationFile')}
+                onFileAdd={this.handleFileAdd('annotationFile')}
+                filters={filters}
+                disabled={isUploading}
+              />
+            </Grid>
+            <Grid item xs>
+              <FileSelector
+                title="Select map file"
+                onFileRemove={this.handleFileRemove('mapFile')}
+                onFileAdd={this.handleFileAdd('mapFile')}
+                filters={[{ name: 'TSV files', extensions: ['tsv', 'txt'] }]}
+                disabled={isUploading}
+              />
+            </Grid>
           </Grid>
         </FormGroup>
         <UploadProgress
@@ -234,17 +249,17 @@ class CreateAnnotation extends React.Component<Props, State> {
       refreshJobs,
       refreshAnnotations
     } = this.props;
-    const { files } = this.state;
-    if (files.length !== 1) {
-      pushNotification('You must select a file.', 'error');
+    const { annotationFile, mapFile } = this.state;
+    if (!annotationFile) {
+      pushNotification('You must select an annotation file.', 'error');
     } else {
-      const file = files[0];
       this.setSaving(true);
       try {
         const data = await Api.Annotations.create(
           values.name,
           values.type,
-          file.name
+          annotationFile.name,
+          mapFile ? mapFile.name : null
         );
         if (data.validationErrors) {
           pushNotification(
@@ -254,23 +269,32 @@ class CreateAnnotation extends React.Component<Props, State> {
           this.setSaving(false, data.validationErrors);
         } else {
           const { data: job } = data;
-          pushNotification('Job created! Uploading FASTA file...');
-          this.setState({
-            isUploading: true,
-            uploadFile: file.name
-          });
-          await Api.Upload.upload(
-            job,
-            file.path,
-            file.name,
-            file.type,
-            (uploadedPercent, uploadedBytes, uploadTotal) =>
-              this.setState({
-                uploadedPercent,
-                uploadedBytes,
-                uploadTotal
-              })
-          );
+          pushNotification('Job created! Uploading files...');
+          const files = [annotationFile];
+          if (mapFile) files.push(mapFile);
+          // eslint-disable-next-line no-restricted-syntax
+          for (const f of files) {
+            this.setState({
+              isUploading: true,
+              uploadFile: f.name,
+              uploadedBytes: 0,
+              uploadedPercent: 0,
+              uploadTotal: 0
+            });
+            // eslint-disable-next-line no-await-in-loop
+            await Api.Upload.upload(
+              job,
+              f.path,
+              f.name,
+              f.type,
+              (uploadedPercent, uploadedBytes, uploadTotal) =>
+                this.setState({
+                  uploadedPercent,
+                  uploadedBytes,
+                  uploadTotal
+                })
+            );
+          }
           this.setState({
             isUploading: false
           });
