@@ -28,7 +28,7 @@ if [ -z "$FASTA" ] || [ ! -f "$FASTA" ]; then
 fi
 
 #### Indexed transcriptome ####
-if ! salmon index --gencode -t "$FASTA" -i "$INDEXED_FASTA" -k 31 2>/dev/null; then
+if ! salmon index -t "$FASTA" -i "$INDEXED_FASTA" -k 31 2>/dev/null; then
 	echo "An error occurred during salmon index execution!"
 	exit 5
 fi
