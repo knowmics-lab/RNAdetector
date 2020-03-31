@@ -129,7 +129,7 @@ for (f in names(gene.filters)) {
 }
 
 suppressWarnings({
-  metaseqr(
+  meta <- metaseqr(
     counts=data,
     sample.list=samples.list,
     contrast=contrasts.list,
@@ -164,7 +164,10 @@ suppressWarnings({
     export.scale = c("natural", "log2", "vst"),
     export.values = c("raw", "normalized"),
     export.stats = c("mean", "median", "sd", "mad", "cv", "rcv"),
-    export.counts.table = TRUE
+    export.counts.table = TRUE,
+    out.list = TRUE
   )
+  save(data, meta, samples.list, contrasts.list, 
+       file = paste0(config$output.directory, "/data/analysis.RData"))
 })
 
