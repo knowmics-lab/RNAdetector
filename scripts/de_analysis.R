@@ -145,6 +145,7 @@ suppressWarnings({
     norm.args = norm.algo.params,
     statistics = stats.algo,
     stat.args = stats.algo.params,
+    pcut = pcut,
     adjust.method = check.vector(params$adjust.method, "qvalue"),
     meta.p = check.vector(params$meta.p.method, "simes"),
     gene.filters = gene.filters,
