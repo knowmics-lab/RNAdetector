@@ -62,6 +62,7 @@ descriptions$condition <- do.call(paste,
 samples.list <- tapply(descriptions$SampleName, descriptions$condition, function(x) (x))
 contrasts.list <- sapply(config$contrasts, function(x)(paste(x, collapse = "_vs_")))
 
+source.data <- data
 data$gc     <- 0
 common.cols <- c("id","name","chr","start","end","strand","length","gc")
 if (all("mapped_id" %in% colnames(data))) {
@@ -168,7 +169,7 @@ suppressWarnings({
     export.counts.table = TRUE,
     out.list = TRUE
   )
-  save(data, meta, samples.list, contrasts.list, 
+  save(source.data, meta, samples.list, contrasts.list, 
        file = paste0(config$output.directory, "/data/analysis.RData"))
 })
 
