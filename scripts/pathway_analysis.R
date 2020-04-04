@@ -408,7 +408,7 @@ if (is.null(opt$output)) {
   stop("Output directory is required!", call.=FALSE)
 }
 
-build.report(
+res <- build.report(
   input.directory = opt$input, 
   output.directory = opt$output, 
   degs.p.cut = opt[["degs-p"]],

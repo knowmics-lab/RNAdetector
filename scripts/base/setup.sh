@@ -19,6 +19,12 @@ tar -zxvf trim_galore.tar.gz
 cp TrimGalore-0.6.5/trim_galore /usr/local/bin/
 chmod 755 /usr/local/bin/
 
+# Removes pandoc 1 and install pandoc 2
+cd /rnadetector/tmp/ || exit 100
+apt remove pandoc
+curl -fsSL https://github.com/jgm/pandoc/releases/download/2.9.2.1/pandoc-2.9.2.1-1-amd64.deb -o pandoc.deb
+dpkg -i pandoc.deb
+
 # Install latest version of salmon
 cd /rnadetector/tmp || exit 100
 curl -fsSL https://github.com/COMBINE-lab/salmon/releases/download/v1.1.0/salmon-1.1.0_linux_x86_64.tar.gz -o salmon.tar.gz
@@ -75,6 +81,14 @@ mv .env.docker .env
 composer install --optimize-autoloader --no-dev
 php artisan key:generate
 php artisan storage:link
+
+# Download MITHrIL index
+ORGANISMS="hsa rno mmu"
+for O in $ORGANISMS; do
+    java -jar /rnadetector/scripts/resources/pathways/MITHrIL2.jar index -enrichment-evidence-type STRONG -organism $O -verbose
+    java -jar /rnadetector/scripts/resources/pathways/MITHrIL2.jar index -enrichment-evidence-type WEAK -organism $O -verbose
+    java -jar /rnadetector/scripts/resources/pathways/MITHrIL2.jar index -enrichment-evidence-type PREDICTION -organism $O -verbose
+done
 
 # Remove temporary directory
 rm -rf /rnadetector/tmp
