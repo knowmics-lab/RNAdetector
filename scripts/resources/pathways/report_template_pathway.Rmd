@@ -1,0 +1,48 @@
+```{r include=FALSE}
+  curr.con <- "{{con}}"
+  curr.path <- "{{path}}"
+  curr.row <- path.processed[[curr.con]][curr.path,]
+  pathway.id <- gsub("path:", "", curr.row$Pathway.Id)
+  pathway.data <- get.pathway.data(curr.row$Pathway.Id, pathway.organism)
+  curr.genes.table <- na.omit(get.genes.table(path.res, curr.con, curr.row$Pathway.Id, pathway.p.cut))
+  curr.genes.table$text <- paste0(curr.genes.table$Gene.Name,
+                                "\nPerturbation: ", round(curr.genes.table$Perturbation * 10000) / 10000,
+                                "\npValue: ", round(curr.genes.table$pValue * 10000) / 10000,
+                                "\nFDR:", round(curr.genes.table$FDR * 10000) / 10000)
+  curr.tab <- capTabNo
+  curr.fig <- capFigNo
+```
+
+##### `r curr.row$Pathway.Name`
+
+Table `r curr.tab` and Figure `r curr.fig` details the results of the `r curr.row$Pathway.Name` pathway. `r pathway.data$description`
+
+Table `r curr.tab` shows significantly perturbed genes, their perturbation and p-values as computed by MITHrIL analysis. Results are sorted from the most significant gene to the least significant one. 
+
+In figure `r curr.fig`, a volcano plot gives an overview of interesting genes. The perturbation is plotted on the x-axis and the negative log10 p-value is plotted on the y-axis. A volcano plot combines the results of the statistical test with the magnitude of the perturbation enabling quick visual identification of those genes that could be of greater impact on pathway activity. The horizontal dashed line sets the threshold for statistical significance.
+
+```{r fig.align="center", fig.cap=capFig("**Volcano plot**: All genes are represented in terms of their perturbation (x-axis) and the significance (y-axis). The significance is represented in terms of the negative log (base 10) of the p-value, so that more significant genes are plotted higher on the y-axis. The dotted line represent the thresholds used to select significantly impacted genes. Genes with positive perturbation are shown in red, while the negative ones are in blue. Non significant genes are shown in black.")}
+plot_ly(curr.genes.table, x = ~Perturbation, y = ~-log10(pValue + .Machine$double.eps)) %>% 
+  add_trace(type="scatter", mode="markers", text=~text, 
+            hoverinfo="text", name=~name.acc,
+            color=~color.acc, colors=c("black", "blue", "red")) %>% 
+  add_trace(name="pValue Threshold", x=range(curr.genes.table$Perturbation), 
+            y=c(-log10(pathway.p.cut), -log10(pathway.p.cut)), type="scatter", 
+            mode="lines", line=list(dash='dot', width=1), hoverinfo="none") %>% 
+  hide_colorbar() %>% hide_legend() %>% layout(xaxis=list(title="Perturbation"), yaxis=list(title="-log10(p)"))
+```
+
+```{r fig.cap=capTab("Significantly impacted genes and their associated perturbation and p-values as computed by MITHrIL")}
+curr.genes.table$color.acc <- NULL
+curr.genes.table$name.acc <- NULL
+curr.genes.table$text <- NULL
+colnames(curr.genes.table) <- c("Id", "Name", "Perturbation", "pValue", "FDR")
+datatable(curr.genes.table %>% filter(pValue < pathway.p.cut), 
+          options = list(
+            pageLength = 5, 
+            scrollX=TRUE,
+            order=list(list(4, "asc"))
+          ), rownames = FALSE, 
+          class = "table table-striped", style = "bootstrap") %>%
+  formatRound(c("Perturbation", "pValue", "FDR"), digits=4)
+```

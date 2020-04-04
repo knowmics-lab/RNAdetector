@@ -10,11 +10,11 @@ RUN DEBIAN_FRONTEND=noninteractive /usr/bin/apt update && \
     DEBIAN_FRONTEND=noninteractive /usr/bin/apt dist-upgrade -y && \
     DEBIAN_FRONTEND=noninteractive apt-get clean
 
-RUN DEBIAN_FRONTEND=noninteractive /usr/bin/apt install -y nginx php7.3-cli php7.3-fpm php7.3-json php7.3-sqlite3 php7.3-mysql \ 
-                                                           php7.3-intl php7.3-mbstring php7.3-xml php7.3-zip supervisor \ 
-                                                           git composer python-setuptools python3-setuptools \ 
-                                                           python-dev curl tophat bwa samtools python-pip libssl-dev \ 
-                                                           subread cutadapt fastqc r-base-dev cmake wget cython swig \ 
+RUN DEBIAN_FRONTEND=noninteractive /usr/bin/apt install -y nginx php7.3-cli php7.3-fpm php7.3-json php7.3-sqlite3 php7.3-mysql \
+                                                           php7.3-intl php7.3-mbstring php7.3-xml php7.3-zip supervisor \
+                                                           git composer python-setuptools python3-setuptools pandoc \
+                                                           python-dev curl tophat bwa samtools python-pip libssl-dev \
+                                                           subread cutadapt fastqc r-base-dev cmake wget cython swig \
                                                            libxml2-dev libcurl4-openssl-dev hisat2 mysql-server libyaml-dev
 RUN systemctl enable nginx && systemctl enable php7.3-fpm && systemctl enable supervisor && systemctl enable mysql
 
@@ -37,8 +37,8 @@ RUN /bin/bash /usr/local/bin/setup.sh
 
 RUN ln -s /usr/local/bin/bootstrap.sh /
 
-RUN DEBIAN_FRONTEND=noninteractive /usr/bin/apt autoclean && \ 
-    DEBIAN_FRONTEND=noninteractive /usr/bin/apt clean && \ 
+RUN DEBIAN_FRONTEND=noninteractive /usr/bin/apt autoclean && \
+    DEBIAN_FRONTEND=noninteractive /usr/bin/apt clean && \
     rm -rf /var/lib/apt/lists/*
 
 

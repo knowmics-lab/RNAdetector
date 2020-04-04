@@ -1,0 +1,167 @@
+---
+title: "Pathway Analysis Report"
+always_allow_html: true
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 5
+    self_contained: false
+    lib_dir: libs
+    theme: paper
+---
+
+```{css, echo=FALSE}
+body p { text-align: justify}
+body p.caption {
+  font-size: 0.9em;
+  font-style: italic;
+  color: grey;
+  text-align: justify;
+}
+```
+
+```{css, echo=FALSE}
+table.dataTable{clear:both;margin-top:6px !important;margin-bottom:6px !important;max-width:none !important;border-collapse:separate !important}table.dataTable td,table.dataTable th{-webkit-box-sizing:content-box;box-sizing:content-box}table.dataTable td.dataTables_empty,table.dataTable th.dataTables_empty{text-align:center}table.dataTable.nowrap th,table.dataTable.nowrap td{white-space:nowrap}div.dataTables_wrapper div.dataTables_length label{font-weight:normal;text-align:left;white-space:nowrap}div.dataTables_wrapper div.dataTables_length select{width:75px;display:inline-block}div.dataTables_wrapper div.dataTables_filter{text-align:right}div.dataTables_wrapper div.dataTables_filter label{font-weight:normal;white-space:nowrap;text-align:left}div.dataTables_wrapper div.dataTables_filter input{margin-left:0.5em;display:inline-block;width:auto}div.dataTables_wrapper div.dataTables_info{padding-top:8px;white-space:nowrap}div.dataTables_wrapper div.dataTables_paginate{margin:0;white-space:nowrap;text-align:right}div.dataTables_wrapper div.dataTables_paginate ul.pagination{margin:2px 0;white-space:nowrap}div.dataTables_wrapper div.dataTables_processing{position:absolute;top:50%;left:50%;width:200px;margin-left:-100px;margin-top:-26px;text-align:center;padding:1em 0}table.dataTable thead>tr>th.sorting_asc,table.dataTable thead>tr>th.sorting_desc,table.dataTable thead>tr>th.sorting,table.dataTable thead>tr>td.sorting_asc,table.dataTable thead>tr>td.sorting_desc,table.dataTable thead>tr>td.sorting{padding-right:30px}table.dataTable thead>tr>th:active,table.dataTable thead>tr>td:active{outline:none}table.dataTable thead .sorting,table.dataTable thead .sorting_asc,table.dataTable thead .sorting_desc,table.dataTable thead .sorting_asc_disabled,table.dataTable thead .sorting_desc_disabled{cursor:pointer;position:relative}table.dataTable thead .sorting:after,table.dataTable thead .sorting_asc:after,table.dataTable thead .sorting_desc:after,table.dataTable thead .sorting_asc_disabled:after,table.dataTable thead .sorting_desc_disabled:after{position:absolute;bottom:8px;right:8px;display:block;font-family:'Glyphicons Halflings';opacity:0.5}table.dataTable thead .sorting:after{opacity:0.2;content:"\e150"}table.dataTable thead .sorting_asc:after{content:"\e155"}table.dataTable thead .sorting_desc:after{content:"\e156"}table.dataTable thead .sorting_asc_disabled:after,table.dataTable thead .sorting_desc_disabled:after{color:#eee}div.dataTables_scrollHead table.dataTable{margin-bottom:0 !important}div.dataTables_scrollBody>table{border-top:none;margin-top:0 !important;margin-bottom:0 !important}div.dataTables_scrollBody>table>thead .sorting:after,div.dataTables_scrollBody>table>thead .sorting_asc:after,div.dataTables_scrollBody>table>thead .sorting_desc:after{display:none}div.dataTables_scrollBody>table>tbody>tr:first-child>th,div.dataTables_scrollBody>table>tbody>tr:first-child>td{border-top:none}div.dataTables_scrollFoot>.dataTables_scrollFootInner{box-sizing:content-box}div.dataTables_scrollFoot>.dataTables_scrollFootInner>table{margin-top:0 !important;border-top:none}@media screen and (max-width: 767px){div.dataTables_wrapper div.dataTables_length,div.dataTables_wrapper div.dataTables_filter,div.dataTables_wrapper div.dataTables_info,div.dataTables_wrapper div.dataTables_paginate{text-align:center}}table.dataTable.table-condensed>thead>tr>th{padding-right:20px}table.dataTable.table-condensed .sorting:after,table.dataTable.table-condensed .sorting_asc:after,table.dataTable.table-condensed .sorting_desc:after{top:6px;right:6px}table.table-bordered.dataTable th,table.table-bordered.dataTable td{border-left-width:0}table.table-bordered.dataTable th:last-child,table.table-bordered.dataTable th:last-child,table.table-bordered.dataTable td:last-child,table.table-bordered.dataTable td:last-child{border-right-width:0}table.table-bordered.dataTable tbody th,table.table-bordered.dataTable tbody td{border-bottom-width:0}div.dataTables_scrollHead table.table-bordered{border-bottom-width:0}div.table-responsive>div.dataTables_wrapper>div.row{margin:0}div.table-responsive>div.dataTables_wrapper>div.row>div[class^="col-"]:first-child{padding-left:0}div.table-responsive>div.dataTables_wrapper>div.row>div[class^="col-"]:last-child{padding-right:0}
+```
+
+```{css, echo=FALSE}
+#preloader {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 999;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  background: rgba(255,255,255,0.8); /* url('https://cdn.dribbble.com/users/107759/screenshots/2436386/copper-loader.gif') no-repeat center 20%; */
+}
+.lds-ring {
+  display: inline-block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -90px;
+  margin-left: -90px;
+  width: 180px;
+  height: 180px;
+}
+.lds-ring div {
+  box-sizing: border-box;
+  display: block;
+  position: absolute;
+  width: 164px;
+  height: 164px;
+  margin: 8px;
+  border: 8px solid #000;
+  border-radius: 50%;
+  animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  border-color: #000 transparent transparent transparent;
+}
+.lds-ring div:nth-child(1) {
+  animation-delay: -0.45s;
+}
+.lds-ring div:nth-child(2) {
+  animation-delay: -0.3s;
+}
+.lds-ring div:nth-child(3) {
+  animation-delay: -0.15s;
+}
+@keyframes lds-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+```
+
+::: {#preloader}
+<div class="lds-ring"><div></div><div></div><div></div><div></div></div>
+:::
+
+```{js, echo=FALSE}
+$(function() {
+  $(window).load(function() {
+    $('#preloader').fadeOut('slow',function(){$(this).remove();});
+  });
+});
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+#Determine the output format of the document
+outputFormat <- knitr::opts_knit$get("rmarkdown.pandoc.to")
+#Figure and Table Caption Numbering, for HTML do it manually
+capTabNo <- 1; capFigNo <- 1;
+#Function to add the Table Number
+capTab = function(x) {
+  if(outputFormat == 'html') {
+    x <- paste0("Table ",capTabNo,". ",x)
+    capTabNo <<- capTabNo + 1
+  }; x
+}
+#Function to add the Figure Number
+capFig = function(x){
+  if(outputFormat == 'html'){
+    x <- paste0("Figure ",capFigNo,". ",x)
+    capFigNo <<- capFigNo + 1
+  }; x
+}
+```
+
+## Summary
+
+In this experiment, differentially expressed (DE) genes from `r length(c.list)` contrasts were analyzed in the context of pathways
+obtained from the Kyoto Encyclopedia of Genes and Genomes (KEGG) database (Kanehisa et al., 2000; Kanehisa et al., 2002). Pathway
+analysis was performed through the MITHrIL algorithm (Alaimo et al., 2016; Alaimo et al., 2017). The underlying pathway topologies, 
+comprised of genes and their directional interactions, were obtained from the KEGG database (Kanehisa et al., 2000; Kanehisa et al., 
+2010; Kanehisa et al., 2012; Kanehisa et al., 2014).
+
+Figure 1 reports all results through an heatmap of the accumulator values computed for the pathway analysis. The per-contrast results were:
+
+```{r, results='asis'}
+for (con in c.list) {
+  p.found <- nrow(path.processed[[con]])
+  cat("- **", contrasts.to.text(con) , "**: ", p.found, " pathways were found to be significantly impacted", sep="")
+  if (pathway.use.fdr) {
+    cat(" (FDR or adjusted p-value threshold of ", pathway.p.cut, ")\n", sep="")
+  } else {
+    cat(" (p-value threshold of ", pathway.p.cut, ")\n", sep="")
+  }
+}
+```
+
+Literature references for all the algorithms used can be found at the end of this report.
+
+```{r Global Heatmap, fig.cap=capFig("Heatmap depicting a list of the most significantly impacted pathways found by the analysis.")}
+pathway.heatmap(path.res, pathway.p.cut, pathway.use.fdr)
+```
+
+## Pathway Analysis
+
+```{r include=FALSE}
+out <- NULL
+for (con in c.list) {
+  out <- c(out, knitr::knit_expand(get("CONTRAST.TEMPLATE.PATH", envir = path.env)))
+  for (path in 1:nrow(path.processed[[con]])) {
+    if (!is.null(get.genes.table(path.res, con, path.processed[[con]]$Pathway.Id[path], pathway.p.cut)))
+      out <- c(out, knitr::knit_expand(get("PATHWAY.TEMPLATE.PATH", envir = path.env)))
+  }
+}
+```
+`r paste(knitr::knit(text = out), collapse = '\n')`
+
+## References
+
+- Alaimo, S., Giugno, R., Acunzo, M., Veneziano, D., Ferro, A. and Pulvirenti, A.: Post-transcriptional knowledge in pathway analysis increases the accuracy of phenotypes classification. Oncotarget 7: 34 (2016).
+- Alaimo, S., Marceca, G.P., Ferro, A. and Pulvirenti, A.: Detecting disease specific pathway substructures through an integrated systems biology approach. Non-coding RNA 3: 2 (2017).
+- Kanehisa, M., Goto, S.: KEGG: Kyoto Encyclopedia of Genes and Genomes. Nucleic Acids Research 28: 27-30 (2000).
+- Kanehisa, M., Goto, S., Kawashima, S., and Nakaya, A.: The KEGG databases at GenomeNet. Nucleic Acids Research 30: 42-46 (2002).
+- Kanehisa, M., Goto, S., Kawashima, S., Okuno, Y., and Hattori, M.; The KEGG resources for deciphering the genome. Nucleic Acids Research 32: D277-D280 (2004).
+- Kanehisa, M., Araki, M., Goto, S., Hattori, M., Hirakawa, M., Itoh, M., Katayama, T., Kawashima, S., Okuda, S., Tokimatsu, T., and Yamanishi, Y.: KEGG for linking genomes to life and the environment. Nucleic Acids Research 36: D480-D484 (2008).
+- Kanehisa, M., Goto, S., Furumichi, M., Tanabe, M., Hirakawa, M.: KEGG for representation and analysis of molecular networks involving diseases and drugs. Nucleic Acids Research 38: D355-D360 (2010).
+- Kanehisa, M., Goto, S., Sato, Y., Furumichi, M., Tanabe, M.: KEGG for integration and interpretation of large-scale molecular datasets. Nucleic Acids Research 40: D109-D114 (2012).
+- Kanehisa, M., Goto, S., Sato, Y., Kawashima, M., Furumichi, M., and Tanabe, M.; Data, information, knowledge and principle: back to metabolism in KEGG. Nucleic Acids Research 42: D199-D205 (2014).
