@@ -137,18 +137,22 @@ for (con in c.list) {
 Literature references for all the algorithms used can be found at the end of this report.
 
 ```{r Global Heatmap, fig.cap=capFig("Heatmap depicting a list of the most significantly impacted pathways found by the analysis.")}
-pathway.heatmap(path.res, pathway.p.cut, pathway.use.fdr)
+if (!no.pathway.found) pathway.heatmap(path.res, pathway.p.cut, pathway.use.fdr)
 ```
 
 ## Pathway Analysis
 
 ```{r include=FALSE}
-out <- NULL
-for (con in c.list) {
-  out <- c(out, knitr::knit_expand(get("CONTRAST.TEMPLATE.PATH", envir = path.env)))
-  for (path in 1:nrow(path.processed[[con]])) {
-    if (!is.null(get.genes.table(path.res, con, path.processed[[con]]$Pathway.Id[path], pathway.p.cut)))
-      out <- c(out, knitr::knit_expand(get("PATHWAY.TEMPLATE.PATH", envir = path.env)))
+if (no.pathway.found) {
+  out <- '** Analysis found no significantly impacted pathways for any contrast. **\n\n'
+} else {
+  out <- NULL
+  for (con in c.list) {
+    out <- c(out, knitr::knit_expand(get("CONTRAST.TEMPLATE.PATH", envir = path.env)))
+    for (path in 1:nrow(path.processed[[con]])) {
+      if (!is.null(get.genes.table(path.res, con, path.processed[[con]]$Pathway.Id[path], pathway.p.cut)))
+        out <- c(out, knitr::knit_expand(get("PATHWAY.TEMPLATE.PATH", envir = path.env)))
+    }
   }
 }
 ```

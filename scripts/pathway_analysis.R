@@ -361,6 +361,7 @@ build.report <- function (
     pt$p <- NULL
     return (pt)
   }), names(path.with.p))
+  no.pathway.found <- all(sapply(path.tables, nrow) == 0)
   disp("Creating HTML report.")
   rmarkdown::render(
     input = get("TEMPLATE.PATH", envir = path.env),
