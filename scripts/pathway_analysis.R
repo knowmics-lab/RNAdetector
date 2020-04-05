@@ -16,6 +16,7 @@ assign("LOGGER", NULL, envir = path.env)
 assign("MITHRIL.PATH", "/rnadetector/scripts/resources/pathways/", envir = path.env)
 assign("PATHWAY.FILE", "/rnadetector/scripts/resources/pathways/pathways.rds", envir = path.env)
 assign("TEMPLATE.PATH", "/rnadetector/scripts/resources/pathways/report_template.Rmd", envir = path.env)
+assign("FOOTER.PATH", "/rnadetector/scripts/resources/pathways/footer.html", envir = path.env)
 assign("CONTRAST.TEMPLATE.PATH", "/rnadetector/scripts/resources/pathways/report_template_contrast.Rmd", envir = path.env)
 assign("PATHWAY.TEMPLATE.PATH", "/rnadetector/scripts/resources/pathways/report_template_pathway.Rmd", envir = path.env)
 
@@ -365,7 +366,7 @@ build.report <- function (
     input = get("TEMPLATE.PATH", envir = path.env),
     output_file = "index.html",
     output_dir = output.directory,
-    output_options = list(self_contained=FALSE, lib_dir=output.paths$libs),
+    output_options = list(self_contained=FALSE, lib_dir=output.paths$libs, includes=list(after_body=get("FOOTER.PATH", envir = path.env))),
     knit_root_dir = output.directory,
     envir = environment(),
     clean = TRUE,
