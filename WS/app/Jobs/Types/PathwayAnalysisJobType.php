@@ -152,7 +152,7 @@ class PathwayAnalysisJobType extends AbstractJob
         }
         Utils::recursiveChmod($pathReport, 0777);
         $this->log('Pathway Analysis completed.');
-        $pathReportZip = $this->model->getJobFile('path_report_', '.zip');
+        $pathReportZip = $this->model->getJobFile('pathway_report_', '.zip');
         $pathReportZipAbsolute = $this->model->absoluteJobPath($pathReportZip);
         $pathReportZipUrl = \Storage::disk('public')->url($pathReportZip);
         $this->log('Building report archive.');
