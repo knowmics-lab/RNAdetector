@@ -146,3 +146,17 @@ export type DiffExpAnalysisConfig = {|
   contrasts: ContrastType[],
   parameters: DiffExpParameters
 |};
+
+export type PathwayAnalysisConfig = {|
+  degs_analysis: Job | number,
+  degs: {|
+    p_cutoff?: number,
+    p_use_fdr?: boolean,
+    lfc_threshold?: number
+  |},
+  pathways: {|
+    organism?: 'hsa' | 'mmu' | 'rno',
+    p_cutoff?: number,
+    p_use_fdr?: boolean
+  |}
+|};

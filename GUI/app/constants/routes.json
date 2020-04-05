@@ -11,5 +11,6 @@
   "ANALYSIS_SMALL_RNA": "/analysis/smallRNA",
   "ANALYSIS_CIRC_RNA": "/analysis/circRNA",
   "CREATE_SAMPLE_GROUP": "/analysis/sampleGroup",
-  "ANALYSIS_DIFF_EXPR": "/analysis/diffExpr"
+  "ANALYSIS_DIFF_EXPR": "/analysis/diffExpr",
+  "PATHWAY_ANALYSIS": "/analysis/pathway"
 }

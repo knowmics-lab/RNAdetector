@@ -54,6 +54,14 @@
           "configured": true,
           "key": "main-menu-diffExpr",
           "to": "/analysis/diffExpr"
+        },
+        {
+          "icon": "fas fa-project-diagram",
+          "text": "New Pathway Analysis",
+          "collapsible": false,
+          "configured": true,
+          "key": "main-menu-pathway-analysis",
+          "to": "/analysis/pathway"
         }
       ]
     },

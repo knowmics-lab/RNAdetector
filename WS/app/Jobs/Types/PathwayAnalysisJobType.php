@@ -76,7 +76,7 @@ class PathwayAnalysisJobType extends AbstractJob
             'degs.p_use_fdr'      => ['filled', 'boolean'],
             'degs.lfc_threshold'  => ['filled', 'numeric'],
             'pathways'            => ['filled', 'array'],
-            'pathways.organism'   => ['filled', Rule::in([self::VALID_ORGANISMS])],
+            'pathways.organism'   => ['filled', Rule::in(self::VALID_ORGANISMS)],
             'pathways.p_cutoff'   => ['filled', 'numeric', 'min:0', 'max:1'],
             'pathways.p_use_fdr'  => ['filled', 'boolean'],
         ];

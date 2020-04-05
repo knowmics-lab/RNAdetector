@@ -15,12 +15,14 @@ import SmallRNA from './containers/Analysis/SmallRNAPage';
 import CircRNA from './containers/Analysis/CircRNAPage';
 import SampleGroup from './containers/Analysis/SampleGroupPage';
 import DiffExpr from './containers/Analysis/DiffExprPage';
+import PathwayAnalysis from './containers/Analysis/PathwayAnalysisPage';
 import SetupWizardContainer from './components/Setup/SetupWizardContainer';
 
 export default () => (
   <SetupWizardContainer>
     <App>
       <Switch>
+        <Route path={routes.PATHWAY_ANALYSIS} component={PathwayAnalysis} />
         <Route path={routes.ANALYSIS_DIFF_EXPR} component={DiffExpr} />
         <Route path={routes.CREATE_SAMPLE_GROUP} component={SampleGroup} />
         <Route path={routes.ANALYSIS_CIRC_RNA} component={CircRNA} />

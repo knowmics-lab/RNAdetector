@@ -9,6 +9,7 @@ import type {
   ContrastType,
   DiffExpAnalysisConfig,
   LongRNAAnalysisConfig,
+  PathwayAnalysisConfig,
   SmallRNAAnalysisConfig
 } from '../types/analysis';
 
@@ -82,5 +83,16 @@ export default {
         parameters.source_sample_group.id;
     }
     return realJobSubmit(code, name, 'diff_expr_analysis_job_type', parameters);
+  },
+  async createPathwayAnalysis(
+    code: string,
+    name: string,
+    parameters: PathwayAnalysisConfig
+  ): Promise<ResponseType<Job>> {
+    const analysisParameters = { ...parameters };
+    if (typeof parameters.degs_analysis === 'object') {
+      analysisParameters.degs_analysis = parameters.degs_analysis.id;
+    }
+    return realJobSubmit(code, name, 'pathway_analysis_job_type', parameters);
   }
 };

@@ -904,7 +904,7 @@ class DiffExpr extends React.Component<Props, State> {
       return null;
     }
     const { data: job } = data;
-    pushNotification('Sample group created!');
+    pushNotification('DEGs analysis created!');
     return job;
   };
 
@@ -912,7 +912,6 @@ class DiffExpr extends React.Component<Props, State> {
     const { pushNotification, redirect, refreshJobs } = this.props;
     this.setSaving(true);
     try {
-      console.log(values);
       const job = await this.createJob(values);
       if (job) {
         await Api.Jobs.submitJob(job.id);
