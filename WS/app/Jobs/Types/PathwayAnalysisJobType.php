@@ -69,16 +69,16 @@ class PathwayAnalysisJobType extends AbstractJob
     public static function validationSpec(Request $request): array
     {
         return [
-            'source_sample_group' => ['required', Rule::exists('jobs', 'id')],
-            'degs_analysis'       => ['required', Rule::exists('jobs', 'id')],
-            'degs'                => ['filled', 'array'],
-            'degs.p_cutoff'       => ['filled', 'numeric', 'min:0', 'max:1'],
-            'degs.p_use_fdr'      => ['filled', 'boolean'],
-            'degs.lfc_threshold'  => ['filled', 'numeric'],
-            'pathways'            => ['filled', 'array'],
-            'pathways.organism'   => ['filled', Rule::in(self::VALID_ORGANISMS)],
-            'pathways.p_cutoff'   => ['filled', 'numeric', 'min:0', 'max:1'],
-            'pathways.p_use_fdr'  => ['filled', 'boolean'],
+            'degs_analysis'      => ['required', Rule::exists('jobs', 'id')],
+            'degs_analysis'      => ['required', Rule::exists('jobs', 'id')],
+            'degs'               => ['filled', 'array'],
+            'degs.p_cutoff'      => ['filled', 'numeric', 'min:0', 'max:1'],
+            'degs.p_use_fdr'     => ['filled', 'boolean'],
+            'degs.lfc_threshold' => ['filled', 'numeric'],
+            'pathways'           => ['filled', 'array'],
+            'pathways.organism'  => ['filled', Rule::in(self::VALID_ORGANISMS)],
+            'pathways.p_cutoff'  => ['filled', 'numeric', 'min:0', 'max:1'],
+            'pathways.p_use_fdr' => ['filled', 'boolean'],
         ];
     }
 
