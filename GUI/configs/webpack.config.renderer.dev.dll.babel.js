@@ -13,7 +13,22 @@ import CheckNodeEnv from '../internals/scripts/CheckNodeEnv';
 
 CheckNodeEnv('development');
 
+const filterByKey = (raw, callback) => {
+  return Object.keys(raw)
+    .filter(callback)
+    .reduce((obj, key) => {
+      return {
+        ...obj,
+        [key]: raw[key]
+      };
+    }, {});
+};
+
 const dist = path.join(__dirname, '..', 'dll');
+
+const filteredDependencies = filterByKey(dependencies, d => {
+  return !['@mui-treasury/components'].includes(d);
+});
 
 export default merge.smart(baseConfig, {
   context: path.join(__dirname, '..'),
@@ -32,7 +47,7 @@ export default merge.smart(baseConfig, {
   module: require('./webpack.config.renderer.dev.babel').default.module,
 
   entry: {
-    renderer: Object.keys(dependencies || {})
+    renderer: Object.keys(filteredDependencies || dependencies || {})
   },
 
   output: {
