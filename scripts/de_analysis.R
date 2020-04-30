@@ -11,9 +11,7 @@ unslash <- function(dirs) (sub("/+$", "", dirs))
 option_list <- list(
   make_option(c("-c", "--config"), type="character", default=NULL, help="config file", metavar="character")
 ); 
-# opt <- list()
-# opt$help   <- FALSE
-# opt$config <- "/media/alaimos/Dati2/RNAdetector/scripts/de_test_config.json"
+
 opt_parser <- OptionParser(option_list=option_list)
 opt        <- parse_args(opt_parser)
 
