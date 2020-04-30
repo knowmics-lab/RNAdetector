@@ -11,7 +11,9 @@ unslash <- function(dirs) (sub("/+$", "", dirs))
 option_list <- list(
   make_option(c("-c", "--config"), type="character", default=NULL, help="config file", metavar="character")
 ); 
-
+# opt <- list()
+# opt$help   <- FALSE
+# opt$config <- "/media/alaimos/Dati2/RNAdetector/scripts/de_test_config.json"
 opt_parser <- OptionParser(option_list=option_list)
 opt        <- parse_args(opt_parser)
 
@@ -66,7 +68,8 @@ source.data <- data
 data$gc     <- 0
 common.cols <- c("id","name","chr","start","end","strand","length","gc")
 if (all("mapped_id" %in% colnames(data))) {
-  data$mapped_id <- NULL #### TEMPORANEO DA RIMUOVERE PER PATHWAY ANALYSIS
+  data$mapped_id <- NULL
+  data <- unique(data)
 }
 other.cols  <- setdiff(colnames(data), common.cols)
 data        <- data[,c(common.cols, other.cols)]
@@ -130,6 +133,7 @@ for (f in names(gene.filters)) {
 }
 
 suppressWarnings({
+  data$id <- make.unique(data$id)
   meta <- metaseqr(
     counts=data,
     sample.list=samples.list,
@@ -160,12 +164,11 @@ suppressWarnings({
     export.where=config$output.directory,
     export.what = c(
       "annotation", "p.value", "adj.p.value", "meta.p.value", 
-      "adj.meta.p.value", "fold.change", "stats", "counts", 
-      "flags"
+      "adj.meta.p.value", "fold.change", "stats"
     ),
-    export.scale = c("natural", "log2", "vst"),
+    export.scale = c("natural", "log2"),
     export.values = c("raw", "normalized"),
-    export.stats = c("mean", "median", "sd", "mad", "cv", "rcv"),
+    export.stats = c("mean", "median", "sd"),
     export.counts.table = TRUE,
     out.list = TRUE
   )
