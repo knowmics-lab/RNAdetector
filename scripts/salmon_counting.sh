@@ -11,7 +11,7 @@
 #   -h HARMONIZED gene counts
 #   -n HARMONIZED transcripts counts
 ##############################################################################
-while getopts ":i:f:s:t:o:h:n:" opt; do
+while getopts ":i:f:s:t:o:h:n:x:" opt; do
     case $opt in
     i) INDEXED_FASTA=$OPTARG ;;
     f) INPUT_1=$OPTARG ;;

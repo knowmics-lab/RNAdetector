@@ -9,7 +9,7 @@
 #   -x map file
 #   -h HARMONIZED output file
 ##############################################################################
-while getopts ":a:b:t:o:h:" opt; do
+while getopts ":a:b:t:o:h:x:" opt; do
     case $opt in
     a) GTF_FILE=$OPTARG ;;
     b) INPUT_BAM=$OPTARG ;;

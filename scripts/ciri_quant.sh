@@ -11,7 +11,7 @@
 #   -x map file
 #   -h HARMONIZED output file
 ##############################################################################
-while getopts ":t:f:s:c:b:o:h:" opt; do
+while getopts ":t:f:s:c:b:o:h:x:" opt; do
 	case $opt in
 	t) THREADS=$OPTARG ;;
 	f) INPUT_1=$OPTARG ;;
