@@ -57,7 +57,7 @@ map.ids  <- function (tbl, map = NULL) {
   } else {
     mapped <- tbl %>% left_join(map, by="id")
   }
-  mapped <- mapped[,c("id", "mapped_id", "name", "chr", "start", "end", "strand", "counts")]
+  mapped <- mapped[,c("id", "mapped_id", "name", "chr", "start", "end", "strand", "length", "counts")]
   return(mapped)
 }
 

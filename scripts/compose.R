@@ -79,7 +79,26 @@ input.as.vector <- function (input, column = 2) {
 }
 
 read.samples <- function (input) {
-  return (setNames(lapply(input, function (x) (read.table(x, header = TRUE, stringsAsFactors = FALSE, sep = "\t"))), names(input)))
+  return (setNames(lapply(input, function (x) {
+    table <- read.table(x, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
+    no.pos = FALSE
+    if (!all("start" %in% colnames(table))) {
+      table$start <- NA
+      no.pos = TRUE
+    }
+    if (!all("start" %in% colnames(table))) {
+      table$end <- NA
+      no.pos = TRUE
+    }
+    if (!all("length" %in% colnames(table))) {
+      if (no.pos) {
+        table$length <- NA
+      } else {
+        table$length <- abs(table$end - table$start) + 1 
+      }
+    }
+    return (table)
+  }), names(input)))
 }
 
 merge.tables <- function (samples) {
