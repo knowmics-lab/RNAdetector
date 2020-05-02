@@ -27,6 +27,7 @@ import TableField from '../Form/TableField';
 import type { PushNotificationFunction } from '../../types/notifications';
 import { SubmitButton } from '../UI/Button';
 import { OUT_TYPE_AHD, OUT_TYPE_AHT, OUT_TYPE_AHTD } from '../../api/jobs';
+import CustomField from '../Form/FieldError';
 
 type Props = {
   refreshJobs: () => void,
@@ -457,34 +458,36 @@ class DiffExpr extends React.Component<Props, State> {
           multiple
         />
         {!emptyValues && (
-          <FieldArray
-            name="contrasts"
-            render={helpers => (
-              <>
-                {contrasts &&
-                  contrasts.map((s, i) =>
-                    this.makeSampleForm(i, single, availableValues, helpers)
-                  )}
-                <FormGroup row className={classes.formControl}>
-                  <Grid
-                    container
-                    direction="row-reverse"
-                    alignItems="center"
-                    spacing={3}
-                  >
-                    <Grid item xs="auto">
-                      <Button
-                        variant="outlined"
-                        onClick={this.addHandle(helpers)}
-                      >
-                        <Icon className="fas fa-plus" /> Add a contrast
-                      </Button>
+          <CustomField label="Chose one or more contrasts" name="contrasts">
+            <FieldArray
+              name="contrasts"
+              render={helpers => (
+                <>
+                  {contrasts &&
+                    contrasts.map((s, i) =>
+                      this.makeSampleForm(i, single, availableValues, helpers)
+                    )}
+                  <FormGroup row className={classes.formControl}>
+                    <Grid
+                      container
+                      direction="row-reverse"
+                      alignItems="center"
+                      spacing={3}
+                    >
+                      <Grid item xs="auto">
+                        <Button
+                          variant="outlined"
+                          onClick={this.addHandle(helpers)}
+                        >
+                          <Icon className="fas fa-plus" /> Add a contrast
+                        </Button>
+                      </Grid>
                     </Grid>
-                  </Grid>
-                </FormGroup>
-              </>
-            )}
-          />
+                  </FormGroup>
+                </>
+              )}
+            />
+          </CustomField>
         )}
       </>
     );
@@ -822,90 +825,97 @@ class DiffExpr extends React.Component<Props, State> {
   };
 
   createJob = async (values): Promise<?Job> => {
-    const { code, name, parameters: formParams } = values;
+    const { code, name, parameters: formParams, contrasts } = values;
     const {
       stats,
       filters: { enabled }
     } = formParams;
     const { pushNotification } = this.props;
-    const parameters = {
-      source_sample_group: values.source_sample_group,
-      sample_type: values.sample_type,
-      condition_variables: this.sortConditionVariables(
-        values.condition_variables
-      ),
-      contrasts: values.contrasts,
-      parameters: {
-        pcut: +formParams.pcut,
-        log_offset: +formParams.log_offset,
-        when_apply_filter: formParams.when_apply_filter,
-        norm: formParams.norm,
-        norm_args: {
-          method: formParams.norm_args.method,
-          locfunc: formParams.norm_args.locfunc
-        },
-        stats,
-        stats_args: {
-          deseq: stats.includes('deseq') ? formParams.stats_args.deseq : null,
-          edger: stats.includes('edger') ? formParams.stats_args.edger : null,
-          limma: stats.includes('limma') ? formParams.stats_args.limma : null
-        },
-        filters: {
-          length: enabled.includes('length')
-            ? {
-                length: +formParams.filters.length.length
-              }
-            : null,
-          avg_reads: enabled.includes('reads')
-            ? {
-                average_per_bp: +formParams.filters.avg_reads.average_per_bp,
-                quantile: +formParams.filters.avg_reads.quantile
-              }
-            : null,
-          expression: enabled.includes('expression')
-            ? {
-                median: +formParams.filters.expression.median,
-                mean: +formParams.filters.expression.mean,
-                quantile:
-                  formParams.filters.expression.quantile === ''
-                    ? null
-                    : +formParams.filters.expression.quantile,
-                known:
-                  formParams.filters.expression.known.length === 0
-                    ? null
-                    : formParams.filters.expression.known
-              }
-            : null,
-          presence: enabled.includes('presence')
-            ? {
-                frac: +formParams.filters.presence.frac,
-                min_count: +formParams.filters.presence.min_count,
-                per_condition: +formParams.filters.presence.per_condition
-              }
-            : null
-        },
-        adjust_method: formParams.adjust_method,
-        meta_p_method: formParams.meta_p_method,
-        fig_formats: formParams.fig_formats,
-        num_cores: +formParams.num_cores
-      }
-    };
-    const data = await Api.Analysis.createDiffExpAnalysis(
-      code,
-      name,
-      parameters
-    );
-    if (data.validationErrors) {
-      pushNotification(
-        'Errors occurred during validation of input parameters. Please review the form!',
-        'warning'
+    if (contrasts.length > 0) {
+      const parameters = {
+        source_sample_group: values.source_sample_group,
+        sample_type: values.sample_type,
+        condition_variables: this.sortConditionVariables(
+          values.condition_variables
+        ),
+        contrasts: values.contrasts,
+        parameters: {
+          pcut: +formParams.pcut,
+          log_offset: +formParams.log_offset,
+          when_apply_filter: formParams.when_apply_filter,
+          norm: formParams.norm,
+          norm_args: {
+            method: formParams.norm_args.method,
+            locfunc: formParams.norm_args.locfunc
+          },
+          stats,
+          stats_args: {
+            deseq: stats.includes('deseq') ? formParams.stats_args.deseq : null,
+            edger: stats.includes('edger') ? formParams.stats_args.edger : null,
+            limma: stats.includes('limma') ? formParams.stats_args.limma : null
+          },
+          filters: {
+            length: enabled.includes('length')
+              ? {
+                  length: +formParams.filters.length.length
+                }
+              : null,
+            avg_reads: enabled.includes('reads')
+              ? {
+                  average_per_bp: +formParams.filters.avg_reads.average_per_bp,
+                  quantile: +formParams.filters.avg_reads.quantile
+                }
+              : null,
+            expression: enabled.includes('expression')
+              ? {
+                  median: +formParams.filters.expression.median,
+                  mean: +formParams.filters.expression.mean,
+                  quantile:
+                    formParams.filters.expression.quantile === ''
+                      ? null
+                      : +formParams.filters.expression.quantile,
+                  known:
+                    formParams.filters.expression.known.length === 0
+                      ? null
+                      : formParams.filters.expression.known
+                }
+              : null,
+            presence: enabled.includes('presence')
+              ? {
+                  frac: +formParams.filters.presence.frac,
+                  min_count: +formParams.filters.presence.min_count,
+                  per_condition: +formParams.filters.presence.per_condition
+                }
+              : null
+          },
+          adjust_method: formParams.adjust_method,
+          meta_p_method: formParams.meta_p_method,
+          fig_formats: formParams.fig_formats,
+          num_cores: +formParams.num_cores
+        }
+      };
+      const data = await Api.Analysis.createDiffExpAnalysis(
+        code,
+        name,
+        parameters
       );
-      this.setSaving(false, data.validationErrors);
-      return null;
+      if (data.validationErrors) {
+        pushNotification(
+          'Errors occurred during validation of input parameters. Please review the form!',
+          'warning'
+        );
+        this.setSaving(false, data.validationErrors);
+        return null;
+      }
+      const { data: job } = data;
+      pushNotification('DEGs analysis created!');
+      return job;
     }
-    const { data: job } = data;
-    pushNotification('DEGs analysis created!');
-    return job;
+    pushNotification(
+      'You must enter at least one case vs control contrast.',
+      'error'
+    );
+    return null;
   };
 
   formSubmit = async values => {

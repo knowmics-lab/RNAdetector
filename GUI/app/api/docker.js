@@ -1,5 +1,5 @@
 // @flow
-/* eslint-disable no-restricted-syntax */
+/* eslint-disable no-restricted-syntax,max-classes-per-file */
 import fs from 'fs-extra';
 import { is } from 'electron-util';
 import Client from 'dockerode';
@@ -8,7 +8,7 @@ import Settings from './settings';
 import type { ConfigObjectType } from '../types/settings';
 import type { Package } from '../types/local';
 
-export const DOCKER_IMAGE_NAME = 'alaimos/rnadetector:v0.0.1';
+export const DOCKER_IMAGE_NAME = 'alaimos/rnadetector:v0.0.2';
 
 type DockerPullEvent = {
   status: string,
