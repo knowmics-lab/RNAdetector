@@ -100,48 +100,38 @@
     },
     "publish": {
       "provider": "github",
-      "owner": "electron-react-boilerplate",
-      "repo": "electron-react-boilerplate",
-      "private": false
+      "owner": "alessandrolaferlita",
+      "repo": "RNAdetector",
+      "private": true
     }
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/electron-react-boilerplate/electron-react-boilerplate.git"
+    "url": "git+https://github.com/alessandrolaferlita/RNAdetector.git"
   },
   "author": {
-    "name": "Electron React Boilerplate Maintainers",
-    "email": "electronreactboilerplate@gmail.com",
-    "url": "https://electron-react-boilerplate.js.org"
+    "name": "Salvatore Alaimo",
+    "email": "salvatore.alaimo@unict.it",
+    "url": "https://www.alaimos.com"
   },
   "contributors": [
     {
-      "name": "Vikram Rangaraj",
-      "email": "vikr01@icloud.com",
-      "url": "https://github.com/vikr01"
-    },
-    {
-      "name": "Amila Welihinda",
-      "email": "amilajack@gmail.com",
-      "url": "https://github.com/amilajack"
+      "name": "Alessandro La Ferlita",
+      "email": "alessandrolf90@hotmail.it",
+      "url": "https://github.com/alessandrolaferlita"
     }
   ],
-  "license": "MIT",
+  "license": "CC-BY-NC-ND-4.0",
   "bugs": {
-    "url": "https://github.com/electron-react-boilerplate/electron-react-boilerplate/issues"
+    "url": "https://github.com/alessandrolaferlita/RNAdetector/issues"
   },
   "keywords": [
-    "electron",
-    "boilerplate",
-    "react",
-    "redux",
-    "flow",
-    "sass",
-    "webpack",
-    "hot",
-    "reload"
+    "RNA-seq",
+    "bioinformatics",
+    "pipeline",
+    "Pathway Analysis"
   ],
-  "homepage": "https://github.com/electron-react-boilerplate/electron-react-boilerplate#readme",
+  "homepage": "https://github.com/alessandrolaferlita/RNAdetector",
   "jest": {
     "testURL": "http://localhost/",
     "moduleNameMapper": {
