@@ -11,9 +11,10 @@ import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import Backdrop from '@material-ui/core/Backdrop';
 import { api, activeWindow } from 'electron-util';
-import { Collapse } from '@material-ui/core';
+import { Button as OB, Collapse } from '@material-ui/core';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import Button from '@material-ui/core/Button';
 import { DockerManager, resetInstance } from '../../api/docker';
 import * as Api from '../../api';
 import SelectField from '../Form/SelectField';
@@ -66,6 +67,8 @@ const style = theme => ({
 });
 
 type State = {
+  isFirst: boolean,
+  isAdvanced: boolean,
   isLoading: boolean,
   isSaving: boolean,
   freePort: number,
@@ -100,6 +103,8 @@ class SetupWizard extends React.Component<Props, State> {
     super(props);
     this.cachedContrasts = null;
     this.state = {
+      isFirst: true,
+      isAdvanced: false,
       isLoading: true,
       isSaving: false,
       freePort: 9898,
@@ -240,8 +245,15 @@ class SetupWizard extends React.Component<Props, State> {
     return <SubmitButton text="Install" isSaving={isSaving} />;
   };
 
+  goAdvanced = () =>
+    this.setState({
+      isFirst: false,
+      isAdvanced: true
+    });
+
   setSaving = isSaving => {
     this.setState({
+      isFirst: false,
       isSaving
     });
   };
@@ -297,7 +309,14 @@ class SetupWizard extends React.Component<Props, State> {
 
   render() {
     const { classes } = this.props;
-    const { isLoading, freePort, isSaving, logContent } = this.state;
+    const {
+      isFirst,
+      isAdvanced,
+      isLoading,
+      freePort,
+      isSaving,
+      logContent
+    } = this.state;
     const steps = this.getSteps();
     return (
       <>
@@ -328,11 +347,38 @@ class SetupWizard extends React.Component<Props, State> {
                 >
                   {({ values }) => (
                     <Form>
-                      <Wizard steps={steps} submitButton={this.getSubmitButton}>
-                        <div>{this.getStep0(values)}</div>
-                        <div>{this.getStep1(values)}</div>
-                        <div>{this.getStep2()}</div>
-                      </Wizard>
+                      {isFirst && (
+                        <>
+                          <Typography align="center">
+                            Choose setup mode
+                          </Typography>
+                          <Box textAlign="center">
+                            <SubmitButton
+                              text="Express setup"
+                              isSaving={isSaving}
+                            />
+                            <Button
+                              type="button"
+                              variant="contained"
+                              color="primary"
+                              onClick={this.goAdvanced}
+                              disabled={isSaving}
+                            >
+                              Custom setup
+                            </Button>
+                          </Box>
+                        </>
+                      )}
+                      {!isFirst && isAdvanced && (
+                        <Wizard
+                          steps={steps}
+                          submitButton={this.getSubmitButton}
+                        >
+                          <div>{this.getStep0(values)}</div>
+                          <div>{this.getStep1(values)}</div>
+                          <div>{this.getStep2()}</div>
+                        </Wizard>
+                      )}
                     </Form>
                   )}
                 </Formik>
