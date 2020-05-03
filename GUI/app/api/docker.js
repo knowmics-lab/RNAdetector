@@ -74,7 +74,7 @@ export class DockerManager {
     onStderr: ?(Buffer) => void,
     onEnd: ?() => void,
     checkRunning: ?() => Promise<boolean>,
-    timeoutRunning: ?number = 1000
+    timeoutRunning: number = 30000
   ): void {
     let nextDataType = null;
     let nextDataLength = -1;
@@ -109,20 +109,19 @@ export class DockerManager {
       }
     };
 
-    stream.on('data', processData)
-      .on('end', () => {
-        if (!ended && onEnd) onEnd();
-        ended = true;
-      });
+    stream.on('data', processData).on('end', () => {
+      if (!ended && onEnd) onEnd();
+      ended = true;
+    });
     if (checkRunning) {
       const fnRunning = async () => {
         if (await checkRunning()) {
-          setTimeout(fnRunning, timeoutRunning)
+          setTimeout(fnRunning, timeoutRunning);
         } else if (!ended && onEnd) {
           onEnd();
           ended = true;
         }
-      }
+      };
       setTimeout(fnRunning, timeoutRunning);
     }
   }
@@ -130,7 +129,7 @@ export class DockerManager {
   static async demuxStream(
     stream: http$IncomingMessage<>,
     checkRunning: ?() => Promise<boolean>,
-    timeoutRunning: ?number = 1000
+    timeoutRunning: number = 30000
   ): Promise<[string, string]> {
     return new Promise(resolve => {
       let stdout = Buffer.from('');
@@ -306,10 +305,10 @@ export class DockerManager {
       const stream = await exec.start();
       const [stdout] = await DockerManager.demuxStream(stream, () => {
         return new Promise(resolve => {
-          exec.inspect((e,d) => {
+          exec.inspect((e, d) => {
             resolve(d && d.Running);
-          })
-        })
+          });
+        });
       });
       return JSON.parse(stdout);
     }
@@ -368,10 +367,10 @@ export class DockerManager {
         onExit,
         () => {
           return new Promise(resolve => {
-            exec.inspect((e,d) => {
+            exec.inspect((e, d) => {
               resolve(d && d.Running);
-            })
-          })
+            });
+          });
         }
       );
     }
