@@ -156,11 +156,16 @@ export class DockerManager {
     return `${this.config.dataPath}/booted`;
   }
 
+  getDbDirectory(): string {
+    return `${this.config.dataPath}/database/`;
+  }
+
   getDbReadyFile(): string {
-    return `${this.config.dataPath}/database/ready`;
+    return `${this.getDbDirectory()}/ready`;
   }
 
   async waitContainerBooted() {
+    await Utils.waitExists(this.getDbDirectory());
     await Utils.waitExists(this.getDbReadyFile());
     await Utils.waitExists(this.getBootedFile());
   }
