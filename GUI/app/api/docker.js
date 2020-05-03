@@ -72,11 +72,14 @@ export class DockerManager {
     stream: http$IncomingMessage<>,
     onStdout: ?(Buffer) => void,
     onStderr: ?(Buffer) => void,
-    onEnd: ?() => void
+    onEnd: ?() => void,
+    checkRunning: ?() => Promise<boolean>,
+    timeoutRunning: ?number = 1000
   ): void {
     let nextDataType = null;
     let nextDataLength = -1;
     let buffer = Buffer.from('');
+    let ended = false;
 
     const bufferSlice = (end: number) => {
       const out = buffer.slice(0, end);
@@ -106,14 +109,28 @@ export class DockerManager {
       }
     };
 
-    stream.on('data', processData);
-    if (onEnd) {
-      stream.on('end', onEnd);
+    stream.on('data', processData)
+      .on('end', () => {
+        if (!ended && onEnd) onEnd();
+        ended = true;
+      });
+    if (checkRunning) {
+      const fnRunning = async () => {
+        if (await checkRunning()) {
+          setTimeout(fnRunning, timeoutRunning)
+        } else if (!ended && onEnd) {
+          onEnd();
+          ended = true;
+        }
+      }
+      setTimeout(fnRunning, timeoutRunning);
     }
   }
 
   static async demuxStream(
-    stream: http$IncomingMessage<>
+    stream: http$IncomingMessage<>,
+    checkRunning: ?() => Promise<boolean>,
+    timeoutRunning: ?number = 1000
   ): Promise<[string, string]> {
     return new Promise(resolve => {
       let stdout = Buffer.from('');
@@ -126,7 +143,9 @@ export class DockerManager {
         content => {
           stderr = Buffer.concat([stderr, content]);
         },
-        () => resolve([stdout.toString(), stderr.toString()])
+        () => resolve([stdout.toString(), stderr.toString()]),
+        checkRunning,
+        timeoutRunning
       );
     });
   }
@@ -163,16 +182,6 @@ export class DockerManager {
   getContainer() {
     if (!this.container) {
       this.container = this.client.getContainer(this.config.containerName);
-      /* const containers = await this.client.listContainers({
-        all: true
-      });
-      const found = containers
-        .filter(c => c.Image === DOCKER_IMAGE_NAME)
-        .filter(c => c.Names.includes(`/${this.config.containerName}`));
-      if (found.length === 0) {
-        return null;
-      }
-      this.container = this.client.getContainer(found[0].Id); */
     }
     return this.container;
   }
@@ -295,7 +304,13 @@ export class DockerManager {
         AttachStdout: true
       });
       const stream = await exec.start();
-      const [stdout] = await DockerManager.demuxStream(stream);
+      const [stdout] = await DockerManager.demuxStream(stream, () => {
+        return new Promise(resolve => {
+          exec.inspect((e,d) => {
+            resolve(d && d.Running);
+          })
+        })
+      });
       return JSON.parse(stdout);
     }
     throw new Error('Unable to exec command. Container is not running');
@@ -350,7 +365,14 @@ export class DockerManager {
         stream,
         buf => outputCallback(buf.toString()),
         onStderr,
-        onExit
+        onExit,
+        () => {
+          return new Promise(resolve => {
+            exec.inspect((e,d) => {
+              resolve(d && d.Running);
+            })
+          })
+        }
       );
     }
     throw new Error('Unable to exec command. Container is not running');
@@ -406,7 +428,6 @@ let instance = null;
 export const getInstance = () => {
   if (!instance) {
     instance = new DockerManager(Settings.getConfig());
-    if (is.renderer) window.docker = instance;
   }
   return instance;
 };
