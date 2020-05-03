@@ -110,11 +110,14 @@ export class DockerManager {
     };
 
     stream.on('data', processData).on('end', () => {
-      if (!ended && onEnd) onEnd();
-      ended = true;
+      if (!ended && onEnd) {
+        onEnd();
+        ended = true;
+      }
     });
     if (checkRunning) {
       const fnRunning = async () => {
+        if (ended) return;
         if (await checkRunning()) {
           setTimeout(fnRunning, timeoutRunning);
         } else if (!ended && onEnd) {
@@ -293,7 +296,10 @@ export class DockerManager {
     }
   }
 
-  async execDockerCommand(Cmd: string[]): Promise<*> {
+  async execDockerCommand(
+    Cmd: string[],
+    timeoutRunning: number = 30000
+  ): Promise<*> {
     const status = await this.checkContainerStatus();
     if (status === 'running') {
       const container = this.getContainer();
@@ -303,13 +309,17 @@ export class DockerManager {
         AttachStdout: true
       });
       const stream = await exec.start();
-      const [stdout] = await DockerManager.demuxStream(stream, () => {
-        return new Promise(resolve => {
-          exec.inspect((e, d) => {
-            resolve(d && d.Running);
+      const [stdout] = await DockerManager.demuxStream(
+        stream,
+        () => {
+          return new Promise(resolve => {
+            exec.inspect((e, d) => {
+              resolve(d && d.Running);
+            });
           });
-        });
-      });
+        },
+        timeoutRunning
+      );
       return JSON.parse(stdout);
     }
     throw new Error('Unable to exec command. Container is not running');
@@ -324,11 +334,10 @@ export class DockerManager {
   }
 
   async listPackages(): Promise<Package[]> {
-    const result = await this.execDockerCommand([
-      'php',
-      '/rnadetector/ws/artisan',
-      'packages:list'
-    ]);
+    const result = await this.execDockerCommand(
+      ['php', '/rnadetector/ws/artisan', 'packages:list'],
+      1000
+    );
     if (!result.error) {
       return result.packages;
     }
@@ -339,7 +348,8 @@ export class DockerManager {
     Cmd: string[],
     outputCallback: string => void,
     errCallback: ?(string) => void = null,
-    exitCallback: ?(number) => void = null
+    exitCallback: ?(number) => void = null,
+    timeoutRunning: number = 30000
   ): Promise<void> {
     const status = await this.checkContainerStatus();
     if (status === 'running') {
@@ -371,7 +381,8 @@ export class DockerManager {
               resolve(d && d.Running);
             });
           });
-        }
+        },
+        timeoutRunning
       );
     }
     throw new Error('Unable to exec command. Container is not running');
