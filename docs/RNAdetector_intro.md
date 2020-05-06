@@ -1,10 +1,13 @@
-# RNAdetector: a user friendly and stand-alone pipeline for RNA-Seq data analysis
+# RNAdetector: a user-friendly and stand-alone pipeline for RNA-Seq data analysis
 ***RNAdetector*** is a user-friendly pipeline for the analysis of protein-coding genes and ncRNAs from RNA-Seq data
 ## Performed analyses
 ***RNAdetector*** allows to perform several types of analysis such as:
 - Quantification and normalization
 - Differential expression analysis
-- miRNA-sensitive topological pathway analysis
+- miRNA-sensitive topological pathway analysis.
+
+***RNAdetector*** supports several species such as Human, Mouse and Rat that are available for download in our remote repository.
+However, It can be also easily used with any other organism by following the step-by-step procedures detailed in the user interface.
 ## Non-coding RNAs analyzed
 In addition to mRNAs, ***RNAdetector*** can also analyze several classes of small and long ncRNAs.
 ##### Small non-coding RNAs
