@@ -156,7 +156,7 @@ class Job extends Model
      *
      * @return string
      */
-    public function getSampleGroupTypeAttribute(): string
+    public function getSampleGroupTypeAttribute(): ?string
     {
         $jobs = $this->getParameter('jobs');
         if (is_array($jobs) && count($jobs) > 0) {
