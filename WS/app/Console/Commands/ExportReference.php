@@ -155,7 +155,7 @@ class ExportReference extends Command
             null,
             function ($type, $buffer) {
                 if ($type === Process::OUT) {
-                    $this->info(trim($buffer));
+                    $this->output->write('<info>' . $buffer . '</info>');
                 }
             }
         );

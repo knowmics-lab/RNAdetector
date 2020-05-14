@@ -259,7 +259,7 @@ class SamplesGroupJobType extends AbstractJob
             $this->model->getAbsoluteJobDirectory(),
             null,
             function ($type, $buffer) {
-                $this->log(trim($buffer));
+                $this->log($buffer, false);
             }
         );
         if (!file_exists($descriptionFile)) {
@@ -442,7 +442,7 @@ class SamplesGroupJobType extends AbstractJob
             $this->model->getAbsoluteJobDirectory(),
             null,
             function ($type, $buffer) {
-                $this->log(trim($buffer));
+                $this->log($buffer, false);
             }
         );
         @chmod($output, 0777);

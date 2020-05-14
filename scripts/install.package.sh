@@ -56,7 +56,7 @@ if [ -f "$FILENAME" ]; then
     echo "Package file already exists!"
 else
     echo "Downloading package..."
-    if ! wget "$URL" -O "$FILENAME"; then
+    if ! wget "$URL" -O "$FILENAME" --progress="dot:giga"; then
         echo "Unable to download the package"
         cleanup
         exit 5
@@ -91,5 +91,4 @@ fi
 
 cleanup
 
-echo "Package installed!"
 cd "$CURR_PWD"

@@ -181,7 +181,7 @@ class CircRnaJobType extends AbstractJob
             $this->model->getAbsoluteJobDirectory(),
             null,
             function ($type, $buffer) {
-                $this->log(trim($buffer));
+                $this->log($buffer, false);
             },
             [
                 3 => 'Annotation file does not exist.',
@@ -269,7 +269,7 @@ class CircRnaJobType extends AbstractJob
             $this->model->getAbsoluteJobDirectory(),
             null,
             function ($type, $buffer) {
-                $this->log(trim($buffer));
+                $this->log($buffer, false);
             },
             [
                 3  => 'Annotation file does not exist.',
@@ -385,7 +385,7 @@ class CircRnaJobType extends AbstractJob
             $this->model->getAbsoluteJobDirectory(),
             null,
             function ($type, $buffer) {
-                $this->log(trim($buffer));
+                $this->log($buffer, false);
             },
             [
                 3  => 'First input file does not exist.',
@@ -516,7 +516,7 @@ class CircRnaJobType extends AbstractJob
                     $this->model->getAbsoluteJobDirectory(),
                     null,
                     function ($type, $buffer) {
-                        $this->log(trim($buffer));
+                        $this->log($buffer, false);
                     },
                     [
                         3 => 'Input file does not exist.',

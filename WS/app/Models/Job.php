@@ -201,6 +201,51 @@ class Job extends Model
     }
 
     /**
+     * Set the log attribute.
+     *
+     * @param string $value
+     */
+    public function setLogAttribute($value): void
+    {
+        $aLines = explode("\n", $value);
+        $value = implode(
+            "\n",
+            array_map(
+                static function ($line) {
+                    if (strpos($line, "\r") === false) {
+                        return $line;
+                    }
+                    $arr = array_filter(explode("\r", $line));
+                    $n = count($arr);
+                    if ($n === 0) {
+                        return '';
+                    }
+                    if ($n === 1) {
+                        return $arr[0];
+                    }
+
+                    return $arr[$n - 1];
+                },
+                $aLines
+            )
+        );
+        if (!in_array(
+            $value,
+            [
+                self::READY,
+                self::QUEUED,
+                self::PROCESSING,
+                self::COMPLETED,
+                self::FAILED,
+            ],
+            true
+        )) {
+            $value = self::READY;
+        }
+        $this->attributes['log'] = $value;
+    }
+
+    /**
      * Returns the path of the job storage directory
      *
      * @return string

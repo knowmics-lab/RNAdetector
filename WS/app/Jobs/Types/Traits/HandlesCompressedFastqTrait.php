@@ -44,7 +44,7 @@ trait HandlesCompressedFastqTrait
                 $model->getAbsoluteJobDirectory(),
                 null,
                 static function ($type, $buffer) use ($model) {
-                    $model->appendLog(trim($buffer));
+                    $model->appendLog($buffer, false);
                 },
                 [
                     1 => 'Input file is required.',

@@ -112,7 +112,7 @@ class ReferenceUploadJobType extends AbstractJob
             $this->model->getAbsoluteJobDirectory(),
             null,
             function ($type, $buffer) {
-                $this->log(trim($buffer));
+                $this->log($buffer, false);
             },
             [
                 3 => 'Input file does not exist.',
@@ -145,7 +145,7 @@ class ReferenceUploadJobType extends AbstractJob
             $this->model->getAbsoluteJobDirectory(),
             null,
             function ($type, $buffer) {
-                $this->log(trim($buffer));
+                $this->log($buffer, false);
             },
             [
                 3 => 'Input file does not exist.',
@@ -178,7 +178,7 @@ class ReferenceUploadJobType extends AbstractJob
             $this->model->getAbsoluteJobDirectory(),
             null,
             function ($type, $buffer) {
-                $this->log(trim($buffer));
+                $this->log($buffer, false);
             },
             [
                 3 => 'FASTA file with transcripts does not exist.',
@@ -210,7 +210,7 @@ class ReferenceUploadJobType extends AbstractJob
             $this->model->getAbsoluteJobDirectory(),
             null,
             function ($type, $buffer) {
-                $this->log(trim($buffer));
+                $this->log($buffer, false);
             },
             [
                 3 => 'Input file does not exist.',
