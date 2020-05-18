@@ -1,5 +1,7 @@
 # RNAdetector installation 
-## Installation on Ubuntu operative system
+## Installation on Windows Professional
+## Installation on macOS
+## Installation on Ubuntu
 - Open terminal.
 
 - Install **Docker** in your computer by writing the following commands in your terminal one by one.
@@ -26,6 +28,4 @@ sudo dpkg -i RNAdetector.deb
 
 - **RNAdetector** is installed! Now, you can find **RNAdetector** in your application list.
 
-## Installation on Windows Professional
 
-## Installation on macOS
