@@ -89,9 +89,7 @@ class InstallPackage extends Command
             env('REFERENCES_PATH'),
             null,
             function ($type, $buffer) {
-                if ($type === Process::OUT) {
-                    $this->info(trim($buffer));
-                }
+                $this->output->write('<info>' . $buffer . '</info>');
             }
         );
 

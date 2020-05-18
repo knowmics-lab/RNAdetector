@@ -67,7 +67,7 @@ trait RunTrimGaloreTrait
             $model->getAbsoluteJobDirectory(),
             null,
             static function ($type, $buffer) use ($model) {
-                $model->appendLog(trim($buffer));
+                $model->appendLog($buffer, false);
             },
             [
                 3 => 'Input file does not exist.',

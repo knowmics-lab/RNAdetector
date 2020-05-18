@@ -549,7 +549,7 @@ class DiffExprAnalysisJobType extends AbstractJob
             $this->model->getAbsoluteJobDirectory(),
             null,
             function ($type, $buffer) {
-                $this->log(trim($buffer));
+                $this->log($buffer, false);
             }
         );
         if (!file_exists($degReport) && !is_dir($degReport) && !file_exists($degReport . '/index.html')) {

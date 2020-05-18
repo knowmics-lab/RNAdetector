@@ -144,7 +144,7 @@ class PathwayAnalysisJobType extends AbstractJob
             $this->model->getAbsoluteJobDirectory(),
             null,
             function ($type, $buffer) {
-                $this->log(trim($buffer));
+                $this->log($buffer, false);
             }
         );
         if (!file_exists($pathReport) && !is_dir($pathReport) && !file_exists($pathReport . '/index.html')) {
