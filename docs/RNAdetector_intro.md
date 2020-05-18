@@ -13,18 +13,20 @@ In addition to mRNAs, ***RNAdetector*** can also analyze several classes of smal
 ##### Small non-coding RNAs
 - micro RNAs (miRNAs)
 - PIWI-associated RNAs (piRNAs)
-- tRNA fragments (tRFS)
+- tRNA fragments (tRFs)
 - tRNA derived small ncRNAs (tsRNAs)
 ##### Long non-coding RNAs
 - long non-coding RNAs (lncRNAs)
-- transcribed UltraConserved Regions (tUCR)
+- transcribed UltraConserved Regions (tUCRs)
 - circular RNAs (circRNAs)
 
 ## Features
 ***RNAdetector*** has several important features such as:
-- Easy installation and dependencies management 
-- Graphical User Interface (GUI)
+- Easy installation and dependencies management
+- Cross-platform (Windows Professional, macOS, Ubuntu) 
+- Remotely controllable
 - Completely off line
+- Graphical User Interface (GUI)
 - Graphical reports with the results of the analyses
 ## Cite us
 if you use ***RNAdetector*** cite:
