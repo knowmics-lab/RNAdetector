@@ -1,4 +1,5 @@
 # RNAdetector: a user-friendly and stand-alone pipeline for RNA-Seq data analysis
+![]()
 ***RNAdetector*** is a user-friendly pipeline for the analysis of protein-coding genes and ncRNAs from RNA-Seq data
 ## Performed analyses
 ***RNAdetector*** allows to perform several types of analysis such as:
