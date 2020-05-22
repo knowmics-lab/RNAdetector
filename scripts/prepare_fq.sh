@@ -18,15 +18,15 @@ FILENAME="$(dirname "$INPUT")/$(basename "$INPUT" ".${EXTENSION}")"
 
 COMPRESSED=false
 if [ "$MIME" = "application/gzip" ]; then
-  echo "Extracting input file"
-  if ! gunzip -k -v -c "$INPUT" 2>/dev/null >"$FILENAME" then
+  echo "Extracting $INPUT"
+  if ! gunzip -k -v -c "$INPUT" 2>/dev/null >"$FILENAME"; then
     echo "Unable to extract input file."
     exit 5
   fi
   COMPRESSED=true
 elif [ "$MIME" = "application/x-bzip2" ]; then
-  echo "Extracting input file"
-  if ! bunzip2 -k -v -c "$INPUT" 2>/dev/null >"$FILENAME" then
+  echo "Extracting $INPUT"
+  if ! bunzip2 -k -v -c "$INPUT" 2>/dev/null >"$FILENAME"; then
     echo "Unable to extract input file."
     exit 5
   fi
