@@ -229,19 +229,6 @@ class Job extends Model
                 $aLines
             )
         );
-        if (!in_array(
-            $value,
-            [
-                self::READY,
-                self::QUEUED,
-                self::PROCESSING,
-                self::COMPLETED,
-                self::FAILED,
-            ],
-            true
-        )) {
-            $value = self::READY;
-        }
         $this->attributes['log'] = $value;
     }
 
