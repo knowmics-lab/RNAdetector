@@ -116,7 +116,7 @@ if [ ! -z "$HARMONIZED" ]; then
   cd $CURR_DIR
   if [ ! -z "$MAP_FILE" ] && [ -f "$MAP_FILE" ]; then
     if [ ! -z "$BED_FILE" ] && [ -f "$BED_FILE" ]; then
-      if ! Rscript "${SCRIPT_PATH}/harmonize.R" -i "$OUTPUT" -a "ciri" -o "$HARMONIZED" -a "$BED_FILE" -m "$MAP_FILE"; then
+      if ! Rscript "${SCRIPT_PATH}/harmonize.R" -i "$OUTPUT" -a "ciri" -o "$HARMONIZED" -g "$BED_FILE" -m "$MAP_FILE"; then
         echo "Unable to harmonize output file"
         exit 10
       fi
@@ -128,7 +128,7 @@ if [ ! -z "$HARMONIZED" ]; then
     fi
   else
     if [ ! -z "$BED_FILE" ] && [ -f "$BED_FILE" ]; then
-      if ! Rscript "${SCRIPT_PATH}/harmonize.R" -i "$OUTPUT" -a "ciri" -o "$HARMONIZED" -a "$BED_FILE"; then
+      if ! Rscript "${SCRIPT_PATH}/harmonize.R" -i "$OUTPUT" -a "ciri" -o "$HARMONIZED" -g "$BED_FILE"; then
         echo "Unable to harmonize output file"
         exit 10
       fi
