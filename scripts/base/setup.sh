@@ -21,7 +21,7 @@ chmod 755 /usr/local/bin/
 
 # Removes pandoc 1 and install pandoc 2
 cd /rnadetector/tmp/ || exit 100
-apt remove pandoc
+apt remove -y pandoc
 curl -fsSL https://github.com/jgm/pandoc/releases/download/2.9.2.1/pandoc-2.9.2.1-1-amd64.deb -o pandoc.deb
 dpkg -i pandoc.deb
 
