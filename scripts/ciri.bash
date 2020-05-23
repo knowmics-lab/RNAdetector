@@ -15,7 +15,7 @@
 ##############################################################################
 PAIRED=false
 VERSION=v2
-while getopts "p1a:i:t:o:f:m:h:x:" opt; do
+while getopts "p1a:i:t:o:f:m:x:h:b:" opt; do
   case $opt in
   p) PAIRED=true ;;
   1) VERSION=v1 ;;

@@ -15,8 +15,8 @@ while getopts ":a:b:t:o:h:x:" opt; do
     b) INPUT_BAM=$OPTARG ;;
     t) THREADS=$OPTARG ;;
     o) OUTPUT=$OPTARG ;;
-    x) MAP_FILE=$OPTARG ;;
     h) HARMONIZED=$OPTARG ;;
+    x) MAP_FILE=$OPTARG ;;
     \?)
         echo "Invalid option: -$OPTARG"
         exit 1
