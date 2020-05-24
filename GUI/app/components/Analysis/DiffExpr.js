@@ -417,7 +417,7 @@ class DiffExpr extends React.Component<Props, State> {
           </Grid>
           <Grid item xs>
             <SelectField
-              label="Case"
+              label="Control"
               name={`contrasts.${i}.control`}
               options={values}
               addEmpty
