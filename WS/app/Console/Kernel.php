@@ -18,6 +18,7 @@ class Kernel extends ConsoleKernel
         Commands\ExportReference::class,
         Commands\ListPackages::class,
         Commands\InstallPackage::class,
+        Commands\ClearQueue::class,
     ];
 
     /**
