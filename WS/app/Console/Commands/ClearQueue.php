@@ -47,6 +47,7 @@ class ClearQueue extends Command
         }
         foreach (Job::whereStatus(Job::PROCESSING)->get() as $job) {
             $job->status = Job::FAILED;
+            $job->appendLog('Job failed since queue was cleared!', true, false);
             $job->save();
         }
 

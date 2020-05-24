@@ -109,17 +109,19 @@ app.on('ready', async () => {
 
   const stopDockerAndQuit = () => {
     console.log('Waiting for docker container to stop');
-    Docker.stopContainer()
-      .then(() => {
-        console.log('Docker container has been stopped! Quitting!');
-      })
-      .catch(ex => {
-        console.log('Docker container cannot be stopped! Stop it manually!');
-        console.log(ex);
-      })
-      .finally(() => {
-        quitNow();
-      });
+    Docker.clearQueue().then(() => {
+      Docker.stopContainer()
+        .then(() => {
+          console.log('Docker container has been stopped! Quitting!');
+        })
+        .catch(ex => {
+          console.log('Docker container cannot be stopped! Stop it manually!');
+          console.log(ex);
+        })
+        .finally(() => {
+          quitNow();
+        });
+    });
   };
 
   mainWindow.on('close', e => {

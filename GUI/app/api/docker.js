@@ -303,7 +303,8 @@ export class DockerManager {
 
   async execDockerCommand(
     Cmd: string[],
-    timeoutRunning: number = 30000
+    timeoutRunning: number = 30000,
+    parse: boolean = true
   ): Promise<*> {
     const status = await this.checkContainerStatus();
     if (status === 'running') {
@@ -325,7 +326,10 @@ export class DockerManager {
         },
         timeoutRunning
       );
-      return JSON.parse(stdout);
+      if (parse) {
+        return JSON.parse(stdout);
+      }
+      return stdout;
     }
     throw new Error('Unable to exec command. Container is not running');
   }
@@ -391,6 +395,14 @@ export class DockerManager {
       );
     }
     throw new Error('Unable to exec command. Container is not running');
+  }
+
+  async clearQueue(): Promise<*> {
+    return this.execDockerCommand(
+      ['php', '/rnadetector/ws/artisan', 'queue:clear'],
+      1000,
+      false
+    );
   }
 
   installPackage(
