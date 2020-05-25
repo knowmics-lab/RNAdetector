@@ -68,6 +68,7 @@ class SamplesGroupJobType extends AbstractJob
         return [
             'jobs'        => ['required', 'array', Rule::exists('jobs', 'id')],
             'description' => ['filled', 'string'],
+            'de_novo'     => ['filled', 'boolean'],
         ];
     }
 
