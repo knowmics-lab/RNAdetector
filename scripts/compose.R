@@ -53,15 +53,19 @@ merge.ciri <- function (files, bedfiles, mapfiles) {
     juncread[tmp, ifile] <- glist[[ifile]]$juncread
   }
   juncread <- as.data.frame(juncread)
+  print(length(gcirc$strand))
+  print(length(width(ranges(gcirc))))
+  s <- start(ranges(gcirc))
+  e <- end(ranges(gcirc))
   return (data.frame(
     id=gcirc$id,
     mapped_id=gcirc$mapped_id,
     name=gcirc$id,
     chr=as(seqnames(gcirc), "vector"),
-    start=start(ranges(gcirc)),
-    end=end(ranges(gcirc)),
+    start=s,
+    end=e,
     strand=gcirc$strand,
-    length=width(ranges(gcirc)),
+    length=s-e+1,
     juncread
   ))
 }
