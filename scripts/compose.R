@@ -60,7 +60,8 @@ merge.ciri <- function (files, bedfiles, mapfiles) {
     chr=as(seqnames(gcirc), "vector"),
     start=start(ranges(gcirc)),
     end=end(ranges(gcirc)),
-    length=NA,
+    strand=gcirc$strand,
+    length=width(ranges(gcirc)),
     juncread
   ))
 }
