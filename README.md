@@ -60,6 +60,8 @@ sudo dpkg -i RNAdetector.deb
 
 - **RNAdetector** is installed! Now, you can find **RNAdetector** in your application list.
 
+# RNAdetector user guide
+
 ## Cite us
 if you use ***RNAdetector*** cite:
 ## Contact us 
