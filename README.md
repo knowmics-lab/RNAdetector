@@ -32,6 +32,13 @@ In addition to mRNAs, ***RNAdetector*** can also analyze several classes of smal
 - Graphical reports with the results of the analyses
 # RNAdetector installation 
 ## Installation on Windows Professional
+- Install **Docker Desktop** in your computer by downloading the installer at this link [Docker Desktop](https://hub.docker.com/editions/community/docker-ce-desktop-windows/)
+- Once the installer is downloaded, double-click **Docker Desktop Installer.exe** to run the installer.
+- When prompted, ensure the Enable Hyper-V Windows Features option is selected on the Configuration page.
+- Follow the instructions on the installation wizard to authorize the installer and proceed with the install.
+- When the installation is successful, click Close to complete **Docker** installation process.
+- Now that **Docker Desktop** is installed, it is possible to proceed with **RNAdetector** installation by downloading its installer [RNAdetector installer]() and following the instructions on the installation wizard to authorize the installer and proceed with the install.
+- **RNAdetector** is installed! Now, you can find **RNAdetector** in your application list.
 ## Installation on macOS
 ## Installation on Ubuntu
 - Open terminal.
