@@ -16,7 +16,7 @@ import { InputLabel } from '@material-ui/core';
 import IconButton from '@material-ui/core/IconButton';
 import Icon from '@material-ui/core/Icon';
 import * as Api from '../../api';
-import { JOBS } from '../../constants/routes';
+import { JOBS } from '../../constants/routes.json';
 import SelectField from '../Form/SelectField';
 import TextField from '../Form/TextField';
 import Wizard from '../UI/Wizard';
@@ -619,6 +619,21 @@ class LongRNA extends React.Component<Props, State> {
     const { code, name, samples, ...params } = values;
     const { pushNotification, redirect, refreshJobs } = this.props;
     const { files, descriptionFile } = this.state;
+    let filteredParams = params;
+    if (params.algorithm === 'salmon') {
+      filteredParams = Api.Utils.filterByKey(
+        params,
+        k => k !== 'annotation' && k !== 'genome'
+      );
+    } else if (
+      params.annotation !== 'salmon' &&
+      params.countingAlgorithm !== 'salmon'
+    ) {
+      filteredParams = Api.Utils.filterByKey(
+        params,
+        k => k !== 'transcriptome'
+      );
+    }
     const validLength = files.filter(
       f => f[0] !== null && (!paired || (paired && f[1] !== null))
     ).length;
@@ -662,7 +677,7 @@ class LongRNA extends React.Component<Props, State> {
               sampleCode,
               sampleName,
               {
-                ...params,
+                ...filteredParams,
                 // $FlowFixMe: firstFile is not null here
                 firstInputFile: firstFile.name,
                 // $FlowFixMe: secondFile is not null if paired is true
