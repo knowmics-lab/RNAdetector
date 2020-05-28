@@ -16,6 +16,9 @@ use App\Jobs\Types\Traits\HasCommonParameters;
 use App\Jobs\Types\Traits\RunTrimGaloreTrait;
 use App\Jobs\Types\Traits\UseAlignmentTrait;
 use App\Jobs\Types\Traits\UseCountingTrait;
+use App\Jobs\Types\Traits\UseGenome;
+use App\Jobs\Types\Traits\UseGenomeAnnotation;
+use App\Jobs\Types\Traits\UseTranscriptome;
 use App\Models\Annotation;
 use App\Models\Job;
 use App\Models\Reference;
@@ -25,6 +28,7 @@ use Illuminate\Validation\Rule;
 class SmallRnaJobType extends AbstractJob
 {
     use HasCommonParameters, ConvertsSamToBamTrait, RunTrimGaloreTrait, UseAlignmentTrait, UseCountingTrait, HandlesCompressedFastqTrait;
+    use UseTranscriptome, UseGenome, UseGenomeAnnotation;
 
     /**
      * Returns an array containing for each input parameter an help detailing its content and use.
@@ -70,27 +74,14 @@ class SmallRnaJobType extends AbstractJob
      */
     public static function validationSpec(Request $request): array
     {
-        $parameters = (array)$request->get('parameters', []);
-
         return array_merge(
             self::commonParametersValidation($request),
             [
                 'algorithm'         => ['filled', Rule::in(self::VALID_ALIGN_QUANT_METHODS)],
                 'countingAlgorithm' => ['filled', Rule::in(self::VALID_COUNTING_METHODS)],
                 'genome'            => ['filled', 'alpha_dash', Rule::exists('references', 'name')],
-                'transcriptome'     => [
-                    Rule::requiredIf(
-                        static function () use ($parameters) {
-                            $countingSalmon = ($parameters['countingAlgorithm'] ?? self::HTSEQ_COUNTS) === self::SALMON;
-                            $quantifSalmon = ($parameters['algorithm'] ?? self::HISAT2) === self::SALMON;
-
-                            return $quantifSalmon || $countingSalmon;
-                        }
-                    ),
-                    'alpha_dash',
-                    Rule::exists('references', 'name'),
-                ],
                 'annotation'        => ['filled', 'alpha_dash', Rule::exists('annotations', 'name')],
+                'transcriptome'     => ['filled', 'alpha_dash', Rule::exists('references', 'name')],
                 'threads'           => ['filled', 'integer'],
             ]
         );
@@ -137,18 +128,9 @@ class SmallRnaJobType extends AbstractJob
         $trimGaloreEnable = (bool)$this->getParameter('trimGalore.enable', $inputType === self::FASTQ);
         $trimGaloreQuality = (int)$this->getParameter('trimGalore.quality', 20);
         $trimGaloreLength = (int)$this->getParameter('trimGalore.length', 14);
-        $genomeName = $this->getParameter('genome', env('HUMAN_GENOME_NAME'));
-        $annotationName = $this->getParameter('annotation', env('HUMAN_SNCRNA_ANNOTATION_NAME'));
         $threads = (int)$this->getParameter('threads', 1);
         $algorithm = $this->getParameter('algorithm', self::HISAT2);
         $countingAlgorithm = $this->getParameter('countingAlgorithm', self::FEATURECOUNTS_COUNTS);
-        $transcriptomeName = $this->getParameter('transcriptome', env('HUMAN_TRANSCRIPTOME_SNCRNA_NAME'));
-        $transcriptome = Reference::whereName($transcriptomeName)->firstOrFail();
-        $genome = Reference::whereName($genomeName)->firstOrFail();
-        $annotation = Annotation::whereName($annotationName)->firstOrFail();
-        if ($annotation->type !== 'gtf') {
-            throw new ProcessingJobException('You must select only GTF annotations');
-        }
         if ($inputType === self::SAM) {
             $firstInputFile = self::convertSamToBam($this->model, $firstInputFile);
             $inputType = self::BAM;
@@ -193,13 +175,20 @@ class SmallRnaJobType extends AbstractJob
                         $paired,
                         $firstTrimmedFastq,
                         $secondTrimmedFastq,
-                        $genome,
-                        $annotation,
+                        $this->getGenome(),
+                        $this->getGenomeAnnotation('HUMAN_SNCRNA_ANNOTATION_NAME'),
                         $threads
                     );
                     break;
                 case self::HISAT2:
-                    $countingInputFile = $this->runHisat($this->model, $paired, $firstTrimmedFastq, $secondTrimmedFastq, $genome, $threads);
+                    $countingInputFile = $this->runHisat(
+                        $this->model,
+                        $paired,
+                        $firstTrimmedFastq,
+                        $secondTrimmedFastq,
+                        $this->getGenome(),
+                        $threads
+                    );
                     break;
                 case self::SALMON:
                     [
@@ -215,7 +204,7 @@ class SmallRnaJobType extends AbstractJob
                         $firstTrimmedFastq,
                         $secondTrimmedFastq,
                         $inputType,
-                        $transcriptome,
+                        $this->getTranscriptome('HUMAN_TRANSCRIPTOME_SNCRNA_NAME'),
                         $threads
                     );
                     $count = false;
@@ -230,7 +219,7 @@ class SmallRnaJobType extends AbstractJob
                     [$outputFile, $outputUrl, $harmonizedGeneFile, $harmonizedGeneUrl] = $this->runHTSEQ(
                         $this->model,
                         $countingInputFile,
-                        $annotation,
+                        $this->getGenomeAnnotation('HUMAN_SNCRNA_ANNOTATION_NAME'),
                         $threads
                     );
                     break;
@@ -238,7 +227,7 @@ class SmallRnaJobType extends AbstractJob
                     [$outputFile, $outputUrl, $harmonizedGeneFile, $harmonizedGeneUrl] = $this->runFeatureCount(
                         $this->model,
                         $countingInputFile,
-                        $annotation,
+                        $this->getGenomeAnnotation('HUMAN_SNCRNA_ANNOTATION_NAME'),
                         $threads
                     );
                     break;
@@ -250,7 +239,13 @@ class SmallRnaJobType extends AbstractJob
                         $harmonizedGeneUrl,
                         $harmonizedTxFile,
                         $harmonizedTxUrl,
-                    ] = $this->runSalmonCount($this->model, $paired, $countingInputFile, $transcriptome, $threads);
+                    ] = $this->runSalmonCount(
+                        $this->model,
+                        $paired,
+                        $countingInputFile,
+                        $this->getTranscriptome('HUMAN_TRANSCRIPTOME_SNCRNA_NAME'),
+                        $threads
+                    );
                     break;
                 default:
                     throw new ProcessingJobException('Invalid counting algorithm');

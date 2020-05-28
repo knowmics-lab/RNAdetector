@@ -16,6 +16,9 @@ use App\Jobs\Types\Traits\HasCommonParameters;
 use App\Jobs\Types\Traits\RunTrimGaloreTrait;
 use App\Jobs\Types\Traits\UseAlignmentTrait;
 use App\Jobs\Types\Traits\UseCountingTrait;
+use App\Jobs\Types\Traits\UseGenome;
+use App\Jobs\Types\Traits\UseGenomeAnnotation;
+use App\Jobs\Types\Traits\UseTranscriptome;
 use App\Models\Annotation;
 use App\Models\Job;
 use App\Models\Reference;
@@ -25,6 +28,7 @@ use Illuminate\Validation\Rule;
 class LongRnaJobType extends AbstractJob
 {
     use HasCommonParameters, ConvertsSamToBamTrait, RunTrimGaloreTrait, UseAlignmentTrait, UseCountingTrait, HandlesCompressedFastqTrait;
+    use UseTranscriptome, UseGenome, UseGenomeAnnotation;
 
     /**
      * Returns an array containing for each input parameter an help detailing its content and use.
@@ -113,6 +117,24 @@ class LongRnaJobType extends AbstractJob
     }
 
     /**
+     * Checks if any valid genome and annotation has been provided for the analysis
+     *
+     * @param \App\Models\Reference|null  $genome
+     * @param \App\Models\Annotation|null $annotation
+     *
+     * @throws \App\Exceptions\ProcessingJobException
+     */
+    private function checkGenomeAndAnnotation(?Reference $genome, ?Annotation $annotation): void
+    {
+        if ($genome === null) {
+            throw new ProcessingJobException('An invalid genome has been provided');
+        }
+        if ($annotation === null) {
+            throw new ProcessingJobException('An invalid genome annotation has been provided');
+        }
+    }
+
+    /**
      * Handles all the computation for this job.
      * This function should throw a ProcessingJobException if something went wrong during the computation.
      * If no exceptions are thrown the job is considered as successfully completed.
@@ -130,15 +152,9 @@ class LongRnaJobType extends AbstractJob
         $trimGaloreEnable = (bool)$this->model->getParameter('trimGalore.enable', $inputType === self::FASTQ);
         $trimGaloreQuality = (int)$this->model->getParameter('trimGalore.quality', 20);
         $trimGaloreLength = (int)$this->model->getParameter('trimGalore.length', 14);
-        $genomeName = $this->getParameter('genome', env('HUMAN_GENOME_NAME'));
-        $annotationName = $this->getParameter('annotation', env('HUMAN_RNA_ANNOTATION_NAME'));
-        $transcriptomeName = $this->getParameter('transcriptome', env('HUMAN_TRANSCRIPTOME_NAME'));
         $threads = (int)$this->getParameter('threads', 1);
         $algorithm = $this->getParameter('algorithm', self::HISAT2);
         $countingAlgorithm = $this->getParameter('countingAlgorithm', self::FEATURECOUNTS_COUNTS);
-        $transcriptome = Reference::whereName($transcriptomeName)->firstOrFail();
-        $genome = Reference::whereName($genomeName)->firstOrFail();
-        $annotation = Annotation::whereName($annotationName)->firstOrFail();
         if ($inputType === self::SAM) {
             $firstInputFile = self::convertSamToBam($this->model, $firstInputFile);
             $inputType = self::BAM;
@@ -179,13 +195,20 @@ class LongRnaJobType extends AbstractJob
                         $paired,
                         $firstTrimmedFastq,
                         $secondTrimmedFastq,
-                        $genome,
-                        $annotation,
+                        $this->getGenome(),
+                        $this->getGenomeAnnotation(),
                         $threads
                     );
                     break;
                 case self::HISAT2:
-                    $countingInputFile = $this->runHisat($this->model, $paired, $firstTrimmedFastq, $secondTrimmedFastq, $genome, $threads);
+                    $countingInputFile = $this->runHisat(
+                        $this->model,
+                        $paired,
+                        $firstTrimmedFastq,
+                        $secondTrimmedFastq,
+                        $this->getGenome(),
+                        $threads
+                    );
                     break;
                 case self::SALMON:
                     [
@@ -201,7 +224,7 @@ class LongRnaJobType extends AbstractJob
                         $firstTrimmedFastq,
                         $secondTrimmedFastq,
                         $inputType,
-                        $transcriptome,
+                        $this->getTranscriptome(),
                         $threads
                     );
                     $count = false;
@@ -216,7 +239,7 @@ class LongRnaJobType extends AbstractJob
                     [$outputFile, $outputUrl, $harmonizedGeneFile, $harmonizedGeneUrl] = $this->runHTSEQ(
                         $this->model,
                         $countingInputFile,
-                        $annotation,
+                        $this->getGenomeAnnotation(),
                         $threads
                     );
                     break;
@@ -224,7 +247,7 @@ class LongRnaJobType extends AbstractJob
                     [$outputFile, $outputUrl, $harmonizedGeneFile, $harmonizedGeneUrl] = $this->runFeatureCount(
                         $this->model,
                         $countingInputFile,
-                        $annotation,
+                        $this->getGenomeAnnotation(),
                         $threads
                     );
                     break;
@@ -240,7 +263,7 @@ class LongRnaJobType extends AbstractJob
                         $this->model,
                         $paired,
                         $countingInputFile,
-                        $transcriptome,
+                        $this->getTranscriptome(),
                         $threads
                     );
                     break;

@@ -14,6 +14,8 @@ use App\Jobs\Types\Traits\ConvertsSamToBamTrait;
 use App\Jobs\Types\Traits\HandlesCompressedFastqTrait;
 use App\Jobs\Types\Traits\HasCommonParameters;
 use App\Jobs\Types\Traits\RunTrimGaloreTrait;
+use App\Jobs\Types\Traits\UseGenome;
+use App\Jobs\Types\Traits\UseGenomeAnnotation;
 use App\Models\Annotation;
 use App\Models\Job;
 use App\Models\Reference;
@@ -24,6 +26,7 @@ class CircRnaJobType extends AbstractJob
 {
 
     use HasCommonParameters, ConvertsBamToFastqTrait, RunTrimGaloreTrait, ConvertsSamToBamTrait, HandlesCompressedFastqTrait;
+    use UseGenome, UseGenomeAnnotation;
 
     /**
      * Returns an array containing for each input parameter an help detailing its content and use.
@@ -425,8 +428,6 @@ class CircRnaJobType extends AbstractJob
         $trimGaloreQuality = (int)$this->getParameter('trimGalore.quality', 20);
         $trimGaloreLength = (int)$this->getParameter('trimGalore.length', 40);
         $trimGaloreHardTrim = (bool)$this->getParameter('trimGalore.hardTrim', true);
-        $genomeName = $this->getParameter('genome', env('HUMAN_GENOME_NAME'));
-        $annotationName = $this->getParameter('annotation', env('HUMAN_CIRC_ANNOTATION_NAME'));
         $threads = (int)$this->getParameter('threads', 1);
         $ciriSpanningDistance = (int)$this->getParameter('ciriSpanningDistance', 200000);
         $useFastqPair = (bool)$this->getParameter('useFastqPair', false);
@@ -434,11 +435,6 @@ class CircRnaJobType extends AbstractJob
         $ciriQuant = (bool)$this->getParameter('ciriQuant', false);
         $bedAnnotationName = $this->getParameter('bedAnnotation', 'Human_hg19_circRNAs_bed');
         $bedAnnotation = Annotation::whereName($bedAnnotationName)->first();
-        $genome = Reference::whereName($genomeName)->firstOrFail();
-        $annotation = Annotation::whereName($annotationName)->firstOrFail();
-        if ($annotation->type !== 'gtf') {
-            throw new ProcessingJobException('You must select only GTF annotations');
-        }
         $ciriInputFile = null;
         if ($inputType === self::SAM && $ciriQuant) {
             $inputType = self::BAM;
@@ -479,7 +475,10 @@ class CircRnaJobType extends AbstractJob
                 throw new ProcessingJobException('No valid BED file specified.');
             }
             $this->log('Building CIRIquant config file');
-            $configFile = $this->makeQuantConfig($genome, $annotation);
+            $configFile = $this->makeQuantConfig(
+                $this->getGenome('HUMAN_GENOME_NAME'),
+                $this->getGenomeAnnotation('HUMAN_CIRC_ANNOTATION_NAME')
+            );
             $this->log('Starting CIRIquant analysis');
             [$circOutput, $circOutputUrl, $circHarmonized, $circHarmonizedUrl] = $this->runCIRIQuant(
                 $firstInputFile,
@@ -495,8 +494,8 @@ class CircRnaJobType extends AbstractJob
                     $paired,
                     $firstInputFile,
                     $secondInputFile,
-                    $genome,
-                    $annotation,
+                    $this->getGenome('HUMAN_GENOME_NAME'),
+                    $this->getGenomeAnnotation('HUMAN_CIRC_ANNOTATION_NAME'),
                     $threads,
                     $useFastqPair
                 );
@@ -534,8 +533,8 @@ class CircRnaJobType extends AbstractJob
             $this->log('Computing counts of CircRNA using CIRI.');
             [$circOutput, $circOutputUrl, $circHarmonized, $circHarmonizedUrl] = $this->runCIRI(
                 $ciriInputFile,
-                $genome,
-                $annotation,
+                $this->getGenome('HUMAN_GENOME_NAME'),
+                $this->getGenomeAnnotation('HUMAN_CIRC_ANNOTATION_NAME'),
                 $ciriSpanningDistance,
                 $threads,
                 $paired,
