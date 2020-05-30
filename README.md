@@ -76,7 +76,24 @@ sudo dpkg -i RNAdetector.deb
 - **RNAdetector** is installed! Now, you can find **RNAdetector** in your application list.
 
 # RNAdetector user guide
+RNAdetector allows users to perform several RNA-Seq data analysis by using our intuitive GUI. Users can select:
 
+- **Small RNA-Seq analysis** for the identification and quantification of ***miRNAs***, ***piRNAs***, ***tRFs***, and ***tsRNAs***.
+- **Long RNA-Seq analysis** for the identification and quatification of ***mRNAs***, ***lncRNAs***, and ***tUCR***.
+- **Circular RNA analysis** for identification and quantification of ***circRNAs***.
+
+Once one of the abovementioned analysis is performed, it is possibile to execute downstream analysis such as:
+
+- **Differential expression analysis** to compare difference in the expression profile of such RNA molecules between case vs control samples
+- **Pathway analysis** to execute a  miRNA-sensitive topological pathway analysis on the results obtained by the differential expression analysis. However, only the differentially expressed ***mRNAs*** and ***miRNAs*** can be analyzed.
+
+Here follow a description of how to perform each of the mentioned analyses. 
+
+## Small RNA-Seq analysis
+## Long RNA-Seq analysis
+## Circular RNA analysis
+## Differential expression analysis
+## Pathway analysis
 ## Cite us
 if you use ***RNAdetector*** cite:
 ## Contact us 
