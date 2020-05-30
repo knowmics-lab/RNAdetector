@@ -94,9 +94,9 @@ Here follow a description of how to perform each of the mentioned analyses.
 ## Circular RNA analysis
 ## Differential expression analysis
 ## Pathway analysis
-## Cite us
+# Cite us
 if you use ***RNAdetector*** cite:
-## Contact us 
+# Contact us 
 [Alessandro La Ferlita](https://www.researchgate.net/profile/Alessandro_La_Ferlita2) (alessandro.laferlita@unict.it)
 
 [Salvatore Alaimo](https://www.researchgate.net/profile/Salvatore_Alaimo) (alaimos@dmi.unict.it)
