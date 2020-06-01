@@ -87,7 +87,7 @@ Once one of the abovementioned analysis is performed, it is possibile to execute
 - **Differential expression analysis** to compare difference in the expression profile of such RNA molecules between case vs control samples
 - **Pathway analysis** to execute a  miRNA-sensitive topological pathway analysis on the results obtained by the differential expression analysis. However, only the differentially expressed ***mRNAs*** and ***miRNAs*** can be analyzed.
 
-Here follow a description of how to perform each of the mentioned analyses. 
+Here follow a description of how to perform each of the mentioned analysis. 
 
 ## Small RNA-Seq analysis
 ## Long RNA-Seq analysis
