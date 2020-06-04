@@ -20,6 +20,7 @@ import tus from 'tus-js-client';
 import fs from 'fs';
 import MenuBuilder from './menu';
 import { Settings, Docker } from './api';
+import { Dock } from "@material-ui/icons";
 
 export default class AppUpdater {
   constructor() {
@@ -125,6 +126,7 @@ app.on('ready', async () => {
   };
 
   mainWindow.on('close', e => {
+    if (!Docker.isRunning()) doQuit = true;
     if (Settings.isLocal() && Settings.isConfigured() && !doQuit) {
       e.preventDefault();
       if (Settings.autoStopDockerOnClose()) {
@@ -134,7 +136,7 @@ app.on('ready', async () => {
           mainWindow,
           {
             // title: 'Close docker',
-            message: 'Do you wish to close docker?',
+            message: 'Do you wish to stop the docker container?',
             buttons: ['&Yes', '&No'],
             cancelId: 1,
             type: 'question',
@@ -147,8 +149,12 @@ app.on('ready', async () => {
               Settings.setAutoStopDockerOnClose();
             }
             if (response === 0) {
-              if (mainWindow)
-                mainWindow.webContents.send('waiting-docker-close');
+              if (mainWindow) {
+                mainWindow.webContents.send('on-display-blocking-message', {
+                  message: 'Waiting for container to stop',
+                  error: false
+                });
+              }
               stopDockerAndQuit();
             } else {
               doQuit = true;
@@ -167,6 +173,18 @@ app.on('ready', async () => {
 
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();
+
+  ipcMain.on('display-blocking-message', (event, args) => {
+    if (mainWindow) {
+      mainWindow.webContents.send('on-display-blocking-message', args);
+    }
+  });
+
+  ipcMain.on('hide-blocking-message', () => {
+    if (mainWindow) {
+      mainWindow.webContents.send('on-hide-blocking-message');
+    }
+  });
 
   ipcMain.on('download-file', async (event, { id, url, filename }) => {
     const win = BrowserWindow.getFocusedWindow();

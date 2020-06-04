@@ -1,6 +1,5 @@
 // @flow
 import React, { Component } from 'react';
-import { Typography } from '@material-ui/core';
 import TextInfoContent from '@mui-treasury/components/content/textInfo';
 
 type Props = {};

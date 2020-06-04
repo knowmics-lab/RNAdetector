@@ -7,6 +7,7 @@ import Utils from './utils';
 import Settings from './settings';
 import type { ConfigObjectType } from '../types/settings';
 import type { Package } from '../types/local';
+import TimeoutError from '../errors/TimeoutError';
 
 export const DOCKER_IMAGE_NAME = 'alaimos/rnadetector:v0.0.2';
 
@@ -41,6 +42,12 @@ export class DockerPullStatus {
     }
   }
 
+  isUpToDate() {
+    return (
+      this.outputArray.filter(s => s.includes('Image is up to date')).length > 0
+    );
+  }
+
   toString() {
     return this.outputArray.join('\n');
   }
@@ -55,9 +62,13 @@ export class DockerManager {
 
   constructor(config: ConfigObjectType) {
     this.config = config;
+    this.initClient();
+  }
+
+  initClient() {
     let socket;
-    if (config.socketPath) {
-      socket = config.socketPath;
+    if (this.config.socketPath) {
+      socket = this.config.socketPath;
     } else if (is.windows) {
       socket = '//./pipe/docker_engine';
     } else {
@@ -66,6 +77,7 @@ export class DockerManager {
     this.client = new Client({
       socketPath: socket
     });
+    this.container = undefined;
   }
 
   static liveDemuxStream(
@@ -164,19 +176,29 @@ export class DockerManager {
     return `${this.getDbDirectory()}/ready`;
   }
 
-  async waitContainerBooted() {
-    await Utils.waitExists(this.getDbDirectory());
-    await Utils.waitExists(this.getDbReadyFile());
-    await Utils.waitExists(this.getBootedFile());
+  async waitContainerBooted(timeout: number = 0) {
+    await Utils.waitExists(this.getDbDirectory(), timeout);
+    await Utils.waitExists(this.getDbReadyFile(), timeout);
+    await Utils.waitExists(this.getBootedFile(), timeout);
   }
 
   async cleanupBootedFile() {
     await fs.remove(this.getBootedFile());
   }
 
-  async checkContainerStatus() {
+  async checkContainerStatus(): Promise<string> {
     try {
-      const inspect = await this.getContainer().inspect();
+      let inspect = null;
+      while (inspect === null) {
+        // eslint-disable-next-line no-await-in-loop
+        inspect = await Promise.race([
+          this.getContainer().inspect(),
+          new Promise(resolve => {
+            setTimeout(() => resolve(null), 500);
+          })
+        ]);
+      }
+      // const inspect = await this.getContainer().inspect();
       return inspect.State.Status;
     } catch (e) {
       if (e.statusCode && e.statusCode === 404) {
@@ -184,6 +206,11 @@ export class DockerManager {
       }
       throw e;
     }
+  }
+
+  async isRunning() {
+    const status = await this.checkContainerStatus();
+    return status === 'running';
   }
 
   getContainer() {
@@ -243,7 +270,45 @@ export class DockerManager {
     }
   }
 
-  async startContainer() {
+  async startupSequence(
+    showMessage: (string, boolean) => void,
+    timeout: number = 120000
+  ) {
+    if (this.config.local) {
+      showMessage(
+        'Checking for updates...Checking internet connection...',
+        false
+      );
+      if (await Utils.isOnline()) {
+        showMessage(
+          'Checking for updates...Checking for newer docker image...',
+          false
+        );
+        try {
+          const res = await this.pullImage();
+          if (!res.isUpToDate()) {
+            await this.removeContainer();
+          }
+        } catch (e) {
+          showMessage(e.message, true);
+        }
+      }
+    }
+    try {
+      showMessage('Starting docker container...', false);
+      await this.startContainer(timeout);
+    } catch (e) {
+      if (e instanceof TimeoutError) {
+        showMessage('Container is not starting...Retrying...', true);
+        await this.removeContainer();
+        await this.startContainer(timeout * 2);
+      } else {
+        throw e;
+      }
+    }
+  }
+
+  async startContainer(timeout: number = 0) {
     const status = await this.checkContainerStatus();
     if (status === 'not found') return this.createContainer();
     if (status === 'exited' || status === 'created') {
@@ -251,8 +316,12 @@ export class DockerManager {
       const container = this.getContainer();
       // noinspection ES6MissingAwait
       container.start();
+      const maxCount = Math.round(timeout / 500);
+      let count = 0;
       return new Promise((resolve, reject) => {
-        const timer = setInterval(async () => {
+        let timer;
+        const fnTimer = async () => {
+          count += 1;
           const currentStatus = await this.checkContainerStatus();
           if (currentStatus !== 'exited' && currentStatus !== 'created') {
             clearInterval(timer);
@@ -263,14 +332,38 @@ export class DockerManager {
                 )
               );
             }
-            try {
-              await this.waitContainerBooted();
-              resolve();
-            } catch (e) {
-              reject(e);
+            let continueWaiting = true;
+            while (continueWaiting) {
+              try {
+                // eslint-disable-next-line no-await-in-loop
+                await this.waitContainerBooted(200);
+                continueWaiting = false;
+                resolve();
+              } catch (e) {
+                if (e instanceof TimeoutError) {
+                  // eslint-disable-next-line no-await-in-loop
+                  if (!(await this.isRunning())) {
+                    count += 2;
+                    timer = setInterval(fnTimer, 500);
+                    break;
+                  }
+                } else {
+                  continueWaiting = false;
+                  reject(e);
+                }
+              }
             }
           }
-        }, 500);
+          if (timeout > 0 && count > maxCount) {
+            clearInterval(timer);
+            reject(
+              new TimeoutError(
+                `Unable to start the container: operation timed out.`
+              )
+            );
+          }
+        };
+        timer = setInterval(fnTimer, 500);
       });
     }
   }
@@ -398,11 +491,14 @@ export class DockerManager {
   }
 
   async clearQueue(): Promise<*> {
-    return this.execDockerCommand(
-      ['php', '/rnadetector/ws/artisan', 'queue:clear'],
-      1000,
-      false
-    );
+    const status = await this.checkContainerStatus();
+    if (status === 'running') {
+      return this.execDockerCommand(
+        ['php', '/rnadetector/ws/artisan', 'queue:clear'],
+        1000,
+        false
+      );
+    }
   }
 
   installPackage(
@@ -431,8 +527,8 @@ export class DockerManager {
             else resolve(status);
           };
           const onProgress = event => {
+            status.pushEvent(event);
             if (outputCallback) {
-              status.pushEvent(event);
               outputCallback(status);
             }
           };

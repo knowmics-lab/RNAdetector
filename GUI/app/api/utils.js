@@ -5,6 +5,7 @@ import os from 'os';
 import checkInternetConnection from 'check-internet-connected';
 import type { FileFilter } from '../types/common';
 import type { AnalysisFileTypes } from '../types/analysis';
+import TimeoutError from '../errors/TimeoutError';
 
 let watcher = null;
 
@@ -63,7 +64,9 @@ export default {
       if (timeout > 0) {
         timer = setTimeout(() => {
           closeWatcher();
-          reject(new Error(`Unable to find ${filePath}. Operation timed out`));
+          reject(
+            new TimeoutError(`Unable to find ${filePath}. Operation timed out`)
+          );
         }, timeout);
       }
 

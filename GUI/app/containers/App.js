@@ -11,7 +11,7 @@ import MenuIcon from '@material-ui/icons/Menu';
 import IconButton from '@material-ui/core/IconButton';
 import DrawerContent from '../components/Layout/DrawerContent';
 import NotificationsList from '../components/Layout/Notifications';
-import CloseHandler from '../components/Layout/CloseHandler';
+import BlockingMessageHandler from '../components/Layout/BlockingMessageHandler';
 import StartHandler from '../components/Layout/StartHandler';
 
 const drawerWidth = 260;
@@ -133,7 +133,7 @@ export default function App({ children }: Props) {
         <div className={classes.toolbar} />
         {children}
         <NotificationsList />
-        <CloseHandler />
+        <BlockingMessageHandler />
       </main>
     </div>
   );
