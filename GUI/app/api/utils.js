@@ -47,6 +47,18 @@ export default {
   toArray(list: *) {
     return Array.prototype.slice.call(list || [], 0);
   },
+  async promiseTimeout<T>(p: Promise<T>, timeout: number = 0): Promise<T> {
+    if (timeout === 0) return p;
+    return Promise.race([
+      p,
+      new Promise((resolve, reject) => {
+        setTimeout(
+          () => reject(new TimeoutError('Operation timed out')),
+          timeout
+        );
+      })
+    ]);
+  },
   async waitExists(filePath: string, timeout: number = 0): Promise<*> {
     return new Promise((resolve, reject) => {
       let timer = null;

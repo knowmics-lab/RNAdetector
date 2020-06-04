@@ -301,7 +301,7 @@ export class DockerManager {
       if (e instanceof TimeoutError) {
         showMessage('Container is not starting...Retrying...', true);
         await this.removeContainer();
-        await this.startContainer(timeout * 2);
+        await this.startContainer(timeout);
       } else {
         throw e;
       }
@@ -314,10 +314,36 @@ export class DockerManager {
     if (status === 'exited' || status === 'created') {
       await this.cleanupBootedFile();
       const container = this.getContainer();
-      // noinspection ES6MissingAwait
       container.start();
       const maxCount = Math.round(timeout / 500);
       let count = 0;
+      // let timer;
+      // await Utils.promiseTimeout(
+      //   new Promise((resolve, reject) => {
+      //     const fnTimer = async () => {
+      //       const currentStatus = await this.checkContainerStatus();
+      //       if (currentStatus !== 'exited' && currentStatus !== 'created') {
+      //         clearInterval(timer);
+      //         if (currentStatus !== 'running') {
+      //           reject(
+      //             new Error(
+      //               `Unable to start the container ${this.config.containerName}. Start it manually`
+      //             )
+      //           );
+      //         }
+      //         try {
+      //           await this.waitContainerBooted();
+      //           return resolve();
+      //         } catch (e) {
+      //           reject(e);
+      //         }
+      //       }
+      //     };
+      //     timer = setInterval(fnTimer, 500);
+      //   }),
+      //   timeout
+      // );
+      // if (timer) clearInterval(timer);
       return new Promise((resolve, reject) => {
         let timer;
         const fnTimer = async () => {
