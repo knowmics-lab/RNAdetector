@@ -47,6 +47,27 @@ export default {
   toArray(list: *) {
     return Array.prototype.slice.call(list || [], 0);
   },
+  async retryFunction<T>(
+    f: number => Promise<T>,
+    timeout: number = 0,
+    maxTries: number = 3
+  ): Promise<T> {
+    const realMaxTries = Math.max(1, maxTries);
+    // eslint-disable-next-line no-plusplus
+    for (let t = 0; t < realMaxTries; t++) {
+      try {
+        // eslint-disable-next-line no-await-in-loop
+        return await this.promiseTimeout(f(t), timeout);
+      } catch (e) {
+        if (!(e instanceof TimeoutError)) {
+          throw e;
+        }
+      }
+    }
+    throw new TimeoutError(
+      'Operation timed out too many times. No other attempt will be made.'
+    );
+  },
   async promiseTimeout<T>(p: Promise<T>, timeout: number = 0): Promise<T> {
     if (timeout === 0) return p;
     return Promise.race([

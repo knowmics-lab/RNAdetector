@@ -187,25 +187,24 @@ export class DockerManager {
   }
 
   async checkContainerStatus(): Promise<string> {
-    try {
-      let inspect = null;
-      while (inspect === null) {
+    let inspect = null;
+    while (inspect === null) {
+      try {
         // eslint-disable-next-line no-await-in-loop
-        inspect = await Promise.race([
+        inspect = await Utils.promiseTimeout(
           this.getContainer().inspect(),
-          new Promise(resolve => {
-            setTimeout(() => resolve(null), 500);
-          })
-        ]);
+          500
+        );
+      } catch (e) {
+        if (!(e instanceof TimeoutError)) {
+          if (e.statusCode && e.statusCode === 404) {
+            return 'not found';
+          }
+          throw e;
+        }
       }
-      // const inspect = await this.getContainer().inspect();
-      return inspect.State.Status;
-    } catch (e) {
-      if (e.statusCode && e.statusCode === 404) {
-        return 'not found';
-      }
-      throw e;
     }
+    return inspect.State.Status;
   }
 
   async isRunning() {
@@ -272,7 +271,9 @@ export class DockerManager {
 
   async startupSequence(
     showMessage: (string, boolean) => void,
-    timeout: number = 120000
+    displayLog: ?(string) => void,
+    timeout: number = 120000,
+    maxTries: number = 3
   ) {
     if (this.config.local) {
       showMessage(
@@ -285,7 +286,10 @@ export class DockerManager {
           false
         );
         try {
-          const res = await this.pullImage();
+          const displayStatus = displayLog
+            ? status => displayLog(status.toString())
+            : undefined;
+          const res = await this.pullImage(displayStatus);
           if (!res.isUpToDate()) {
             await this.removeContainer();
           }
@@ -295,98 +299,56 @@ export class DockerManager {
       }
     }
     try {
-      showMessage('Starting docker container...', false);
-      await this.startContainer(timeout);
+      await Utils.retryFunction(
+        async (t: number) => {
+          const first = t === 0;
+          const odd = t % 2 > 0;
+          showMessage(
+            first
+              ? 'Starting docker container...'
+              : `Container is not starting...Attempt ${t +
+                  1} of ${maxTries}...`,
+            !first
+          );
+          if (odd) {
+            await this.removeContainer();
+          }
+          return this.startContainer();
+        },
+        timeout,
+        maxTries
+      );
     } catch (e) {
       if (e instanceof TimeoutError) {
-        showMessage('Container is not starting...Retrying...', true);
-        await this.removeContainer();
-        await this.startContainer(timeout);
+        throw new Error(
+          `Unable to start the container ${this.config.containerName}. Start it manually`
+        );
       } else {
         throw e;
       }
     }
   }
 
-  async startContainer(timeout: number = 0) {
+  async startContainer() {
+    // timeout: number = 0) {
     const status = await this.checkContainerStatus();
     if (status === 'not found') return this.createContainer();
     if (status === 'exited' || status === 'created') {
       await this.cleanupBootedFile();
       const container = this.getContainer();
       container.start();
-      const maxCount = Math.round(timeout / 500);
-      let count = 0;
-      // let timer;
-      // await Utils.promiseTimeout(
-      //   new Promise((resolve, reject) => {
-      //     const fnTimer = async () => {
-      //       const currentStatus = await this.checkContainerStatus();
-      //       if (currentStatus !== 'exited' && currentStatus !== 'created') {
-      //         clearInterval(timer);
-      //         if (currentStatus !== 'running') {
-      //           reject(
-      //             new Error(
-      //               `Unable to start the container ${this.config.containerName}. Start it manually`
-      //             )
-      //           );
-      //         }
-      //         try {
-      //           await this.waitContainerBooted();
-      //           return resolve();
-      //         } catch (e) {
-      //           reject(e);
-      //         }
-      //       }
-      //     };
-      //     timer = setInterval(fnTimer, 500);
-      //   }),
-      //   timeout
-      // );
-      // if (timer) clearInterval(timer);
       return new Promise((resolve, reject) => {
         let timer;
         const fnTimer = async () => {
-          count += 1;
           const currentStatus = await this.checkContainerStatus();
-          if (currentStatus !== 'exited' && currentStatus !== 'created') {
-            clearInterval(timer);
-            if (currentStatus !== 'running') {
-              reject(
-                new Error(
-                  `Unable to start the container ${this.config.containerName}. Start it manually`
-                )
-              );
+          if (currentStatus === 'running') {
+            timer = clearInterval(timer);
+            try {
+              await this.waitContainerBooted();
+              return resolve();
+            } catch (e) {
+              return reject(e);
             }
-            let continueWaiting = true;
-            while (continueWaiting) {
-              try {
-                // eslint-disable-next-line no-await-in-loop
-                await this.waitContainerBooted(200);
-                continueWaiting = false;
-                resolve();
-              } catch (e) {
-                if (e instanceof TimeoutError) {
-                  // eslint-disable-next-line no-await-in-loop
-                  if (!(await this.isRunning())) {
-                    count += 2;
-                    timer = setInterval(fnTimer, 500);
-                    break;
-                  }
-                } else {
-                  continueWaiting = false;
-                  reject(e);
-                }
-              }
-            }
-          }
-          if (timeout > 0 && count > maxCount) {
-            clearInterval(timer);
-            reject(
-              new TimeoutError(
-                `Unable to start the container: operation timed out.`
-              )
-            );
           }
         };
         timer = setInterval(fnTimer, 500);

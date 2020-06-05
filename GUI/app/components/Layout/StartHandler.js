@@ -13,7 +13,8 @@ export default function StartHandler() {
             message,
             error
           });
-        Api.Docker.startupSequence(sendMessage)
+        const showLog = log => ipcRenderer.send('blocking-message-log', log);
+        Api.Docker.startupSequence(sendMessage, showLog)
           // eslint-disable-next-line promise/always-return
           .then(() => ipcRenderer.send('hide-blocking-message'))
           .catch(e => sendMessage(e.message, true));

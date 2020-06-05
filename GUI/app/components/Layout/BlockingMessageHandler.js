@@ -22,6 +22,7 @@ export default function CloseHandler() {
   const classes = useStyles();
   const [state, setState] = React.useState({
     message: '',
+    log: null,
     error: false,
     waiting: false
   });
@@ -30,13 +31,22 @@ export default function CloseHandler() {
     setState({
       message,
       error,
+      log: null,
       waiting: true
     })
+  );
+
+  ipcRenderer.on('on-blocking-message-log', (evt, log) =>
+    setState(prevState => ({
+      ...prevState,
+      log
+    }))
   );
 
   ipcRenderer.on('on-hide-blocking-message', () =>
     setState({
       message: '',
+      log: null,
       error: false,
       waiting: false
     })
@@ -59,6 +69,7 @@ export default function CloseHandler() {
             >
               {state.message}
             </Typography>
+            {state.log && <pre>{state.log}</pre>}
           </Grid>
         </Paper>
       </Backdrop>

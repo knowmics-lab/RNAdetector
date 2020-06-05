@@ -18,9 +18,9 @@ import log from 'electron-log';
 import { download } from 'electron-dl';
 import tus from 'tus-js-client';
 import fs from 'fs';
+import { Dock } from '@material-ui/icons';
 import MenuBuilder from './menu';
 import { Settings, Docker } from './api';
-import { Dock } from "@material-ui/icons";
 
 export default class AppUpdater {
   constructor() {
@@ -126,44 +126,45 @@ app.on('ready', async () => {
   };
 
   mainWindow.on('close', e => {
-    if (!Docker.isRunning()) doQuit = true;
     if (Settings.isLocal() && Settings.isConfigured() && !doQuit) {
       e.preventDefault();
-      if (Settings.autoStopDockerOnClose()) {
-        stopDockerAndQuit();
-      } else {
-        dialog.showMessageBox(
-          mainWindow,
-          {
-            // title: 'Close docker',
-            message: 'Do you wish to stop the docker container?',
-            buttons: ['&Yes', '&No'],
-            cancelId: 1,
-            type: 'question',
-            checkboxLabel: 'Close without asking again?',
-            checkboxChecked: Settings.autoStopDockerOnClose(),
-            normalizeAccessKeys: true
-          },
-          (response, checkboxChecked) => {
-            if (checkboxChecked) {
-              Settings.setAutoStopDockerOnClose();
-            }
-            if (response === 0) {
-              if (mainWindow) {
-                mainWindow.webContents.send('on-display-blocking-message', {
-                  message: 'Waiting for container to stop',
-                  error: false
-                });
+      Docker.isRunning().then(isRunning => {
+        if (!isRunning) {
+          quitNow();
+        } else if (Settings.autoStopDockerOnClose()) {
+          stopDockerAndQuit();
+        } else {
+          dialog.showMessageBox(
+            mainWindow,
+            {
+              // title: 'Close docker',
+              message: 'Do you wish to stop the docker container?',
+              buttons: ['&Yes', '&No'],
+              cancelId: 1,
+              type: 'question',
+              checkboxLabel: 'Close without asking again?',
+              checkboxChecked: Settings.autoStopDockerOnClose(),
+              normalizeAccessKeys: true
+            },
+            (response, checkboxChecked) => {
+              if (checkboxChecked) {
+                Settings.setAutoStopDockerOnClose();
               }
-              stopDockerAndQuit();
-            } else {
-              doQuit = true;
-              if (mainWindow) mainWindow.close();
-              quitNow();
+              if (response === 0) {
+                if (mainWindow) {
+                  mainWindow.webContents.send('on-display-blocking-message', {
+                    message: 'Waiting for container to stop',
+                    error: false
+                  });
+                }
+                stopDockerAndQuit();
+              } else {
+                quitNow();
+              }
             }
-          }
-        );
-      }
+          );
+        }
+      });
     }
   });
 
@@ -177,6 +178,12 @@ app.on('ready', async () => {
   ipcMain.on('display-blocking-message', (event, args) => {
     if (mainWindow) {
       mainWindow.webContents.send('on-display-blocking-message', args);
+    }
+  });
+
+  ipcMain.on('blocking-message-log', (event, args) => {
+    if (mainWindow) {
+      mainWindow.webContents.send('on-blocking-message-log', args);
     }
   });
 
