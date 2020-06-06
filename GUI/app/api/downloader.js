@@ -7,6 +7,7 @@ const registeredOnStart = new Map();
 const registeredOnCompleted = new Map();
 
 if (is.renderer) {
+  ipcRenderer.removeAllListeners('download-started');
   ipcRenderer.on('download-started', (event, { id }) => {
     if (registeredOnStart.has(id)) {
       const onStart = registeredOnStart.get(id);
@@ -15,6 +16,7 @@ if (is.renderer) {
       }
     }
   });
+  ipcRenderer.removeAllListeners('download-completed');
   ipcRenderer.on('download-completed', (event, { id }) => {
     if (registeredOnCompleted.has(id)) {
       const onCompleted = registeredOnCompleted.get(id);
