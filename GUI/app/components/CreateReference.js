@@ -14,7 +14,7 @@ import * as Yup from 'yup';
 import Breadcrumbs from '@material-ui/core/Breadcrumbs';
 import Link from '@material-ui/core/Link';
 import * as Api from '../api';
-import { JOBS, REFERENCES } from '../constants/routes';
+import { JOBS, REFERENCES } from '../constants/routes.json';
 import SelectField from './Form/SelectField';
 import TextField from './Form/TextField';
 import Wizard from './UI/Wizard';

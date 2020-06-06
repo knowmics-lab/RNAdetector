@@ -3,6 +3,7 @@
 import fs from 'fs-extra';
 import { is } from 'electron-util';
 import Client from 'dockerode';
+import { Promise } from 'bluebird';
 import Utils from './utils';
 import Settings from './settings';
 import type { ConfigObjectType } from '../types/settings';
@@ -276,21 +277,29 @@ export class DockerManager {
     maxTries: number = 3
   ) {
     if (this.config.local) {
-      showMessage(
-        'Checking for updates...Checking internet connection...',
-        false
-      );
-      if (await Utils.isOnline()) {
-        showMessage(
-          'Checking for updates...Checking for newer docker image...',
-          false
-        );
+      showMessage('Checking internet connection...', false);
+      if (!(await this.isRunning()) && (await Utils.isOnline())) {
+        showMessage('Checking for container updates...', false);
         try {
+          let status = null;
+          let timer;
           const displayStatus = displayLog
-            ? status => displayLog(status.toString())
+            ? ns => {
+                status = ns;
+              }
             : undefined;
+          if (displayLog) {
+            timer = setInterval(() => {
+              if (status) displayLog(status.toString());
+              status = null;
+            }, 500);
+          }
           const res = await this.pullImage(displayStatus);
+          if (displayLog && timer) {
+            clearInterval(timer);
+          }
           if (!res.isUpToDate()) {
+            showMessage('Update found...removing old container...', false);
             await this.removeContainer();
           }
         } catch (e) {
@@ -374,11 +383,13 @@ export class DockerManager {
     if (status === 'running') {
       await this.stopContainer();
     }
-    const container = this.getContainer();
-    if (container) {
-      await container.remove();
-    } else {
-      throw new Error('Unable to find container');
+    if (status !== 'not found') {
+      const container = this.getContainer();
+      if (container) {
+        await container.remove();
+      } else {
+        throw new Error('Unable to find container');
+      }
     }
   }
 

@@ -113,19 +113,21 @@ app.on('ready', async () => {
     Docker.clearQueue().then(() => {
       Docker.stopContainer()
         .then(() => {
-          console.log('Docker container has been stopped! Quitting!');
+          console.log('Docker container has been stopped!');
         })
         .catch(ex => {
           console.log('Docker container cannot be stopped! Stop it manually!');
           console.log(ex);
         })
         .finally(() => {
+          console.log('Quitting!');
           quitNow();
         });
     });
   };
 
   mainWindow.on('close', e => {
+    if (doQuit) return;
     if (Settings.isLocal() && Settings.isConfigured() && !doQuit) {
       e.preventDefault();
       Docker.isRunning().then(isRunning => {
@@ -134,19 +136,18 @@ app.on('ready', async () => {
         } else if (Settings.autoStopDockerOnClose()) {
           stopDockerAndQuit();
         } else {
-          dialog.showMessageBox(
-            mainWindow,
-            {
+          dialog
+            .showMessageBox(mainWindow, {
               // title: 'Close docker',
               message: 'Do you wish to stop the docker container?',
-              buttons: ['&Yes', '&No'],
-              cancelId: 1,
+              buttons: ['&Yes', '&No', '&Cancel'],
+              cancelId: 2,
               type: 'question',
               checkboxLabel: 'Close without asking again?',
               checkboxChecked: Settings.autoStopDockerOnClose(),
               normalizeAccessKeys: true
-            },
-            (response, checkboxChecked) => {
+            })
+            .then(({ response, checkboxChecked }) => {
               if (checkboxChecked) {
                 Settings.setAutoStopDockerOnClose();
               }
@@ -156,13 +157,14 @@ app.on('ready', async () => {
                     message: 'Waiting for container to stop',
                     error: false
                   });
+                  stopDockerAndQuit();
+                } else {
+                  quitNow();
                 }
-                stopDockerAndQuit();
-              } else {
+              } else if (response === 1) {
                 quitNow();
               }
-            }
-          );
+            });
         }
       });
     }
@@ -178,6 +180,7 @@ app.on('ready', async () => {
   ipcMain.on('display-blocking-message', (event, args) => {
     if (mainWindow) {
       mainWindow.webContents.send('on-display-blocking-message', args);
+      mainWindow.webContents.send('on-blocking-message-log', '');
     }
   });
 

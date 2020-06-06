@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import checkInternetConnection from 'check-internet-connected';
+import { Promise } from 'bluebird';
 import type { FileFilter } from '../types/common';
 import type { AnalysisFileTypes } from '../types/analysis';
 import TimeoutError from '../errors/TimeoutError';
