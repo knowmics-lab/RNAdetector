@@ -22,17 +22,17 @@ trait HandlesCompressedFastqTrait
      * Checks if a FASTQ file is compressed and extracts its content
      *
      * @param \App\Models\Job $model
-     * @param string          $fastqFile
+     * @param string|null     $fastqFile
      *
-     * @return string
+     * @return string|null
      * @throws \App\Exceptions\ProcessingJobException
      */
     private static function checksForCompression(
         Job $model,
         ?string $fastqFile
-    ): string {
+    ): ?string {
         if ($fastqFile === null) {
-            return $fastqFile;
+            return null;
         }
         try {
             AbstractJob::runCommand(

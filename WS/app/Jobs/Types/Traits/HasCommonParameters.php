@@ -52,6 +52,7 @@ trait HasCommonParameters
             'paired'             => ['filled', 'boolean'],
             'firstInputFile'     => ['required', 'string'],
             'secondInputFile'    => [
+                'filled',
                 Rule::requiredIf(
                     static function () use ($parameters) {
                         return $parameters['inputType'] === self::FASTQ && ((bool)($parameters['paired'] ?? false)) === true;
