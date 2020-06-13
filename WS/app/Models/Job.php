@@ -217,14 +217,11 @@ class Job extends Model
                     }
                     $arr = array_filter(explode("\r", $line));
                     $n = count($arr);
-                    if ($n === 0) {
-                        return '';
-                    }
-                    if ($n === 1) {
-                        return $arr[0];
+                    if ($n > 0) {
+                        return last($arr);
                     }
 
-                    return $arr[$n - 1];
+                    return '';
                 },
                 $aLines
             )
