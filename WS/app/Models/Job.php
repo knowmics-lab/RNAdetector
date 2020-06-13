@@ -212,6 +212,7 @@ class Job extends Model
             "\n",
             array_map(
                 static function ($line) {
+                    $line = preg_replace('/\033\[([0-9;]+)m/i', '', $line);
                     if (strpos($line, "\r") === false) {
                         return $line;
                     }
