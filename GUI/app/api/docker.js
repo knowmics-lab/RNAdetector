@@ -3,7 +3,6 @@
 import fs from 'fs-extra';
 import { is } from 'electron-util';
 import Client from 'dockerode';
-import { Promise } from 'bluebird';
 import Utils from './utils';
 import Settings from './settings';
 import type { ConfigObjectType } from '../types/settings';
@@ -270,7 +269,7 @@ export class DockerManager {
     }
   }
 
-  async startupSequence(
+  async checkForUpdates(
     showMessage: (string, boolean) => void,
     displayLog: ?(string) => void,
     timeout: number = 120000,
@@ -299,14 +298,41 @@ export class DockerManager {
             clearInterval(timer);
           }
           if (!res.isUpToDate()) {
-            showMessage('Update found...removing old container...', false);
-            await this.removeContainer();
+            await Utils.retryFunction(
+              async (t: number) => {
+                const first = t === 0;
+                showMessage(
+                  `Update found...removing old container...${
+                    first ? '' : `Attempt ${t + 1} of ${maxTries}...`
+                  }`,
+                  !first
+                );
+                await this.removeContainer();
+              },
+              timeout,
+              maxTries
+            );
           }
         } catch (e) {
-          showMessage(e.message, true);
+          if (e instanceof TimeoutError) {
+            throw new Error(
+              `Unable to update the container ${this.config.containerName}. Update it manually`
+            );
+          } else {
+            throw e;
+          }
         }
       }
     }
+  }
+
+  async startupSequence(
+    showMessage: (string, boolean) => void,
+    displayLog: ?(string) => void,
+    timeout: number = 120000,
+    maxTries: number = 3
+  ) {
+    await this.checkForUpdates(showMessage, displayLog, timeout, maxTries);
     try {
       await Utils.retryFunction(
         async (t: number) => {
@@ -339,7 +365,6 @@ export class DockerManager {
   }
 
   async startContainer() {
-    // timeout: number = 0) {
     const status = await this.checkContainerStatus();
     if (status === 'not found') return this.createContainer();
     if (status === 'exited' || status === 'created') {
