@@ -7,6 +7,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -21,16 +22,16 @@ use RecursiveIteratorIterator;
  * @property array                           $available_for
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Reference newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Reference newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Reference query()
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Reference whereAvailableFor($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Reference whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Reference whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Reference whereName($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Reference wherePath($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Reference whereMapPath($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Reference whereUpdatedAt($value)
+ * @method static Builder|Reference newModelQuery()
+ * @method static Builder|Reference newQuery()
+ * @method static Builder|Reference query()
+ * @method static Builder|Reference whereAvailableFor($value)
+ * @method static Builder|Reference whereCreatedAt($value)
+ * @method static Builder|Reference whereId($value)
+ * @method static Builder|Reference whereName($value)
+ * @method static Builder|Reference wherePath($value)
+ * @method static Builder|Reference whereMapPath($value)
+ * @method static Builder|Reference whereUpdatedAt($value)
  * @mixin \Eloquent
  */
 class Reference extends Model

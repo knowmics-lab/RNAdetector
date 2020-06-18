@@ -27,6 +27,34 @@ class ListPackages extends Command
      */
     protected $description = 'List all packages available in the main repository';
 
+    private static function isPackageInstalled(string $name): bool
+    {
+        $referenceDir = env('REFERENCES_PATH') . '/' . $name;
+
+        return file_exists($referenceDir) && is_dir($referenceDir) && file_exists($referenceDir . '/.installed');
+    }
+
+    /**
+     * Filter packages removing installed ones
+     *
+     * @param array $packages
+     *
+     * @return array
+     */
+    public static function filterPackages(array $packages): array
+    {
+        if (isset($packages['packages'])) {
+            $packages['packages'] = array_filter(
+                $packages['packages'],
+                static function ($pkg) {
+                    return !self::isPackageInstalled($pkg['name']);
+                }
+            );
+        }
+
+        return $packages;
+    }
+
     /**
      * Fetch available packages from the repository URL
      *
@@ -37,13 +65,12 @@ class ListPackages extends Command
         $key = 'repo-packages';
         $url = 'https://rnadetector.atlas.dmi.unict.it/repo/packages.json';
         if (Cache::has($key)) {
-            return Cache::get($key);
+            return self::filterPackages(Cache::get($key));
         }
-
         $content = json_decode(file_get_contents($url), true);
         Cache::put($key, $content, 24 * 60 * 60); // store for 1 day
 
-        return $content;
+        return self::filterPackages($content);
     }
 
     /**

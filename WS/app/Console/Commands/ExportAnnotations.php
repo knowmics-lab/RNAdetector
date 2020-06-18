@@ -13,7 +13,7 @@ use App\Utils;
 use Illuminate\Console\Command;
 use Symfony\Component\Process\Process;
 
-class ExportReference extends Command
+class ExportAnnotations extends Command
 {
 
     /**
@@ -21,8 +21,8 @@ class ExportReference extends Command
      *
      * @var string
      */
-    protected $signature = 'reference:export
-                            {reference : The name of the reference sequence}
+    protected $signature = 'annotations:export
+                            {name : The name of the final package}
                             {--annotation=* : A list of annotation to include in the archive}
                             {--output-dir= : The output directory. It defaults to the current directory.}';
 
@@ -36,19 +36,16 @@ class ExportReference extends Command
     /**
      * Make config file
      *
-     * @param \App\Models\Reference $refModel
-     * @param Annotation[]          $annModel
-     * @param string                $baseDir
+     * @param Annotation[] $annModel
+     * @param string       $baseDir
      *
      * @return string
      */
-    private function makeConfigFile(Reference $refModel, array $annModel, string $baseDir): string
+    private function makeConfigFile(array $annModel, string $baseDir): string
     {
         $configFile = $baseDir . '/spec.json';
         $configContent = [
-            'noReference' => false,
-            'indexedFor'  => $refModel->available_for,
-            'mapFile'     => ($refModel->map_path !== null),
+            'noReference' => true,
             'annotations' => array_map(
                 static function (Annotation $model) {
                     return [
@@ -113,7 +110,7 @@ class ExportReference extends Command
      */
     public function handle()
     {
-        $reference = $this->argument('reference');
+        $name = $this->argument('name');
         $annotations = $this->option('annotation');
         $outputDir = $this->option('output-dir') ?? getcwd();
         if (!is_writable($outputDir)) {
@@ -121,22 +118,26 @@ class ExportReference extends Command
 
             return 1;
         }
-        $refModel = Reference::whereName($reference)->firstOrFail();
+        $referenceDirname = env('REFERENCES_PATH') . '/' . $name;
+        if (!file_exists($referenceDirname) && !mkdir($referenceDirname, 0777) && !is_dir($referenceDirname)) {
+            $this->warn(sprintf('Directory "%s" was not created', $referenceDirname));
+            return 3;
+        }
         $annModel = array_map(
             static function ($name) {
                 return Annotation::whereName($name)->firstOrFail();
             },
             $annotations
         );
-        $outputFile = $outputDir . '/' . $reference . '.tar.bz2';
-        $baseDir = realpath($refModel->basedir());
+        $outputFile = $outputDir . '/' . $name . '.tar.bz2';
+        $baseDir = realpath($referenceDirname);
         $installedFile = $baseDir . '/.installed';
         $hasInstalled = file_exists($installedFile);
         if ($hasInstalled) {
             @unlink($installedFile);
         }
         $this->info('Creating config file...');
-        $configFile = $this->makeConfigFile($refModel, $annModel, $baseDir);
+        $configFile = $this->makeConfigFile($annModel, $baseDir);
         if (!file_exists($configFile)) {
             $this->error('Unable to write configuration file.');
 

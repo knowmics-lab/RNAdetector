@@ -81,34 +81,39 @@ class ImportReference extends Command
 
         $config = json_decode(file_get_contents($configFile), true);
 
-        $indexedFor = (array)($config['indexedFor'] ?? []);
-        $mapFile = (bool)($config['mapFile'] ?? false);
-        $mapPath = null;
-        if ($mapFile) {
-            $realMapPath = realpath($genomePath . 'map_file.tsv');
-            if ($realMapPath !== false && file_exists($realMapPath)) {
-                $mapPath = $realMapPath;
+        $hasReference = !((bool)($config['noReference'] ?? false));
+        if ($hasReference) {
+            $indexedFor = (array)($config['indexedFor'] ?? []);
+            $mapFile = (bool)($config['mapFile'] ?? false);
+            $mapPath = null;
+            if ($mapFile) {
+                $realMapPath = realpath($genomePath . 'map_file.tsv');
+                if ($realMapPath !== false && file_exists($realMapPath)) {
+                    $mapPath = $realMapPath;
+                }
             }
+            Reference::create(
+                [
+                    'name'          => $name,
+                    'path'          => realpath($genomePath . 'reference.fa'),
+                    'available_for' => [
+                        'bwa'    => $indexedFor['bwa'] ?? false,
+                        'tophat' => $indexedFor['tophat'] ?? false,
+                        'salmon' => $indexedFor['salmon'] ?? false,
+                        'hisat'  => $indexedFor['hisat'] ?? false,
+                    ],
+                    'map_path'      => $mapPath,
+                ]
+            )->save();
         }
-        Reference::create(
-            [
-                'name'          => $name,
-                'path'          => realpath($genomePath . 'reference.fa'),
-                'available_for' => [
-                    'bwa'    => $indexedFor['bwa'] ?? false,
-                    'tophat' => $indexedFor['tophat'] ?? false,
-                    'salmon' => $indexedFor['salmon'] ?? false,
-                    'hisat'  => $indexedFor['hisat'] ?? false,
-                ],
-                'map_path'      => $mapPath,
-            ]
-        )->save();
+        $this->info('Reference sequence imported correctly!');
 
+        $this->info('Importing annotations...');
         $annotations = (array)($config['annotations'] ?? []);
         foreach ($annotations as $annotationSpec) {
             $annotation = $annotationSpec['name'];
             if (Annotation::whereName($annotation)->count() > 0) {
-                $this->error('Another reference sequence with this name already exists!');
+                $this->error('Another reference annotation with the name "' . $name . '" already exists!');
 
                 return 16;
             }
@@ -157,8 +162,8 @@ class ImportReference extends Command
                 ]
             )->save();
         }
+        $this->info('Annotations imported correctly!');
         @unlink($configFile);
-        $this->info('Reference sequence imported correctly!');
         @touch($genomePath . '/.installed');
         @chmod($genomePath . '/.installed', 0777);
 
