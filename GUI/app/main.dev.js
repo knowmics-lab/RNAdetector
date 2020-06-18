@@ -109,6 +109,12 @@ app.on('ready', async () => {
   };
 
   const stopDockerAndQuit = () => {
+    if (mainWindow) {
+      mainWindow.webContents.send('on-display-blocking-message', {
+        message: 'Waiting for container to stop',
+        error: false
+      });
+    }
     console.log('Waiting for docker container to stop');
     Docker.clearQueue().then(() => {
       Docker.stopContainer()
@@ -152,15 +158,7 @@ app.on('ready', async () => {
                 Settings.setAutoStopDockerOnClose();
               }
               if (response === 0) {
-                if (mainWindow) {
-                  mainWindow.webContents.send('on-display-blocking-message', {
-                    message: 'Waiting for container to stop',
-                    error: false
-                  });
-                  stopDockerAndQuit();
-                } else {
-                  quitNow();
-                }
+                stopDockerAndQuit();
               } else if (response === 1) {
                 quitNow();
               }
