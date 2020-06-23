@@ -29,7 +29,7 @@ In addition to mRNAs, ***RNAdetector*** can also analyze several classes of smal
 - Remotely controllable
 - Completely off line
 - Graphical User Interface (GUI)
-- Graphical reports with the results of the analyses
+- Graphical reports with the results of the analysis
 # RNAdetector installation 
 ## Installation on Windows Professional
 - Install **Docker Desktop** in your computer by downloading the installer at this link [Docker Desktop](https://hub.docker.com/editions/community/docker-ce-desktop-windows/)
@@ -92,16 +92,21 @@ Before proceeding with the analysis, users can download reference indexed genome
 Here follow a description of how to perform each of the above mentioned analysis. 
 
 ## Small RNA-Seq analysis
-This analysis allows the identification and quantification of ***miRNAs***, ***piRNAs***, ***tRFs***, and ***tsRNAs***. To start the analysis, click **Run Analysis** on the dashboard and then **SmallRNA Analysis**. After that, follow the indications step-by-step described on the interface. Four steps are required
+This analysis allows the identification and quantification of ***miRNAs***, ***piRNAs***, ***tRFs***, and ***tsRNAs***. To start the analysis, click **Run Analysis** on the dashboard and then **SmallRNA Analysis**. After that, follow the indications step-by-step described on the interface to start the analysis. Four steps are required
 1. **Choose type**. Here users have to indicate the *sample Code*, the *Analysis Name*, the *Input Type* (FASTQ, BAM,SAM), if reads are paired-end or single-end, and the *Number of threads* to be used for the analysis. Click **Next** to proceed with the next step.
 2. **Set pipeline preferences**. Accordingly with the type of the input files, here users can choose which steps will be included in the analysis such as *trimming*, *BAM/SAM to FASTQ conversion*, *alignment*, and *quantification*. If trimming is enabled, it is possible to indicate the minimum PHRED quality and the minimum reads length. For the alignment step users can choose among ***Salmon***, ***TopHat***, and ***HISAT 2***, while for the quantification ***Feature Counts***, ***HT-seq***, and ***Salmon*** are available. Once everything has been selected, click **Next** to proceed with the next step.
 3. **Select references**. If ***TopHat*** or ***HISAT 2*** have been selected for the alignment, at this step users have to select the reference indexed genome and genome annotation file while if ***Salmon*** has been selected, the reference transcriptome must be selected. In addition to the reference genome and transcriptome already available, it is also possible to add additional indexed genomes, transcriptome and annotation files by downloading them from our repository or uploading them from users' computer (read the above section). Once everything has been selected, click **Next** to proceed with the next step.
 4. **Upload file**. Here users can add samples to the analysis and upload their files. For each sample, users will be also able to input a custom *Sample Code*. If users are uploading multiple samples for a batch analysis, they can also upload a sample description file (in TSV format) that can be used for the differential expression analysis. Once the samples have been uploaded, click on the **Start Analysis** button to start the analysis.
 ## Long RNA-Seq analysis
-
+This analysis allows the identification and quantification of ***mRNAs***, ***lncRNAs***, and ***tUCR***. To start the analysis, click **Run Analysis** on the dashboard and then **LongRNA Analysis**. After that, follow the indications step-by-step described on the interface to start the analysis. Four steps are required
+1. **Choose type**.
+2. **Set pipeline preferences**.
+3. **Select references**.
+4. **Upload file**.
 ## Circular RNA analysis
 ## Differential expression analysis
 ## Pathway analysis
+## Final results
 # Cite us
 if you use ***RNAdetector*** cite:
 # Contact us 
