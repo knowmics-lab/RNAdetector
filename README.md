@@ -76,7 +76,7 @@ sudo dpkg -i RNAdetector.deb
 - **RNAdetector** is installed! Now, you can find **RNAdetector** in your application list.
 
 # RNAdetector user guide
-RNAdetector allows users to perform several RNA-Seq data analysis by using our intuitive GUI. Users can select:
+RNAdetector allows users to perform several RNA-Seq data analysis by using our intuitive GUI. Users can select from the dashboard:
 
 - **Small RNA-Seq analysis** for the identification and quantification of ***miRNAs***, ***piRNAs***, ***tRFs***, and ***tsRNAs***.
 - **Long RNA-Seq analysis** for the identification and quatification of ***mRNAs***, ***lncRNAs***, and ***tUCR***.
@@ -87,10 +87,18 @@ Once one of the abovementioned analysis is performed, it is possibile to execute
 - **Differential expression analysis** to compare difference in the expression profile of such RNA molecules between case vs control samples
 - **Pathway analysis** to execute a  miRNA-sensitive topological pathway analysis on the results obtained by the differential expression analysis. However, only the differentially expressed ***mRNAs*** and ***miRNAs*** can be analyzed.
 
-Here follow a description of how to perform each of the mentioned analysis. 
+Before proceeding with the analysis, users can download reference indexed genomes available in our remote repository or upload additional indexed genomes by using the **References Sequences** section of our dashboard following the indication step-by-step. Additionally, *GTF* or *BED* annotation files can also be uploaded from the **Annotations** section of our dashboard. 
+
+Here follow a description of how to perform each of the above mentioned analysis. 
 
 ## Small RNA-Seq analysis
+This analysis allows the identification and quantification of ***miRNAs***, ***piRNAs***, ***tRFs***, and ***tsRNAs***. To start the analysis, click **Run Analysis** on the dashboard and then **SmallRNA Analysis**. After that, follow the indications step-by-step described on the interface. Four steps are required
+1. **Choose type**. Here users have to indicate the *sample Code*, the *Analysis Name*, the *Input Type* (FASTQ, BAM,SAM), if reads are paired-end or single-end, and the *Number of threads* to be used for the analysis. Click **Next** to proceed with the next step.
+2. **Set pipeline preferences**. Accordingly with the type of the input files, here users can choose which steps will be included in the analysis such as *trimming*, *BAM/SAM to FASTQ conversion*, *alignment*, and *quantification*. If trimming is enabled, it is possible to indicate the minimum PHRED quality and the minimum reads length. For the alignment step users can choose among ***Salmon***, ***TopHat***, and ***HISAT 2***, while for the quantification ***Feature Counts***, ***HT-seq***, and ***Salmon*** are available. Once everything has been selected, click **Next** to proceed with the next step.
+3. **Select references**. If ***TopHat*** or ***HISAT 2*** have been selected for the alignment, at this step users have to select the reference indexed genome and genome annotation file while if ***Salmon*** has been selected, the reference transcriptome must be selected. In addition to the reference genome and transcriptome already available, it is also possible to add additional indexed genomes, transcriptome and annotation files by downloading them from our repository or uploading them from users' computer (read the above section). Once everything has been selected, click **Next** to proceed with the next step.
+4. **Upload file**. Here users can add samples to the analysis and upload their files. For each sample, users will be also able to input a custom *Sample Code*. If users are uploading multiple samples for a batch analysis, they can also upload a sample description file (in TSV format) that can be used for the differential expression analysis. Once the samples have been uploaded, click on the **Start Analysis** button to start the analysis.
 ## Long RNA-Seq analysis
+
 ## Circular RNA analysis
 ## Differential expression analysis
 ## Pathway analysis
