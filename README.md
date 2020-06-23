@@ -87,7 +87,7 @@ Once one of the abovementioned analysis is performed, it is possibile to execute
 - **Differential expression analysis** to compare difference in the expression profile of such RNA molecules between case vs control samples
 - **Pathway analysis** to execute a  miRNA-sensitive topological pathway analysis on the results obtained by the differential expression analysis. However, only the differentially expressed ***mRNAs*** and ***miRNAs*** can be analyzed.
 
-Before proceeding with the analysis, users can download reference indexed genomes available in our remote repository or upload additional indexed genomes by using the **References Sequences** section of our dashboard following the indication step-by-step. Additionally, *GTF* or *BED* annotation files can also be uploaded from the **Annotations** section of our dashboard. 
+Before proceeding with the analysis, users can download reference indexed genomes available in our remote repository or upload additional indexed genomes by using the **Reference Sequences** section of our dashboard following the indication step-by-step. Additionally, *GTF* or *BED* annotation files can also be uploaded from the **Annotations** section of our dashboard. 
 
 Here follow a description of how to perform each of the above mentioned analysis. 
 
