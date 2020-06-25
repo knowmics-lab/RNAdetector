@@ -87,9 +87,9 @@ Once one of the abovementioned analysis is performed, it is possibile to execute
 - **Differential expression analysis** to compare difference in the expression profile of such RNA molecules between case vs control samples
 - **Pathway analysis** to execute a  miRNA-sensitive topological pathway analysis on the results obtained by the differential expression analysis. However, only the differentially expressed ***mRNAs*** and ***miRNAs*** can be analyzed.
 
-Before proceeding with the analysis, users can download reference indexed genomes available in our remote repository or upload additional indexed genomes by using the **Reference Sequences** section of our dashboard following the indication step-by-step. Additionally, *GTF* or *BED* annotation files can also be uploaded from the **Annotations** section of our dashboard. 
+Before proceeding with the analysis, users can download reference indexed genomes available in our remote repository or upload additional indexed genomes from users' computers by using the **Reference Sequences** section of our dashboard and following step-by-step the indication showed on the user interface. Additionally, *GTF* or *BED* genome annotation files can also be uploaded from the **Annotations** section of our dashboard. 
 
-Here follow a description of how to perform each of the above mentioned analysis. 
+Here follow a description about how to perform each of the above mentioned analysis. 
 
 ## Small RNA-Seq analysis
 This analysis allows the identification and quantification of ***miRNAs***, ***piRNAs***, ***tRFs***, and ***tsRNAs***. To start the analysis, click **Run Analysis** on the dashboard and then **SmallRNA Analysis**. After that, follow the indications step-by-step described on the interface to set and start the analysis. Four steps are required
