@@ -706,7 +706,7 @@ class CircRNA extends React.Component<Props, State> {
         <Box>
           <Paper className={classes.root}>
             <Typography variant="h5" component="h3">
-              Long RNAs Analysis
+              CircRNA Analysis
             </Typography>
             <Formik
               initialValues={{

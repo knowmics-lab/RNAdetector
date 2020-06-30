@@ -348,7 +348,7 @@ class SampleGroup extends React.Component<Props, State> {
         <Box>
           <Paper className={classes.root}>
             <Typography variant="h5" component="h3">
-              Long RNAs Analysis
+              New Samples Group
             </Typography>
             <Formik
               initialValues={{

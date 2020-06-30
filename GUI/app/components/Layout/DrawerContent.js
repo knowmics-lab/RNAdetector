@@ -18,10 +18,17 @@ type ListItemLinkProps = {
   icon?: ?React.Element<*>,
   primary: string,
   to: string,
+  classes: *,
   className?: ?string
 };
 
-const ListItemLink = ({ icon, primary, to, className }: ListItemLinkProps) => {
+const ListItemLink = ({
+  icon,
+  primary,
+  to,
+  classes,
+  className
+}: ListItemLinkProps) => {
   const renderLink = React.useMemo(
     () =>
       React.forwardRef((itemProps, ref) => (
@@ -40,7 +47,7 @@ const ListItemLink = ({ icon, primary, to, className }: ListItemLinkProps) => {
     <div>
       <ListItem button component={renderLink} className={className}>
         {icon ? <ListItemIcon>{icon}</ListItemIcon> : null}
-        <ListItemText primary={primary} />
+        <ListItemText classes={classes} primary={primary} />
       </ListItem>
     </div>
   );
@@ -56,6 +63,7 @@ type ListItemExpandableProps = {
   primary: string,
   isOpen: boolean,
   handleClick: () => void,
+  classes: *,
   className?: ?string
 };
 
@@ -64,13 +72,14 @@ const ListItemExpandable = ({
   primary,
   isOpen,
   handleClick,
+  classes,
   className
 }: ListItemExpandableProps) => {
   return (
     <div>
       <ListItem button onClick={handleClick} className={className}>
         {icon ? <ListItemIcon>{icon}</ListItemIcon> : null}
-        <ListItemText primary={primary} />
+        <ListItemText classes={classes} primary={primary} />
         {isOpen ? <ExpandLess /> : <ExpandMore />}
       </ListItem>
     </div>
@@ -88,7 +97,11 @@ const style = theme => ({
     backgroundColor: theme.palette.background.paper
   },
   nested: {
-    paddingLeft: theme.spacing(4)
+    paddingLeft: theme.spacing(4),
+    fontSize: 1
+  },
+  listItemLink: {
+    fontSize: '0.8rem'
   }
 });
 
@@ -182,6 +195,7 @@ class DrawerContent extends React.Component<
             primary={text}
             isOpen={this.getCollapsibleState(key)}
             handleClick={this.getCollapsibleHandler(key)}
+            classes={{ primary: classes.listItemLink }}
             className={nested ? classes.nested : null}
           />
           <Collapse
@@ -202,6 +216,7 @@ class DrawerContent extends React.Component<
           primary={text}
           to={to}
           key={key}
+          classes={{ primary: classes.listItemLink }}
           className={nested ? classes.nested : null}
         />
       );

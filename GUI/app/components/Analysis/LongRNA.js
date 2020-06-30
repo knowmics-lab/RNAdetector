@@ -717,7 +717,7 @@ class LongRNA extends React.Component<Props, State> {
         <Box>
           <Paper className={classes.root}>
             <Typography variant="h5" component="h3">
-              Long RNAs Analysis
+              RNA-seq Analysis
             </Typography>
             <Formik
               initialValues={{

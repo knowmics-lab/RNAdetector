@@ -717,7 +717,7 @@ class SmallRNA extends React.Component<Props, State> {
         <Box>
           <Paper className={classes.root}>
             <Typography variant="h5" component="h3">
-              Long RNAs Analysis
+              SmallRNA-seq Analysis
             </Typography>
             <Formik
               initialValues={{
