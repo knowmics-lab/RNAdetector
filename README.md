@@ -130,7 +130,7 @@ After the differential expression analysis (read the previous section), it is al
 2. **DEGs Analysis Parameters**. Here users can choose the criteria for the selection of the differentially expressed transcripts (mRNAs and\or miRNAs) to be used for the pathway anaysis by writing the p-value cutoff and the Log-Fold change threshold. Click **Next** to proceed with the next step.
 3. **Pathway Analysis Parameters**. Here users can choose the organism to be used for the pathway analysis and the p-values threshold for the selection of the statistically significant perturbated pathways. After entering all the parameters, you can start the analysis by clicking on the **Start Analysis** button.
 ## Final results
-All the running analyses and, in the end, their results are shown in the ***Jobs*** section that is available from our dashboard. In the Jobs section is possible to monitorize the progress of all the analysis and get their results. In fact, beside each analysis there are several icons that give the opportunity to see the logs of the analysis, see the final report with several figures and tables, save the final report, or manually get the final results from their folders. 
+All the running analyses and, in the end, their results are shown in the ***Jobs*** section that is available from our dashboard. In the Jobs section is possible to monitor the progress of all the analysis and get their results. In fact, besides each analysis, there are several icons that give the opportunity to see the logs of the analysis, see the final report with several figures and tables, save the final report, or manually get the final results from their folders. 
 # Cite us
 if you use ***RNAdetector*** cite:
 # Contact us 
