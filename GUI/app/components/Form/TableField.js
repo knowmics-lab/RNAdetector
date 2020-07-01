@@ -133,7 +133,6 @@ class TableField extends React.Component<TableProps, TableState> {
   getPage = p => {
     const { data, perPage } = this.state;
     if (!data) return [];
-    console.log(data);
     return data.slice(p * perPage, p * perPage + perPage);
   };
 
