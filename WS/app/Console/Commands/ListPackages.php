@@ -44,12 +44,12 @@ class ListPackages extends Command
     public static function filterPackages(array $packages): array
     {
         if (isset($packages['packages'])) {
-            $packages['packages'] = array_filter(
+            $packages['packages'] = array_values(array_filter(
                 $packages['packages'],
                 static function ($pkg) {
                     return !self::isPackageInstalled($pkg['name']);
                 }
-            );
+            ));
         }
 
         return $packages;
