@@ -59,7 +59,7 @@ sudo apt-get update
 sudo apt-get install docker-ce docker-ce-cli containerd.io
 ```
 
-- Set your user name in Docker. If you do not now your user name write in your terminal the following command `whoami`.
+- Set your user name in Docker. If you do not know your user name, write the following command `whoami` in your terminal.
 ```
 sudo usermod -aG docker YOUR_USER_NAME
 ```
