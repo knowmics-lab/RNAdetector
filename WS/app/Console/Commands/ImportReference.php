@@ -73,16 +73,15 @@ class ImportReference extends Command
 
             return 14;
         }
-        if (!file_exists($genomePath . 'reference.fa')) {
-            $this->error('Invalid reference sequence: fasta file not found.');
-
-            return 15;
-        }
-
         $config = json_decode(file_get_contents($configFile), true);
 
         $hasReference = !((bool)($config['noReference'] ?? false));
         if ($hasReference) {
+            if (!file_exists($genomePath . 'reference.fa')) {
+                $this->error('Invalid reference sequence: fasta file not found.');
+
+                return 15;
+            }
             $indexedFor = (array)($config['indexedFor'] ?? []);
             $mapFile = (bool)($config['mapFile'] ?? false);
             $mapPath = null;
