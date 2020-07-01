@@ -170,6 +170,9 @@ class ExportAnnotations extends Command
             @touch($installedFile);
             @chmod($installedFile, 0777);
         }
+        if (file_exists($referenceDirname)) {
+            @rmdir($referenceDirname);
+        }
         $this->info('Completed! Results have been stored in ' . $outputFile);
 
         return 0;
