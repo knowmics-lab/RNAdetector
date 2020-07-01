@@ -57,7 +57,7 @@ class AnnotationUploadJobType extends AbstractJob
             'name'     => ['required', 'alpha_dash', 'max:255'],
             'type'     => ['filled', Rule::in(['gtf', 'bed'])],
             'file'     => ['required', 'string'],
-            'map_file' => ['filled', 'string'],
+            'map_file' => ['nullable', 'string'],
         ];
     }
 
