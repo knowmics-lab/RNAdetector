@@ -344,4 +344,12 @@ class LongRnaJobType extends AbstractJob
             },
         ];
     }
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return 'RNA-seq Analysis';
+    }
 }

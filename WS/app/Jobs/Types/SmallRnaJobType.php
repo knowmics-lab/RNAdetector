@@ -324,4 +324,11 @@ class SmallRnaJobType extends AbstractJob
         ];
     }
 
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return 'SmallRNA-seq Analysis';
+    }
 }

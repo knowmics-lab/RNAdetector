@@ -522,4 +522,12 @@ class SamplesGroupJobType extends AbstractJob
     {
         return 'Groups several jobs of the same type together (ideally a group of samples)';
     }
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return 'Sample Group';
+    }
 }

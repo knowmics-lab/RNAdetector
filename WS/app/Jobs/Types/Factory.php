@@ -16,6 +16,7 @@ use ReflectionException;
 use Symfony\Component\Finder\Finder;
 
 /**
+ * @method static string displayName(\App\Models\Job|\App\Jobs\Types\AbstractJob|string $where)
  * @method static string description(\App\Models\Job|\App\Jobs\Types\AbstractJob|string $where)
  * @method static array parametersSpec(\App\Models\Job|\App\Jobs\Types\AbstractJob|string $where)
  * @method static array outputSpec(\App\Models\Job|\App\Jobs\Types\AbstractJob|string $where)
@@ -96,6 +97,7 @@ class Factory
         if (in_array(
             $name,
             [
+                'displayName',
                 'description',
                 'parametersSpec',
                 'outputSpec',

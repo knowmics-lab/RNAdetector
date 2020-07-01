@@ -304,4 +304,12 @@ class ReferenceUploadJobType extends AbstractJob
     {
         return 'Upload a novel genome annotation';
     }
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return 'Reference Upload';
+    }
 }

@@ -602,4 +602,12 @@ class CircRnaJobType extends AbstractJob
             },
         ];
     }
+
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return 'CircRNA Analysis';
+    }
 }

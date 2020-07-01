@@ -589,4 +589,11 @@ class DiffExprAnalysisJobType extends AbstractJob
         return 'Runs differential expression analysis';
     }
 
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return 'Diff. Expr. Analysis';
+    }
 }

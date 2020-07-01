@@ -184,4 +184,11 @@ class PathwayAnalysisJobType extends AbstractJob
         return 'Runs pathway analysis';
     }
 
+    /**
+     * @inheritDoc
+     */
+    public static function displayName(): string
+    {
+        return 'Pathway Analysis';
+    }
 }

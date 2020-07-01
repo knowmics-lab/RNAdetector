@@ -7,6 +7,8 @@
 
 namespace App\Models;
 
+use App\Jobs\Types\AbstractJob;
+use App\Jobs\Types\Factory;
 use DB;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -116,7 +118,8 @@ class Job extends Model
      */
     public function readableJobType(): string
     {
-        return Str::title(ucwords(str_replace(['-', '_'], ' ', str_replace('_job_type', '', $this->job_type))));
+        return Factory::displayName($this);
+        // return Str::title(ucwords(str_replace(['-', '_'], ' ', str_replace('_job_type', '', $this->job_type))));
     }
 
     /**

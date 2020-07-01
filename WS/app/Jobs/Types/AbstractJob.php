@@ -94,6 +94,13 @@ abstract class AbstractJob
     }
 
     /**
+     * Returns the name that will be displayed for this job type
+     *
+     * @return string
+     */
+    abstract public static function displayName(): string;
+
+    /**
      * Returns a description for this job
      *
      * @return string
