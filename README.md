@@ -15,8 +15,8 @@ In addition to mRNAs, ***RNAdetector*** can also analyze several classes of ncRN
 ##### Small non-coding RNAs
 - micro RNAs (miRNAs)
 - PIWI-associated RNAs (piRNAs)
-- tRNA fragments (tRFs)
-- tRNA derived small ncRNAs (tsRNAs) (only for human)
+- Small nucleolar RNAs (snoRNAs)
+- tRNA derived small ncRNAs (tRFs and tsRNAs) (only for human)
 ##### Long non-coding RNAs
 - long non-coding RNAs (lncRNAs)
 - transcribed UltraConserved Regions (tUCRs) (only for human)
