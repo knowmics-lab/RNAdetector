@@ -8,21 +8,21 @@
 - Differential expression analysis
 - miRNA-sensitive topological pathway analysis.
 
-***RNAdetector*** supports species such as ***Human and ***Mouse*** that are available for download in our remote repository.
-However, It can be also easily used with any other organism by following the step-by-step procedures detailed in the user interface.
+***RNAdetector*** supports species such as ***Human*** and ***Mouse*** that are available for download in our remote repository.
+However, It can be also easily used with ***any other organism*** by uploading their indexed genomes and genomic annotations following the step-by-step procedures detailed in the user interface.
 ## Non-coding RNAs analyzed
-In addition to mRNAs, ***RNAdetector*** can also analyze several classes of small and long ncRNAs.
+In addition to mRNAs, ***RNAdetector*** can also analyze several classes of ncRNAs small and long ncRNAs. For Human and Mouse RNA-Seq data the following ncRNA classes can be analyzed:
 ##### Small non-coding RNAs
 - micro RNAs (miRNAs)
 - PIWI-associated RNAs (piRNAs)
 - tRNA fragments (tRFs)
-- tRNA derived small ncRNAs (tsRNAs)
+- tRNA derived small ncRNAs (tsRNAs) (only for human)
 ##### Long non-coding RNAs
 - long non-coding RNAs (lncRNAs)
-- transcribed UltraConserved Regions (tUCRs)
+- transcribed UltraConserved Regions (tUCRs) (only for human)
 - circular RNAs (circRNAs)
 
-Other ncRNAs classes for human or other organism can be analyzed by uploading their genomic annotation on ***RNAdetector*** by following the step-by-step procedures detailed in the user interface.
+Other ncRNAs classes for human or other organism can be analyzed by uploading their genomic annotation on ***RNAdetector*** following the step-by-step procedures detailed in the user interface.
 
 ## Features
 ***RNAdetector*** has several important features such as:
