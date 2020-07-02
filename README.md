@@ -8,7 +8,7 @@
 - Differential expression analysis
 - miRNA-sensitive topological pathway analysis.
 
-***RNAdetector*** supports several species such as Human, Mouse and Rat that are available for download in our remote repository.
+***RNAdetector*** supports species such as ***Human and ***Mouse*** that are available for download in our remote repository.
 However, It can be also easily used with any other organism by following the step-by-step procedures detailed in the user interface.
 ## Non-coding RNAs analyzed
 In addition to mRNAs, ***RNAdetector*** can also analyze several classes of small and long ncRNAs.
@@ -21,6 +21,8 @@ In addition to mRNAs, ***RNAdetector*** can also analyze several classes of smal
 - long non-coding RNAs (lncRNAs)
 - transcribed UltraConserved Regions (tUCRs)
 - circular RNAs (circRNAs)
+
+Other ncRNAs classes for human or other organism can be analyzed by uploading their genomic annotation on ***RNAdetector*** by following the step-by-step procedures detailed in the user interface.
 
 ## Features
 ***RNAdetector*** has several important features such as:
@@ -78,8 +80,8 @@ sudo dpkg -i RNAdetector.deb
 # RNAdetector user guide
 RNAdetector allows users to perform several RNA-Seq data analysis by using our intuitive GUI. Users can select from the dashboard:
 
-- **Small RNA-Seq analysis** for the identification and quantification of ***miRNAs***, ***piRNAs***, ***tRFs***, and ***tsRNAs***.
-- **Long RNA-Seq analysis** for the identification and quatification of ***mRNAs***, ***lncRNAs***, and ***tUCR***.
+- **Small RNA-Seq analysis** for the analysis of small RNA-Seq data. It can be used for identification and quantification of small ncRNAs such as ***miRNAs***, ***piRNAs***, ***tRFs***, and ***tsRNAs***.
+- **RNA-Seq analysis** for the analysis of standard RNA-Seq data. It can be used for the identification and quatification of RNA species longer than 200 nt such as ***mRNAs***, ***lncRNAs***, and ***tUCR***.
 - **Circular RNA analysis** for identification and quantification of ***circRNAs***.
 
 Once one of the abovementioned analysis is performed, it is possibile to execute downstream analysis such as:
@@ -92,19 +94,19 @@ Before proceeding with the analysis, users can download reference indexed genome
 Here follow a description about how to perform each of the above mentioned analysis. 
 
 ## Small RNA-Seq analysis
-This analysis allows the identification and quantification of ***miRNAs***, ***piRNAs***, ***tRFs***, and ***tsRNAs***. To start the analysis, click **Run Analysis** on the dashboard and then **SmallRNA Analysis**. After that, follow the indications step-by-step described on the user interface to set and start the analysis. Four steps are required
+To start the analysis, click **Run Analysis** on the dashboard and then **SmallRNA Analysis**. After that, follow the indications step-by-step described on the user interface to set and start the analysis. Four steps are required
 1. **Choose type**. Here users have to indicate the *sample Code*, the *Analysis Name*, the *Input Type* (FASTQ, BAM,SAM), *sequencing strategy* (paired-end or single-end), and the *Number of threads* to be used for the analysis. *Sample code* is used for further analyses such as the Differential Expression Analysis. Specifically, it identifies the sample during the analysis, therefore, it should be a string without any spaces (only letters, numbers, and dashes). Click **Next** to proceed with the next step.
 2. **Set pipeline preferences**. Accordingly with the type of the input files, here users can choose which steps will be included in the analysis such as *trimming*, *BAM/SAM to FASTQ conversion*, *alignment*, and *quantification*. If trimming is enabled, it is possible to indicate the minimum PHRED quality and the minimum reads length for the reads quality filtering. For the alignment step, users can choose among ***Salmon***, ***TopHat***, and ***HISAT 2***, while for the quantification ***Feature Counts***, ***HT-seq***, and ***Salmon*** are available. Once everything has been selected, click **Next** to proceed with the next step.
 3. **Select references**. If ***TopHat*** or ***HISAT 2*** have been selected for the alignment, at this step users have to select the reference indexed genome and genome annotation file while if ***Salmon*** has been selected, the reference indexed transcriptome must be selected. In addition to the reference genome and transcriptome already available in RNAdetector, it is also possible to add additional indexed genomes, transcriptome and genome annotation files by downloading them from our repository or uploading them from users' computer (read the above section). Once everything has been selected, click **Next** to proceed with the next step.
 4. **Upload file**. Here users can add samples to the analysis and upload their files. For each sample, users will be also able to input a custom *Sample Code*. If users are uploading multiple samples for a batch analysis, they can also upload a sample description file (in TSV format) that can be used for the differential expression analysis. Once the samples have been uploaded, click on the **Start Analysis** button to start the analysis.
-## Long RNA-Seq analysis
-This analysis allows the identification and quantification of ***mRNAs***, ***lncRNAs***, and ***tUCR***. To start the analysis, click **Run Analysis** on the dashboard and then **LongRNA Analysis**. After that, follow the indications step-by-step described on the user interface to set and start the analysis. Four steps are required
+## RNA-Seq analysis
+To start the analysis, click **Run Analysis** on the dashboard and then **LongRNA Analysis**. After that, follow the indications step-by-step described on the user interface to set and start the analysis. Four steps are required
 1. **Choose type**. Here users have to indicate the *sample Code*, the *Analysis Name*, the *Input Type* (FASTQ, BAM,SAM), *sequencing strategy* (paired-end or single-end), and the *Number of threads* to be used for the analysis. *Sample code* is used for further analyses such as the Differential Expression Analysis. Specifically, It identifies the sample during the analysis, therefore, it should be a string without any spaces (only letters, numbers, and dashes). Click **Next** to proceed with the next step.
 2. **Set pipeline preferences**. Accordingly with the type of the input files, here users can choose which steps will be included in the analysis such as *trimming*, *BAM/SAM to FASTQ conversion*, *alignment*, and *quantification*. If trimming is enabled, it is possible to indicate the minimum PHRED quality and the minimum reads length for the reads quality filtering. For the alignment step users can choose among ***Salmon***, ***TopHat***, and ***HISAT 2***, while for the quantification ***Feature Counts***, ***HT-seq***, and ***Salmon*** are available. Once everything has been selected, click **Next** to proceed with the next step.
 3. **Select references**. If ***TopHat*** or ***HISAT 2*** have been selected for the alignment, at this step users have to select the reference indexed genome and genome annotation file while if ***Salmon*** has been selected, the reference indexed transcriptome must be selected. In addition to the reference genome and transcriptome already available in RNAdetector, it is also possible to add additional indexed genomes, transcriptome and genome annotation files by downloading them from our repository or uploading them from users' computer (read the above section). Once everything has been selected, click **Next** to proceed with the next step.
 4. **Upload file**. Here users can add samples to the analysis and upload their files. For each sample, users will be also able to input a custom *Sample Code*. If users are uploading multiple samples for a batch analysis, they can also upload a sample description file (in TSV format) that can be used for the differential expression analysis. Once the samples have been uploaded, click on the **Start Analysis** button to start the analysis.
 ## Circular RNA analysis
-This analysis allows the identification and quantification of ***circRNAs***. To start the analysis, click **Run Analysis** on the dashboard and then **CircRNA Analysis**. After that, follow the indications step-by-step described on the user interface to set and start the analysis. Four steps are required
+To start the analysis, click **Run Analysis** on the dashboard and then **CircRNA Analysis**. After that, follow the indications step-by-step described on the user interface to set and start the analysis. Four steps are required
 1. **Choose type**. Here users have to indicate the *sample Code*, the *Analysis Name*, the *Input Type* (FASTQ, BAM,SAM),and *sequencing strategy* (paired-end or single-end). *Sample code* is used for further analyses such as the Differential Expression Analysis. It identifies the sample during the analysis, therefore, it should be a string without any spaces (only letters, numbers, and dashes). Click **Next** to proceed with the next step.
 2. **Set pipeline preferences**. Accordingly with the type of the input files, here users can choose which steps will be included in the analysis such as *trimming*, *BAM/SAM to FASTQ conversion*, which version of ***Ciri*** should be used for the identification and quantification of circRNAs, and the *Number of threads* to be used for the analysis. If trimming is enabled, it is also possible to indicate the minimum PHRED quality and the minimum reads length for the reads quality filtering. Once everything has been selected, click **Next** to proceed with the next step.
 3. **Select references**. Here users have to select the *reference indexed genome*, the *genome annotation file* (for circRNAs analysis the genomic annotation of coding-protein genes must be selected), and the BED file with the *Back-Spliced Junction Annotation* to be used for the analysis. Once everything has been selected, click **Next** to proceed with the next step.
