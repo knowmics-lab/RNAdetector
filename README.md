@@ -22,7 +22,7 @@ In addition to mRNAs, ***RNAdetector*** can also analyze several classes of ncRN
 - transcribed UltraConserved Regions (tUCRs) (only for human)
 - circular RNAs (circRNAs)
 
-Other ncRNAs classes for human or other organism can be analyzed by uploading their genomic annotation on ***RNAdetector*** following the step-by-step procedures detailed in the user interface.
+The genomic annotations of all these above-mentioned classes of ncRNAs are already available for downloading from our remote repository. However, additional ncRNAs classes for human and other organism can be analyzed by uploading their genomic annotation on ***RNAdetector*** following the step-by-step procedures detailed in the user interface.
 
 ## Features
 ***RNAdetector*** has several important features such as:
