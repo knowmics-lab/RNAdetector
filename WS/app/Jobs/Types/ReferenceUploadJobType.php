@@ -65,7 +65,7 @@ class ReferenceUploadJobType extends AbstractJob
             'index.tophat' => ['filled', 'boolean'],
             'index.salmon' => ['filled', 'boolean'],
             'index.hisat'  => ['filled', 'boolean'],
-            'map_file'     => ['filled', 'string'],
+            'map_file'     => ['nullable', 'string'],
         ];
     }
 
