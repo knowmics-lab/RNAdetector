@@ -8,8 +8,8 @@
 - Differential expression analysis
 - miRNA-sensitive topological pathway analysis.
 
-***RNAdetector*** supports sevarl species such as ***Human***, ***Mouse*** and ***C.elegans*** that are available for download in our remote repository.
-However, It can be also easily used with ***any other organism*** by uploading their indexed genomes and genomic annotations following the step-by-step procedures detailed in the user interface.
+***RNAdetector*** supports several species such as ***Human***, ***Mouse*** and ***C.elegans*** that are available for download in our remote repository.
+However, It can be also easily used with ***any other organism*** by uploading their indexed genomes and genomic annotations or indexed transcriptome following the step-by-step procedures detailed in the user interface.
 ## Non-coding RNAs analyzed
 In addition to mRNAs, ***RNAdetector*** can also analyze several classes of small and long ncRNAs. Specifically, for Human RNA-Seq data the following ncRNA classes can be analyzed:
 ##### Small non-coding RNAs
