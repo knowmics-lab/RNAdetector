@@ -11,7 +11,7 @@
 ***RNAdetector*** supports sevarl species such as ***Human***, ***Mouse*** and ***C.elegans*** that are available for download in our remote repository.
 However, It can be also easily used with ***any other organism*** by uploading their indexed genomes and genomic annotations following the step-by-step procedures detailed in the user interface.
 ## Non-coding RNAs analyzed
-In addition to mRNAs, ***RNAdetector*** can also analyze several classes of ncRNAs small and long ncRNAs. Specifically, for Human RNA-Seq data the following ncRNA classes can be analyzed:
+In addition to mRNAs, ***RNAdetector*** can also analyze several classes of small and long ncRNAs. Specifically, for Human RNA-Seq data the following ncRNA classes can be analyzed:
 ##### Small non-coding RNAs
 - micro RNAs (miRNAs)
 - PIWI-associated RNAs (piRNAs)
@@ -22,7 +22,7 @@ In addition to mRNAs, ***RNAdetector*** can also analyze several classes of ncRN
 - transcribed UltraConserved Regions (tUCRs) (only for human)
 - circular RNAs (circRNAs)
 
-The genomic annotations of all these above-mentioned classes of ncRNAs are already available for downloading from our remote repository. However, additional ncRNAs classes for human and other organism can be analyzed by uploading their genomic annotation on ***RNAdetector*** following the step-by-step procedures detailed in the user interface.
+The genomic annotations of all these above-mentioned classes of ncRNAs are already available for downloading from our remote repository. However, additional ncRNAs classes for human and other organism can be analyzed by uploading their genomic annotation or idexed transcriptome on ***RNAdetector*** following the step-by-step procedures detailed in the user interface. Therefore, any class of ncRNAs of any biological species can be analyzed by ***RNAdetector***.
 
 ## Features
 ***RNAdetector*** has several important features such as:
@@ -31,7 +31,7 @@ The genomic annotations of all these above-mentioned classes of ncRNAs are alrea
 - Remotely controllable
 - Completely off line
 - Graphical User Interface (GUI)
-- Graphical reports with the results of the analysis
+- Interactive graphical reports with the results of the analysis
 # RNAdetector installation 
 ## Installation on Windows Professional
 - Install **Docker Desktop** in your computer by downloading the installer at this link [Docker Desktop](https://hub.docker.com/editions/community/docker-ce-desktop-windows/)
