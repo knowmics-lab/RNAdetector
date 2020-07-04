@@ -83,7 +83,7 @@ php artisan key:generate
 php artisan storage:link
 
 # Download MITHrIL index
-ORGANISMS="hsa rno mmu"
+ORGANISMS="hsa rno mmu cel"
 for O in $ORGANISMS; do
     java -jar /rnadetector/scripts/resources/pathways/MITHrIL2.jar index -enrichment-evidence-type STRONG -organism $O -verbose
     java -jar /rnadetector/scripts/resources/pathways/MITHrIL2.jar index -enrichment-evidence-type WEAK -organism $O -verbose
