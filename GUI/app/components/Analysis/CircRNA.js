@@ -16,7 +16,7 @@ import { InputLabel } from '@material-ui/core';
 import IconButton from '@material-ui/core/IconButton';
 import Icon from '@material-ui/core/Icon';
 import * as Api from '../../api';
-import { JOBS } from '../../constants/routes';
+import { JOBS } from '../../constants/routes.json';
 import SelectField from '../Form/SelectField';
 import TextField from '../Form/TextField';
 import Wizard from '../UI/Wizard';
@@ -27,6 +27,7 @@ import SwitchField from '../Form/SwitchField';
 import type { CircRNAAnalysisConfig } from '../../types/analysis';
 import type { SimpleMapType } from '../../types/common';
 import type { Job } from '../../types/jobs';
+import ValidationError from "../../errors/ValidationError";
 
 type Props = {
   refreshJobs: () => void,
@@ -88,6 +89,7 @@ type State = {
   genomes: SimpleMapType<string>,
   annotations: SimpleMapType<string>,
   bedAnnotations: SimpleMapType<string>,
+  hasValidationErrors: boolean,
   validationErrors: *,
   isUploading: boolean,
   uploadFile: string,
@@ -108,6 +110,7 @@ class CircRNA extends React.Component<Props, State> {
       ...Api.Upload.ui.initUploadState(),
       files: [[null, null]],
       descriptionFile: null,
+      hasValidationErrors: false,
       validationErrors: {},
       genomes: {},
       annotations: {},
@@ -416,6 +419,8 @@ class CircRNA extends React.Component<Props, State> {
     const { classes } = this.props;
     const { samples } = values;
     const {
+      hasValidationErrors,
+      validationErrors,
       isUploading,
       uploadFile,
       uploadedBytes,
@@ -482,6 +487,18 @@ class CircRNA extends React.Component<Props, State> {
             </Grid>
           </FormGroup>
         )}
+        {hasValidationErrors && (
+          <FormGroup row className={classes.formControl}>
+            <Grid container alignItems="center" spacing={3}>
+              <Grid item xs="auto">
+                <Typography color="error" paragraph variant="caption">
+                  Error log:
+                </Typography>
+                <pre>{JSON.stringify(validationErrors)}</pre>
+              </Grid>
+            </Grid>
+          </FormGroup>
+        )}
         <UploadProgress
           isUploading={isUploading}
           uploadFile={uploadFile}
@@ -514,8 +531,13 @@ class CircRNA extends React.Component<Props, State> {
   };
 
   setSaving = (isSaving, validationErrors = {}) => {
+    const hasValidationErrors = !(
+      Object.keys(validationErrors).length === 0 &&
+      validationErrors.constructor === Object
+    );
     this.setState({
       isSaving,
+      hasValidationErrors,
       validationErrors
     });
   };
@@ -566,7 +588,7 @@ class CircRNA extends React.Component<Props, State> {
     );
     if (data.validationErrors) {
       this.setSaving(false, data.validationErrors);
-      throw new Error('Validation of input parameters failed');
+      throw new ValidationError('Validation of input parameters failed');
     }
     const { data: job } = data;
     await this.uploadFile(job, firstFile);
@@ -693,7 +715,9 @@ class CircRNA extends React.Component<Props, State> {
       redirect(JOBS);
     } catch (e) {
       pushNotification(`An error occurred: ${e.message}`, 'error');
-      this.setSaving(false);
+      if (!(e instanceof ValidationError)) {
+        this.setSaving(false);
+      }
     }
   };
 

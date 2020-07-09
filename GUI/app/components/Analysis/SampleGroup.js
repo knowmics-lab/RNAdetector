@@ -14,7 +14,7 @@ import * as Yup from 'yup';
 import Backdrop from '@material-ui/core/Backdrop';
 import { InputLabel } from '@material-ui/core';
 import * as Api from '../../api';
-import { JOBS } from '../../constants/routes';
+import { JOBS } from '../../constants/routes.json';
 import SelectField from '../Form/SelectField';
 import TextField from '../Form/TextField';
 import Wizard from '../UI/Wizard';
@@ -24,6 +24,7 @@ import UploadProgress from '../UI/UploadProgress';
 import SwitchField from '../Form/SwitchField';
 import type { Job } from '../../types/jobs';
 import TableField from '../Form/TableField';
+import ValidationError from "../../errors/ValidationError";
 
 type Props = {
   refreshJobs: () => void,
@@ -86,6 +87,7 @@ type State = {
   isLoading: boolean,
   isSaving: boolean,
   descriptionFile: ?File,
+  hasValidationErrors: boolean,
   validationErrors: *,
   isUploading: boolean,
   uploadFile: string,
@@ -104,6 +106,7 @@ class SampleGroup extends React.Component<Props, State> {
       isSaving: false,
       ...Api.Upload.ui.initUploadState(),
       descriptionFile: null,
+      hasValidationErrors: false,
       validationErrors: {}
     };
   }
@@ -211,6 +214,8 @@ class SampleGroup extends React.Component<Props, State> {
   getStep2 = () => {
     const { classes } = this.props;
     const {
+      hasValidationErrors,
+      validationErrors,
       isUploading,
       uploadFile,
       uploadedBytes,
@@ -245,6 +250,18 @@ class SampleGroup extends React.Component<Props, State> {
             </Grid>
           </Grid>
         </FormGroup>
+        {hasValidationErrors && (
+          <FormGroup row className={classes.formControl}>
+            <Grid container alignItems="center" spacing={3}>
+              <Grid item xs="auto">
+                <Typography color="error" paragraph variant="caption">
+                  Error log:
+                </Typography>
+                <pre>{JSON.stringify(validationErrors)}</pre>
+              </Grid>
+            </Grid>
+          </FormGroup>
+        )}
         <UploadProgress
           isUploading={isUploading}
           uploadFile={uploadFile}
@@ -277,8 +294,13 @@ class SampleGroup extends React.Component<Props, State> {
   };
 
   setSaving = (isSaving, validationErrors = {}) => {
+    const hasValidationErrors = !(
+      Object.keys(validationErrors).length === 0 &&
+      validationErrors.constructor === Object
+    );
     this.setState({
       isSaving,
+      hasValidationErrors,
       validationErrors
     });
   };
@@ -335,7 +357,9 @@ class SampleGroup extends React.Component<Props, State> {
       }
     } catch (e) {
       pushNotification(`An error occurred: ${e.message}`, 'error');
-      this.setSaving(false);
+      if (!(e instanceof ValidationError)) {
+        this.setSaving(false);
+      }
     }
   };
 

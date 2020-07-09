@@ -27,6 +27,7 @@ import SwitchField from '../Form/SwitchField';
 import type { LongRNAAnalysisConfig } from '../../types/analysis';
 import type { SimpleMapType } from '../../types/common';
 import type { Job } from '../../types/jobs';
+import ValidationError from "../../errors/ValidationError";
 
 type Props = {
   refreshJobs: () => void,
@@ -99,6 +100,7 @@ type State = {
   descriptionFile: ?File,
   genomes: SimpleMapType<SimpleMapType<string>>,
   annotations: SimpleMapType<string>,
+  hasValidationErrors: boolean,
   validationErrors: *,
   isUploading: boolean,
   uploadFile: string,
@@ -119,6 +121,7 @@ class LongRNA extends React.Component<Props, State> {
       ...Api.Upload.ui.initUploadState(),
       files: [[null, null]],
       descriptionFile: null,
+      hasValidationErrors: false,
       validationErrors: {},
       genomes: {},
       annotations: {}
@@ -436,6 +439,8 @@ class LongRNA extends React.Component<Props, State> {
     const { classes } = this.props;
     const { samples } = values;
     const {
+      hasValidationErrors,
+      validationErrors,
       isUploading,
       uploadFile,
       uploadedBytes,
@@ -502,6 +507,18 @@ class LongRNA extends React.Component<Props, State> {
             </Grid>
           </FormGroup>
         )}
+        {hasValidationErrors && (
+          <FormGroup row className={classes.formControl}>
+            <Grid container alignItems="center" spacing={3}>
+              <Grid item xs="auto">
+                <Typography color="error" paragraph variant="caption">
+                  Error log:
+                </Typography>
+                <pre>{JSON.stringify(validationErrors)}</pre>
+              </Grid>
+            </Grid>
+          </FormGroup>
+        )}
         <UploadProgress
           isUploading={isUploading}
           uploadFile={uploadFile}
@@ -534,8 +551,13 @@ class LongRNA extends React.Component<Props, State> {
   };
 
   setSaving = (isSaving, validationErrors = {}) => {
+    const hasValidationErrors = !(
+      Object.keys(validationErrors).length === 0 &&
+      validationErrors.constructor === Object
+    );
     this.setState({
       isSaving,
+      hasValidationErrors,
       validationErrors
     });
   };
@@ -562,7 +584,7 @@ class LongRNA extends React.Component<Props, State> {
     const data = await Api.Analysis.createLongRNA(code, name, parameters);
     if (data.validationErrors) {
       this.setSaving(false, data.validationErrors);
-      throw new Error('Validation of input parameters failed');
+      throw new ValidationError('Validation of input parameters failed');
     }
     const { data: job } = data;
     await this.uploadFile(job, firstFile);
@@ -704,7 +726,9 @@ class LongRNA extends React.Component<Props, State> {
       redirect(JOBS);
     } catch (e) {
       pushNotification(`An error occurred: ${e.message}`, 'error');
-      this.setSaving(false);
+      if (!(e instanceof ValidationError)) {
+        this.setSaving(false);
+      }
     }
   };
 

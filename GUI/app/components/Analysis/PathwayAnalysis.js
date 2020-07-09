@@ -10,7 +10,7 @@ import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import Backdrop from '@material-ui/core/Backdrop';
 import * as Api from '../../api';
-import { JOBS } from '../../constants/routes';
+import { JOBS } from '../../constants/routes.json';
 import SelectField from '../Form/SelectField';
 import TextField from '../Form/TextField';
 import Wizard from '../UI/Wizard';
@@ -19,6 +19,9 @@ import type { Job } from '../../types/jobs';
 import TableField from '../Form/TableField';
 import type { PushNotificationFunction } from '../../types/notifications';
 import { SubmitButton } from '../UI/Button';
+import FormGroup from "@material-ui/core/FormGroup";
+import Grid from "@material-ui/core/Grid";
+import ValidationError from "../../errors/ValidationError";
 
 const VALID_ORGANISMS = {
   hsa: 'Human (Homo Sapiens)',
@@ -70,6 +73,7 @@ const style = theme => ({
 type State = {
   isLoading: boolean,
   isSaving: boolean,
+  hasValidationErrors: boolean,
   validationErrors: *
 };
 
@@ -81,6 +85,7 @@ class PathwayAnalysis extends React.Component<Props, State> {
     this.state = {
       isLoading: false,
       isSaving: false,
+      hasValidationErrors: false,
       validationErrors: {}
     };
   }
@@ -192,6 +197,7 @@ class PathwayAnalysis extends React.Component<Props, State> {
 
   getStep2 = () => {
     const { classes } = this.props;
+    const { hasValidationErrors, validationErrors } = this.state;
     return (
       <>
         <Typography className={classes.instructions}>
@@ -217,6 +223,18 @@ class PathwayAnalysis extends React.Component<Props, State> {
           name="pathways.p_use_fdr"
           required
         />
+        {hasValidationErrors && (
+          <FormGroup row className={classes.formControl}>
+            <Grid container alignItems="center" spacing={3}>
+              <Grid item xs="auto">
+                <Typography color="error" paragraph variant="caption">
+                  Error log:
+                </Typography>
+                <pre>{JSON.stringify(validationErrors)}</pre>
+              </Grid>
+            </Grid>
+          </FormGroup>
+        )}
       </>
     );
   };
@@ -227,8 +245,13 @@ class PathwayAnalysis extends React.Component<Props, State> {
   };
 
   setSaving = (isSaving, validationErrors = {}) => {
+    const hasValidationErrors = !(
+      Object.keys(validationErrors).length === 0 &&
+      validationErrors.constructor === Object
+    );
     this.setState({
       isSaving,
+      hasValidationErrors,
       validationErrors
     });
   };
@@ -279,7 +302,9 @@ class PathwayAnalysis extends React.Component<Props, State> {
       }
     } catch (e) {
       pushNotification(`An error occurred: ${e.message}`, 'error');
-      this.setSaving(false);
+      if (!(e instanceof ValidationError)) {
+        this.setSaving(false);
+      }
     }
   };
 

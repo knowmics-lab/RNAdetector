@@ -28,6 +28,7 @@ import type { PushNotificationFunction } from '../../types/notifications';
 import { SubmitButton } from '../UI/Button';
 import { OUT_TYPE_AHD, OUT_TYPE_AHT, OUT_TYPE_AHTD } from '../../api/jobs';
 import CustomField from '../Form/FieldError';
+import ValidationError from "../../errors/ValidationError";
 
 type Props = {
   refreshJobs: () => void,
@@ -73,6 +74,7 @@ const style = theme => ({
 type State = {
   isLoading: boolean,
   isSaving: boolean,
+  hasValidationErrors: boolean,
   validationErrors: *,
   selectedJob: ?Job,
   variables: { [string]: string },
@@ -93,6 +95,7 @@ class DiffExpr extends React.Component<Props, State> {
     this.state = {
       isLoading: false,
       isSaving: false,
+      hasValidationErrors: false,
       validationErrors: {},
       selectedJob: null,
       variables: {},
@@ -712,6 +715,10 @@ class DiffExpr extends React.Component<Props, State> {
   getStep5 = values => {
     const { classes } = this.props;
     const {
+      hasValidationErrors,
+      validationErrors
+    } = this.state;
+    const {
       parameters: {
         stats,
         stats_args: {
@@ -808,6 +815,18 @@ class DiffExpr extends React.Component<Props, State> {
             )}
           </Box>
         )}
+        {hasValidationErrors && (
+          <FormGroup row className={classes.formControl}>
+            <Grid container alignItems="center" spacing={3}>
+              <Grid item xs="auto">
+                <Typography color="error" paragraph variant="caption">
+                  Error log:
+                </Typography>
+                <pre>{JSON.stringify(validationErrors)}</pre>
+              </Grid>
+            </Grid>
+          </FormGroup>
+        )}
       </>
     );
   };
@@ -818,8 +837,13 @@ class DiffExpr extends React.Component<Props, State> {
   };
 
   setSaving = (isSaving, validationErrors = {}) => {
+    const hasValidationErrors = !(
+      Object.keys(validationErrors).length === 0 &&
+      validationErrors.constructor === Object
+    );
     this.setState({
       isSaving,
+      hasValidationErrors,
       validationErrors
     });
   };
@@ -930,7 +954,9 @@ class DiffExpr extends React.Component<Props, State> {
       }
     } catch (e) {
       pushNotification(`An error occurred: ${e.message}`, 'error');
-      this.setSaving(false);
+      if (!(e instanceof ValidationError)) {
+        this.setSaving(false);
+      }
     }
   };
 
