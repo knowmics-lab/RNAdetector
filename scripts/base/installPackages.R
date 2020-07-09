@@ -4,7 +4,7 @@ install.packages("BiocManager")
 BiocManager::install(c("limma", "edgeR", "DESeq2", "readr", "tximport", 
                         "optparse", "dplyr", "rtracklayer", "plyr", 
                         "survcomp", "VennDiagram", "knitr", "zoo",
-                        "devtools", "plotly", "d3heatmap", "rmarkdown", 
-                        "DT"),ask = FALSE)
+                        "devtools", "plotly", "rmarkdown", "DT"),ask = FALSE)
 
+devtools::install_github("rstudio/d3heatmap", dependencies = TRUE, upgrade = "always")
 remotes::install_github("alaimos/metaseqR", dependencies = TRUE, upgrade = "always")

@@ -3,7 +3,8 @@ FROM ubuntu:bionic
 RUN DEBIAN_FRONTEND=noninteractive /usr/bin/apt update && \
     DEBIAN_FRONTEND=noninteractive /usr/bin/apt install -y perl dialog software-properties-common &&  \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 51716619E084DAB9 && \
-    add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/' &&  \
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9 && \
+    add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran40/' &&  \
     add-apt-repository ppa:ondrej/php -y && \
     DEBIAN_FRONTEND=noninteractive /usr/bin/apt update && \
     DEBIAN_FRONTEND=noninteractive /usr/bin/apt install -y init && \
