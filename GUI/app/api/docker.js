@@ -5,11 +5,10 @@ import { is } from 'electron-util';
 import Client from 'dockerode';
 import Utils from './utils';
 import Settings from './settings';
+import { DOCKER_IMAGE_NAME } from '../constants/system.json';
 import type { ConfigObjectType } from '../types/settings';
 import type { Package } from '../types/local';
 import TimeoutError from '../errors/TimeoutError';
-
-export const DOCKER_IMAGE_NAME = 'alaimos/rnadetector:v0.0.2';
 
 type DockerPullEvent = {
   status: string,

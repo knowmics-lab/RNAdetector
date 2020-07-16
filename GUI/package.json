@@ -103,7 +103,7 @@
       "provider": "github",
       "owner": "alessandrolaferlita",
       "repo": "RNAdetector",
-      "private": true
+      "private": false
     }
   },
   "repository": {
@@ -292,6 +292,7 @@
     "redux": "^4.0.4",
     "redux-thunk": "^2.3.0",
     "source-map-support": "^0.5.16",
+    "styled-components": "^5.1.1",
     "tus-js-client": "^1.8.0",
     "typeface-roboto": "^0.0.75",
     "uniqid": "^5.2.0",
