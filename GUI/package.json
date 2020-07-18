@@ -19,6 +19,7 @@
     "lint-styles-fix": "yarn --silent lint-styles --fix; exit 0",
     "package": "yarn build && electron-builder build --publish never",
     "package-all": "yarn build && electron-builder build -mwl",
+    "package-all-publish": "yarn build && electron-builder build -mwl --publish always",
     "package-ci": "yarn postinstall && yarn build && electron-builder --publish always",
     "package-linux": "yarn build && electron-builder build --linux",
     "package-win": "yarn build && electron-builder build --win --x64",
@@ -81,6 +82,11 @@
         }
       ]
     },
+    "mac": {
+      "target": [
+        "zip"
+      ]
+    },
     "win": {
       "target": [
         "nsis",
@@ -103,6 +109,7 @@
       "provider": "github",
       "owner": "alessandrolaferlita",
       "repo": "RNAdetector",
+      "releaseType": "prerelease",
       "private": false
     }
   },
