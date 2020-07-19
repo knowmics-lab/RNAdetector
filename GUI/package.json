@@ -84,7 +84,9 @@
     },
     "mac": {
       "target": [
-        "zip"
+        "dmg",
+        "zip",
+        "pkg"
       ]
     },
     "win": {
@@ -97,7 +99,8 @@
       "target": [
         "deb",
         "rpm",
-        "AppImage"
+        "AppImage",
+        "tar.gz"
       ],
       "category": "Development"
     },
