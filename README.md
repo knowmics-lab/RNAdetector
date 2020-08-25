@@ -96,7 +96,7 @@ Additionally, *GTF* or *BED* genome annotation files can also be uploaded from t
 
 Here follow a description of how to perform each of the above-mentioned analysis.
 
-*A more detailed user guide with several screenshots of the user interface is available in the wiki section of this GitHub project*
+**A more detailed user guide with several screenshots of the user interface is available in the wiki section of this GitHub project**
 
 ## Small RNA-Seq analysis
 To start the analysis, click **Run Analysis** on the dashboard and then **SmallRNA Analysis**. After that, follow the indications step-by-step described on the user interface to set and start the analysis. Four steps are required
