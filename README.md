@@ -1,5 +1,5 @@
 # RNAdetector: a user-friendly and stand-alone pipeline for RNA-Seq data analysis
-<img src="logo/logo_size.jpg" width="200" hight="100">
+<img src="logo/logo_size.jpg" width="500" hight="300">
 <img src="logo/unict-logo-png-3.png" width="200" hight="100">
 
 ***RNAdetector*** is a user-friendly software for the analysis of protein-coding genes and ncRNAs from RNA-Seq data
