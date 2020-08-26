@@ -33,7 +33,7 @@ The genomic annotations of all these above-mentioned classes of ncRNAs are alrea
 - Graphical User Interface (GUI)
 - Interactive graphical reports with the results of the analysis
 # RNAdetector installation
-**Information about the [system requirements](https://github.com/alessandrolaferlita/RNAdetector/wiki/Requirements-and-Setup) can be found in the wiki section of this GitHub project**
+**Information about the [system requirements and installation](https://github.com/alessandrolaferlita/RNAdetector/wiki/Requirements-and-Setup) can be found in the wiki section of this GitHub project**
 ## Installation on Windows Professional
 - Install **Docker Desktop** in your computer by downloading the installer at this link [Docker Desktop](https://hub.docker.com/editions/community/docker-ce-desktop-windows/)
 - Once the installer is downloaded, then double-click **Docker Desktop Installer.exe** to run the installer.
