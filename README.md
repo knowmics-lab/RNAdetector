@@ -89,6 +89,8 @@ Once one of the abovementioned analysis is performed, it is possibile to execute
 - **Differential expression analysis** to compare difference in the expression profile of such RNA molecules between case vs control samples
 - **Pathway analysis** to execute a  miRNA-sensitive topological pathway analysis on the results obtained by the differential expression analysis. However, only the differentially expressed ***mRNAs*** and ***miRNAs*** can be analyzed.
 
+**A more detailed user guide with several screenshots of the user interface is available in the wiki section of this GitHub project**
+
 ### Add reference sequences
 Before proceeding with the analysis, users have to download reference indexed genomes and transcriptomes available in our remote repository or upload additional ones from users' computers by using the **Reference Sequences** section available from our dashboard and following step-by-step the indication showed on the user interface. To download reference indexed genomes and\or transcriptomes from our remote repository click on the icon ***Install from repository*** that appears after few seconds in the upper right section of the user interface.
 
