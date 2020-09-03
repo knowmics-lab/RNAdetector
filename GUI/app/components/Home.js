@@ -5,6 +5,9 @@ import styled from 'styled-components';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import UNICT_LOGO from '../resources/unict.png';
+import NERVIANO_LOGO from '../resources/nerviano.png';
+import OHIO_LOGO from '../resources/ohio-logo.png';
+import IOR_LOGO from '../resources/ior-logo.png';
 import { DOCKER_IMAGE_VERSION, GUI_VERSION } from '../constants/system.json';
 
 type Props = {};
@@ -33,9 +36,34 @@ export default class Home extends Component<Props> {
           Container v. ${DOCKER_IMAGE_VERSION}`}
         />
         <FooterContainer>
-          <GridList cellHeight={100} cols={3}>
+          <GridList cellHeight={55} cols={3}>
             <GridListTile cols={1}>
-              <img src={UNICT_LOGO} alt="UNICT" style={{ height: '100px', width: 'auto' }} />
+              <img
+                src={UNICT_LOGO}
+                alt="UNICT"
+                style={{ height: '50px', width: 'auto' }}
+              />
+            </GridListTile>
+            <GridListTile cols={1}>
+              <img
+                src={NERVIANO_LOGO}
+                alt="UNICT"
+                style={{ height: '50px', width: 'auto' }}
+              />
+            </GridListTile>
+            <GridListTile cols={1}>
+              <img
+                src={IOR_LOGO}
+                alt="UNICT"
+                style={{ height: '50px', width: 'auto' }}
+              />
+            </GridListTile>
+            <GridListTile cols={3}>
+              <img
+                src={OHIO_LOGO}
+                alt="UNICT"
+                style={{ height: '50px', width: 'auto' }}
+              />
             </GridListTile>
           </GridList>
         </FooterContainer>

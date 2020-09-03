@@ -13,6 +13,9 @@ import DrawerContent from '../components/Layout/DrawerContent';
 import NotificationsList from '../components/Layout/Notifications';
 import BlockingMessageHandler from '../components/Layout/BlockingMessageHandler';
 import StartHandler from '../components/Layout/StartHandler';
+import RNADETECTOR_LOGO from '../resources/logoRNAdetector.png';
+import NERVIANO_LOGO from "../resources/nerviano.png";
+import GridListTile from "@material-ui/core/GridListTile";
 
 const drawerWidth = 260;
 const fixDriverMinSize = 1100;
@@ -97,7 +100,11 @@ export default function App({ children }: Props) {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap>
-            RNAdetector
+            <img
+              src={RNADETECTOR_LOGO}
+              alt="RNAdetector"
+              style={{ height: '32px', width: 'auto' }}
+            />
           </Typography>
         </Toolbar>
       </AppBar>
