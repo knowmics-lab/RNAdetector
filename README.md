@@ -90,7 +90,7 @@ Once one of the abovementioned analysis is performed, it is possibile to execute
 - **Differential expression analysis** to compare difference in the expression profile of such RNA molecules between case vs control samples
 - **Pathway analysis** to execute a  miRNA-sensitive topological pathway analysis on the results obtained by the differential expression analysis. However, only the differentially expressed ***mRNAs*** and ***miRNAs*** can be analyzed.
 
-**A more detailed [user guide](https://github.com/alessandrolaferlita/RNAdetector/wiki/User-guide) with several screenshots of the user interface is available in the wiki section of this GitHub project**
+**A more detailed [user guide](https://github.com/alessandrolaferlita/RNAdetector/wiki) with several screenshots of the user interface is available in the wiki section of this GitHub project**
 
 # Cite us
 if you use ***RNAdetector*** cite:
