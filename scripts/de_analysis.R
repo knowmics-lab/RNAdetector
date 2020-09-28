@@ -158,7 +158,7 @@ suppressWarnings({
     gene.filters = gene.filters,
     qc.plots=c(
       "mds", "biodetection", "countsbio", "saturation", "readnoise",
-      "filtered", "correl", "pairwise", "boxplot", # "lengthbias", 
+      "filtered", "correl", "pairwise", "boxplot", "lengthbias", 
       "meandiff", "meanvar", "deheatmap", "volcano", # "rnacomp", 
       "biodist","venn"
     ),
