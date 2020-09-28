@@ -103,11 +103,11 @@ read.samples <- function (input) {
 }
 
 merge.tables <- function (samples) {
-  final <- samples[[1]][,c("id", "mapped_id", "name", "chr", "start", "end", "strand", "length")]
+  final <- unique(samples[[1]][,c("id", "mapped_id", "name", "chr", "start", "end", "strand", "length")])
   for (i in 1:length(samples)) {
-    tmp <- samples[[i]][,c("id", "counts")]
+    tmp <- unique(samples[[i]][,c("id", "counts")])
     colnames(tmp) <- c("id", names(samples)[i])
-    final <- final %>% full_join(tmp, by="id")
+    final <- unique(final %>% full_join(tmp, by="id"))
   }
   final[,8:ncol(final)][is.na(final[,8:ncol(final)])] <- 0
   missing <- which(is.na(final$mapped_id) & is.na(final$name) & 
