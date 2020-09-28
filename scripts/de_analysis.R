@@ -55,12 +55,15 @@ variables    <- config$conditions.variables[config$conditions.variables %in% col
 if (length(variables) <= 0) {
   stop("No valid variables found.", call. = FALSE)
 }
-descriptions$condition <- do.call(paste, 
-                                  c(
-                                    lapply(variables, function (v)(descriptions[[v]])), 
-                                    list(sep="_")))
+descriptions$condition <- make.names(do.call(paste, 
+                                             c(
+                                               lapply(variables, function (v)(descriptions[[v]])), 
+                                               list(sep="_"))))
+#  Contrast: adjacent tissue_vs_cancer tissueError in makeContrasts(contrasts = paste(us[2], us[1], sep = "-"), levels = design) : 
+# The levels must by syntactically valid names in R, see help(make.names).  Non-valid names: adjacent tissue,cancer tissue
+#
 samples.list <- tapply(descriptions$SampleName, descriptions$condition, function(x) (x))
-contrasts.list <- sapply(config$contrasts, function(x)(paste(x, collapse = "_vs_")))
+contrasts.list <- sapply(config$contrasts, function(x)(paste(make.names(x), collapse = "_vs_")))
 
 source.data <- data
 data$gc     <- 0
