@@ -15,9 +15,9 @@ import Button from '@material-ui/core/Button';
 import Icon from '@material-ui/core/Icon';
 import IconButton from '@material-ui/core/IconButton';
 import * as Api from '../../api';
-import * as DiffExpConsts from '../../constants/diff-exp-consts';
-import * as DiffExpDefaults from '../../constants/diff-exp-defaults';
-import { JOBS } from '../../constants/routes';
+import * as DiffExpConsts from '../../constants/diff-exp-consts.json';
+import * as DiffExpDefaults from '../../constants/diff-exp-defaults.json';
+import { JOBS } from '../../constants/routes.json';
 import SelectField from '../Form/SelectField';
 import TextField from '../Form/TextField';
 import Wizard from '../UI/Wizard';
@@ -28,7 +28,7 @@ import type { PushNotificationFunction } from '../../types/notifications';
 import { SubmitButton } from '../UI/Button';
 import { OUT_TYPE_AHD, OUT_TYPE_AHT, OUT_TYPE_AHTD } from '../../api/jobs';
 import CustomField from '../Form/FieldError';
-import ValidationError from "../../errors/ValidationError";
+import ValidationError from '../../errors/ValidationError';
 
 type Props = {
   refreshJobs: () => void,
@@ -658,7 +658,7 @@ class DiffExpr extends React.Component<Props, State> {
             />
           </Box>
         )}
-        {hasFilt('reads') && (
+        {hasFilt('expression') && (
           <Box mx={2} mt={2}>
             <Typography variant="subtitle2">Expression filter</Typography>
             <Typography className={classes.instructionsSmall}>
@@ -714,10 +714,7 @@ class DiffExpr extends React.Component<Props, State> {
 
   getStep5 = values => {
     const { classes } = this.props;
-    const {
-      hasValidationErrors,
-      validationErrors
-    } = this.state;
+    const { hasValidationErrors, validationErrors } = this.state;
     const {
       parameters: {
         stats,
