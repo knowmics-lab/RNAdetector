@@ -159,7 +159,7 @@ suppressWarnings({
     qc.plots=c(
       "mds", "biodetection", "countsbio", "saturation", "readnoise",
       "filtered", "correl", "pairwise", "boxplot", "lengthbias", 
-      "meandiff", "meanvar", "deheatmap", "volcano", # "rnacomp", 
+      "deheatmap", "volcano", # "meandiff", "meanvar", "rnacomp", 
       "biodist","venn"
     ),
     fig.format=check.vector(params$fig.formats, c("png","pdf")),
