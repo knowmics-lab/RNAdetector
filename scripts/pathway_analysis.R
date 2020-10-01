@@ -5,6 +5,7 @@ suppressPackageStartupMessages({
   library(log4r)
   library(rmarkdown)
   library(DT)
+  library(gplots)
   library(ggplot2)
   library(plotly)
   library(heatmaply)
