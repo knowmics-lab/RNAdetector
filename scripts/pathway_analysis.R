@@ -7,7 +7,7 @@ suppressPackageStartupMessages({
   library(DT)
   library(ggplot2)
   library(plotly)
-  library(d3heatmap)
+  library(heatmaply)
 })
 
 path.env <- new.env(parent = emptyenv())
@@ -162,9 +162,12 @@ pathway.heatmap <- function (path.results, p.cut, use.fdr) {
   }), names(path.processed))
   path.matrix <- do.call(cbind, path.filtered)
   colnames(path.matrix) <- contrasts.to.text(colnames(path.matrix))
+  scale.dendogram <- ifelse(ncol(path.matrix) == 1, "none", "row")
+  if (ncol(path.matrix) == 1) {
+    path.matrix <- path.matrix[order(path.matrix[,1], decreasing = TRUE),,drop=FALSE]
+  }
   return (
-    d3heatmap(path.matrix, scale="row", colors="RdBu", dendrogram = "row", 
-              xaxis_font_size = "8pt", yaxis_font_size = "8pt")
+    heatmaply(path.matrix, scale = scale.dendogram, dendrogram = scale.dendogram, fontsize_col = 6, fontsize_row = 6, colors = bluered(256))
   )
 }
 
