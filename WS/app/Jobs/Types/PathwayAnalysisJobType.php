@@ -70,7 +70,6 @@ class PathwayAnalysisJobType extends AbstractJob
     {
         return [
             'degs_analysis'      => ['required', Rule::exists('jobs', 'id')],
-            'degs_analysis'      => ['required', Rule::exists('jobs', 'id')],
             'degs'               => ['filled', 'array'],
             'degs.p_cutoff'      => ['filled', 'numeric', 'min:0', 'max:1'],
             'degs.p_use_fdr'     => ['filled', 'boolean'],
