@@ -93,6 +93,9 @@ fi
 if [ ! -d "/rnadetector/ws/storage/app/tus_cache/" ]; then
     mkdir -p "/rnadetector/ws/storage/app/tus_cache/"
 fi
+if [ ! -d "/rnadetector/ws/storage/app/logs/" ]; then
+    mkdir -p "/rnadetector/ws/storage/app/logs/"
+fi
 create_data_dir
 create_run_dir
 initialize_mysql_database
