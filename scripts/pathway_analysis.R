@@ -5,10 +5,8 @@ suppressPackageStartupMessages({
   library(log4r)
   library(rmarkdown)
   library(DT)
-  library(gplots)
   library(ggplot2)
   library(plotly)
-  library(heatmaply)
 })
 
 path.env <- new.env(parent = emptyenv())
@@ -168,7 +166,7 @@ pathway.heatmap <- function (path.results, p.cut, use.fdr) {
     path.matrix <- path.matrix[order(path.matrix[,1], decreasing = TRUE),,drop=FALSE]
   }
   return (
-    heatmaply(path.matrix, scale = scale.dendogram, dendrogram = scale.dendogram, fontsize_col = 6, fontsize_row = 6, colors = bluered(256))
+    heatmaply::heatmaply(path.matrix, scale = scale.dendogram, dendrogram = scale.dendogram, fontsize_col = 6, fontsize_row = 6, colors = gplots::bluered(256))
   )
 }
 
