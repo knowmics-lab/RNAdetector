@@ -136,7 +136,7 @@ for (con in c.list) {
 
 Literature references for all the algorithms used can be found at the end of this report.
 
-```{r Global Heatmap, fig.cap=capFig("Heatmap depicting a list of the most significantly impacted pathways found by the analysis.")}
+```{r Global Heatmap, fig.cap=capFig("Heatmap depicting a list of the most significantly impacted pathways found by the analysis."), include=FALSE}
 if (!no.pathway.found) pathway.heatmap(path.res, pathway.p.cut, pathway.use.fdr)
 ```
 

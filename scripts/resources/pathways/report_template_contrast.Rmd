@@ -34,6 +34,10 @@ In figure `r curr.fig`, a volcano plot gives an overview of interesting pathways
 In figure `r curr.fig+1`, a scatterplot gives an overview of significant pathway in terms of pathways perturbation vs over-representation (OR). Pathways are plotted using the two types of evidence computed by MITHrIL: over-representation on the x-axis (pORA) and the total pathway accumulation on the y-axis (pAcc). Each pathway is represented by a single dot. Their color represents the combined p-value. Both p-values are shown in terms of their negative log (base 10) values. The dashed lines sets the threshold for statistical significance. This divides the graph in four regions. The upper-left corner (lower-right corner) are significantly impacted pathway only for the OR analysis (perturbation analysis). The upper-right corner are significantly impacted pathway for both analysis. The lower-left corner are non-significant pathways.
 
 
+```{r}
+print(curr.all.data)
+```
+
 ```{r fig.cap=capTab("Significantly impacted pathways and their associated accumulation (magnitude of the impact) and p-values")}
 datatable(curr.table, options = list(
   pageLength = 5, 
