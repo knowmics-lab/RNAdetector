@@ -167,7 +167,7 @@ class PathwayAnalysisJobType extends AbstractJob
         $this->setOutput(
             [
                 'type'       => self::OUT_TYPE_ANALYSIS_REPORT,
-                'outputFile' => ['path' => $pathReportZipAbsolute, 'url' => $pathReportZipUrl],
+                'outputFile' => ['path' => $pathReportZip, 'url' => $pathReportZipUrl],
                 'reportFile' => ['path' => $pathReportDirectory . '/index.html', 'url' => $pathReportUrl . '/index.html'],
             ]
         );
