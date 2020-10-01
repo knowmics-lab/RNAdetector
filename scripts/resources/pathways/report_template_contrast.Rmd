@@ -5,7 +5,7 @@
   curr.all.data$text  <- paste0(curr.all.data$Pathway.Name,
                                 "\nAcc: ", round(curr.all.data$Corrected.Accumulator * 10000) / 10000,
                                 "\npValue: ", round(curr.all.data$pValue * 10000) / 10000,
-                                "\nFDR:", round(curr.all.data$FDR * 10000) / 10000)
+                                "\nFDR:", round(curr.all.data$Adjusted.pValue * 10000) / 10000)
   curr.all.data$text1 <- paste0(curr.all.data$Pathway.Name,
                                 "\npOra: ", round(curr.all.data$Probability.Pi * 10000) / 10000,
                                 "\npAcc: ", round(curr.all.data$Probability.Network * 10000) / 10000,
@@ -33,11 +33,6 @@ In figure `r curr.fig`, a volcano plot gives an overview of interesting pathways
 
 In figure `r curr.fig+1`, a scatterplot gives an overview of significant pathway in terms of pathways perturbation vs over-representation (OR). Pathways are plotted using the two types of evidence computed by MITHrIL: over-representation on the x-axis (pORA) and the total pathway accumulation on the y-axis (pAcc). Each pathway is represented by a single dot. Their color represents the combined p-value. Both p-values are shown in terms of their negative log (base 10) values. The dashed lines sets the threshold for statistical significance. This divides the graph in four regions. The upper-left corner (lower-right corner) are significantly impacted pathway only for the OR analysis (perturbation analysis). The upper-right corner are significantly impacted pathway for both analysis. The lower-left corner are non-significant pathways.
 
-
-```{r}
-print(curr.all.data)
-```
-
 ```{r fig.cap=capTab("Significantly impacted pathways and their associated accumulation (magnitude of the impact) and p-values")}
 datatable(curr.table, options = list(
   pageLength = 5, 
@@ -47,8 +42,8 @@ datatable(curr.table, options = list(
   formatRound(c("pOra", "pAcc", "Acc", "pValue", "FDR"), digits=4)
 ```
 
-```{r fig.align="center", fig.cap=capFig("**Volcano plot**: All significantly impacted pathways are represented in terms of their measured accumulation (x-axis) and the significance (y-axis). The significance is represented in terms of the negative log (base 10) of the p-value, so that more significant genes are plotted higher on the y-axis. The dotted line represent the thresholds used to select significantly impacted pathways. Significantly impacted pathways with positive accumulation are shown in red, while the negative ones are in blue.")}
-plot_ly(curr.all.data, x = ~Corrected.Accumulator, y = ~-log10(pValue)) %>%
+```{r fig.align="center", fig.cap=capFig("**Volcano plot**: All significantly impacted pathways are represented in terms of their measured accumulation (x-axis) and the significance (y-axis). The significance is represented in terms of the negative log (base 10) of the p-value, so that more significant genes are plotted higher on the y-axis. The dotted line represent the thresholds used to select significantly impacted pathways. Significantly impacted pathways with positive accumulation are shown in red, while the negative ones are in blue."),warning=FALSE}
+plot_ly(curr.all.data, x = ~Corrected.Accumulator, y = ~-log10(pValue + (pathway.p.cut / 1000))) %>%
   add_trace(type="scatter", mode="markers", text=~text,
             hoverinfo="text", name=~name.acc,
             color=~color.acc, colors=c("black", "blue", "red")) %>%
@@ -59,16 +54,16 @@ plot_ly(curr.all.data, x = ~Corrected.Accumulator, y = ~-log10(pValue)) %>%
 ```
 
 ```{r fig.align="center", fig.cap=capFig("**Pathways perturbation vs over-representation**: Pathways are plotted in terms of the two types of evidence computed by MITHrIL: over-representation on the x-axis (pORA) and the total pathway accumulation on the y-axis (pAcc). Each pathway is represented by a single dot. Their color represents the combined p-value. Both p-values are shown in terms of their negative log (base 10) values.")}
-# plot_ly(curr.all.data, x = ~-log10(Probability.Pi), y = ~-log10(Probability.Network)) %>%
-#   add_trace(type="scatter", mode="markers", text=~text1,
-#             hoverinfo="text", color=~-log10(pValue)) %>%
-#   add_trace(name="pValue Threshold", x=range(-log10(curr.all.data$Probability.Pi)),
-#             y=c(-log10(pathway.p.cut), -log10(pathway.p.cut)), type="scatter",
-#             mode="lines", line=list(dash='dot', width=1), hoverinfo="none") %>%
-#   add_trace(name="pValue Threshold", y=range(-log10(curr.all.data$Probability.Network)),
-#             x=c(-log10(pathway.p.cut), -log10(pathway.p.cut)), type="scatter",
-#             mode="lines", line=list(dash='dot', width=1), hoverinfo="none") %>%
-#   hide_legend() %>% layout(xaxis=list(title="-log10(pOra)"), yaxis=list(title="-log10(pAcc)"))
+plot_ly(curr.all.data, x = ~-log10(Probability.Pi + (pathway.p.cut / 1000)), y = ~-log10(Probability.Network + (pathway.p.cut / 1000))) %>%
+  add_trace(type="scatter", mode="markers", text=~text1,
+            hoverinfo="text", color=~-log10(pValue + (pathway.p.cut / 1000))) %>%
+  add_trace(name="pValue Threshold", x=range(-log10(curr.all.data$Probability.Pi + (pathway.p.cut / 1000))),
+            y=c(-log10(pathway.p.cut), -log10(pathway.p.cut)), type="scatter",
+            mode="lines", line=list(dash='dot', width=1), hoverinfo="none") %>%
+  add_trace(name="pValue Threshold", y=range(-log10(curr.all.data$Probability.Network + (pathway.p.cut / 1000))),
+            x=c(-log10(pathway.p.cut), -log10(pathway.p.cut)), type="scatter",
+            mode="lines", line=list(dash='dot', width=1), hoverinfo="none") %>%
+  hide_legend()  %>% colorbar(title = "pValue") %>% layout(xaxis=list(title="-log10(pOra)"), yaxis=list(title="-log10(pAcc)"))
 ```
 
-#### Details
+#### Details of the Top-`r min(50,nrow(path.processed[[con]]))` pathways

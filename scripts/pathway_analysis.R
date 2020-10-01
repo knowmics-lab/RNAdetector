@@ -166,7 +166,13 @@ pathway.heatmap <- function (path.results, p.cut, use.fdr) {
     path.matrix <- path.matrix[order(path.matrix[,1], decreasing = TRUE),,drop=FALSE]
   }
   return (
-    heatmaply::heatmaply(path.matrix, scale = scale.dendogram, dendrogram = scale.dendogram, fontsize_col = 6, fontsize_row = 6, colors = gplots::bluered(256))
+    suppressPackageStartupMessages(
+      suppressMessages(
+        suppressWarnings(
+          heatmaply::heatmaply(path.matrix, scale = scale.dendogram, dendrogram = scale.dendogram, fontsize_col = 6, fontsize_row = 6, colors = gplots::bluered(256))
+        )
+      )
+    )
   )
 }
 
@@ -412,7 +418,7 @@ if (is.null(opt$output)) {
   stop("Output directory is required!", call.=FALSE)
 }
 
-res <- build.report(
+res <- suppressWarnings(build.report(
   input.directory = opt$input, 
   output.directory = opt$output, 
   degs.p.cut = opt[["degs-p"]],
@@ -421,4 +427,4 @@ res <- build.report(
   pathway.organism = opt[["path-org"]],
   pathway.p.cut = opt[["path-p"]],
   pathway.use.fdr = opt[["path-no-fdr"]]
-)
+))
