@@ -44,27 +44,27 @@ datatable(curr.table, options = list(
 ```
 
 ```{r fig.align="center", fig.cap=capFig("**Volcano plot**: All significantly impacted pathways are represented in terms of their measured accumulation (x-axis) and the significance (y-axis). The significance is represented in terms of the negative log (base 10) of the p-value, so that more significant genes are plotted higher on the y-axis. The dotted line represent the thresholds used to select significantly impacted pathways. Significantly impacted pathways with positive accumulation are shown in red, while the negative ones are in blue.")}
-# plot_ly(curr.all.data, x = ~Corrected.Accumulator, y = ~-log10(pValue)) %>% 
-#   add_trace(type="scatter", mode="markers", text=~text, 
-#             hoverinfo="text", name=~name.acc,
-#             color=~color.acc, colors=c("black", "blue", "red")) %>% 
-#   add_trace(name="pValue Threshold", x=range(curr.all.data$Corrected.Accumulator), 
-#             y=c(-log10(pathway.p.cut), -log10(pathway.p.cut)), type="scatter", 
-#             mode="lines", line=list(dash='dot', width=1), hoverinfo="none") %>% 
-#   hide_colorbar() %>% hide_legend() %>% layout(xaxis=list(title="Acc"), yaxis=list(title="-log10(p)"))
+plot_ly(curr.all.data, x = ~Corrected.Accumulator, y = ~-log10(pValue)) %>%
+  add_trace(type="scatter", mode="markers", text=~text,
+            hoverinfo="text", name=~name.acc,
+            color=~color.acc, colors=c("black", "blue", "red")) %>%
+  add_trace(name="pValue Threshold", x=range(curr.all.data$Corrected.Accumulator),
+            y=c(-log10(pathway.p.cut), -log10(pathway.p.cut)), type="scatter",
+            mode="lines", line=list(dash='dot', width=1), hoverinfo="none") %>%
+  hide_colorbar() %>% hide_legend() %>% layout(xaxis=list(title="Acc"), yaxis=list(title="-log10(p)"))
 ```
 
 ```{r fig.align="center", fig.cap=capFig("**Pathways perturbation vs over-representation**: Pathways are plotted in terms of the two types of evidence computed by MITHrIL: over-representation on the x-axis (pORA) and the total pathway accumulation on the y-axis (pAcc). Each pathway is represented by a single dot. Their color represents the combined p-value. Both p-values are shown in terms of their negative log (base 10) values.")}
-plot_ly(curr.all.data, x = ~-log10(Probability.Pi), y = ~-log10(Probability.Network)) %>%
-  add_trace(type="scatter", mode="markers", text=~text1,
-            hoverinfo="text", color=~-log10(pValue)) %>%
-  add_trace(name="pValue Threshold", x=range(-log10(curr.all.data$Probability.Pi)),
-            y=c(-log10(pathway.p.cut), -log10(pathway.p.cut)), type="scatter",
-            mode="lines", line=list(dash='dot', width=1), hoverinfo="none") %>%
-  add_trace(name="pValue Threshold", y=range(-log10(curr.all.data$Probability.Network)),
-            x=c(-log10(pathway.p.cut), -log10(pathway.p.cut)), type="scatter",
-            mode="lines", line=list(dash='dot', width=1), hoverinfo="none") %>%
-  hide_legend() %>% layout(xaxis=list(title="-log10(pOra)"), yaxis=list(title="-log10(pAcc)"))
+# plot_ly(curr.all.data, x = ~-log10(Probability.Pi), y = ~-log10(Probability.Network)) %>%
+#   add_trace(type="scatter", mode="markers", text=~text1,
+#             hoverinfo="text", color=~-log10(pValue)) %>%
+#   add_trace(name="pValue Threshold", x=range(-log10(curr.all.data$Probability.Pi)),
+#             y=c(-log10(pathway.p.cut), -log10(pathway.p.cut)), type="scatter",
+#             mode="lines", line=list(dash='dot', width=1), hoverinfo="none") %>%
+#   add_trace(name="pValue Threshold", y=range(-log10(curr.all.data$Probability.Network)),
+#             x=c(-log10(pathway.p.cut), -log10(pathway.p.cut)), type="scatter",
+#             mode="lines", line=list(dash='dot', width=1), hoverinfo="none") %>%
+#   hide_legend() %>% layout(xaxis=list(title="-log10(pOra)"), yaxis=list(title="-log10(pAcc)"))
 ```
 
 #### Details
