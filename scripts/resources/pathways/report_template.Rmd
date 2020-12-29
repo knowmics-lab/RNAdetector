@@ -149,10 +149,16 @@ if (no.pathway.found) {
   out <- NULL
   for (con in c.list) {
     out <- c(out, suppressMessages(suppressWarnings(knitr::knit_expand(get("CONTRAST.TEMPLATE.PATH", envir = path.env)))))
-    for (path in 1:min(50,nrow(path.processed[[con]]))) {
-      gt <- get.genes.table(path.res, con, path.processed[[con]]$Pathway.Id[path], degs.p.cut)
-      if (!is.null(gt) && nrow(gt %>% filter(pValue < degs.p.cut)) > 0) {
-        out <- c(out, knitr::knit_expand(get("PATHWAY.TEMPLATE.PATH", envir = path.env)))
+    npath <- min(50,nrow(path.processed[[con]]))
+    if (npath <= 0) {
+      out <- c(out, "** Analysis found no significantly impacted pathways for this contrast. **\n\n")
+    } else {
+      out <- c(out, paste0('#### Details of the Top-', npath,' pathways\n'))
+      for (path in 1:npath) {
+        gt <- get.genes.table(path.res, con, path.processed[[con]]$Pathway.Id[path], degs.p.cut)
+        if (!is.null(gt) && nrow(gt %>% filter(pValue < degs.p.cut)) > 0) {
+          out <- c(out, knitr::knit_expand(get("PATHWAY.TEMPLATE.PATH", envir = path.env)))
+        }
       }
     }
   }

@@ -65,5 +65,3 @@ plot_ly(curr.all.data, x = ~-log10(Probability.Pi + (pathway.p.cut / 1000)), y =
             mode="lines", line=list(dash='dot', width=1), hoverinfo="none") %>%
   hide_legend()  %>% colorbar(title = "pValue") %>% layout(xaxis=list(title="-log10(pOra)"), yaxis=list(title="-log10(pAcc)"))
 ```
-
-#### Details of the Top-`r min(50,nrow(path.processed[[con]]))` pathways
