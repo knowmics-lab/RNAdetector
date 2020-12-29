@@ -103,6 +103,7 @@ if (is.null(opt$doutput)) {
 }
 
 input         <- readLines(opt$descriptions)
+input         <- Filter(function (x) (x != ""),gsub("^\\s+|\\s+$", "", input, perl = TRUE))
 samples       <- readLines(opt$samples)
 default.group <- opt$group
 descriptions  <- read.descriptions(input, samples, default.group)
