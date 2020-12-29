@@ -63,8 +63,8 @@ descriptions$condition <- clear.names(do.call(paste,
                                                 lapply(variables, function (v)(descriptions[[v]])), 
                                                 list(sep="_"))))
 
-samples.list <- tapply(descriptions$SampleName, descriptions$condition, function(x) (x))
-contrasts.list <- sapply(config$contrasts, function(x)(paste(clear.names(x), collapse = "_vs_")))
+samples.list <- tapply(make.names(descriptions$SampleName), make.names(clear.names(descriptions$condition)), function(x) (x))
+contrasts.list <- sapply(config$contrasts, function(x)(paste(make.names(clear.names(x)), collapse = "_vs_")))
 
 source.data <- data
 data$gc     <- 0
