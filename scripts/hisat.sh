@@ -9,73 +9,93 @@
 # 	-o OUTPUT BAM FILE
 ##############################################################################
 while getopts ":g:t:f:s:o:" opt; do
-	case $opt in
-	g) REF_GENOME=$OPTARG ;;
-	t) THREADS=$OPTARG ;;
-	f) INPUT_1=$OPTARG ;;
-	s) INPUT_2=$OPTARG ;;
-	o) OUTPUT=$OPTARG ;;
-	\?)
-		echo "Invalid option: -$OPTARG"
-		exit 1
-		;;
-	:)
-		echo "Option -$OPTARG requires an argument."
-		exit 2
-		;;
-	esac
+  case $opt in
+  g) REF_GENOME=$OPTARG ;;
+  t) THREADS=$OPTARG ;;
+  f) INPUT_1=$OPTARG ;;
+  s) INPUT_2=$OPTARG ;;
+  o) OUTPUT=$OPTARG ;;
+  \?)
+    echo "Invalid option: -$OPTARG"
+    exit 1
+    ;;
+  :)
+    echo "Option -$OPTARG requires an argument."
+    exit 2
+    ;;
+  esac
 done
 
 #### Check parameters ####
 #Check input files
 if [ -z "$INPUT_1" ] || [ ! -f "$INPUT_1" ]; then
-	echo "Input file does not exist!"
-	exit 3
+  echo "Input file does not exist!"
+  exit 3
 fi
 
 # Control sequencing strategy "single end" o "paired end"
 if [ -z "$INPUT_2" ]; then
-	PAIRED=false
+  PAIRED=false
 elif [ ! -f "$INPUT_2" ]; then
-	echo "Second input file does not exist!"
-	exit 4
+  echo "Second input file does not exist!"
+  exit 4
 else
-	PAIRED=true
+  PAIRED=true
 fi
 
 # Check number of threads and set 1 as default value
 if [ -z "$THREADS" ]; then
-	THREADS=1
+  THREADS=1
 fi
 
 # Check output
 if [ -z "$OUTPUT" ]; then
-	echo "Output file must be specified!"
-	exit 5
+  echo "Output file must be specified!"
+  exit 5
 fi
 
 # Check if output directory is writable
 if [ ! -w "$(dirname "$OUTPUT")" ]; then
-	echo "Output directory is not writable!"
-	exit 6
+  echo "Output directory is not writable!"
+  exit 6
 fi
 
 #### Alignment ####
 # | samtools view -Sbh > hisat2_output.bam
+TMPOUTPUT=$(mktemp --suffix=".bam")
 if [ $PAIRED = "true" ]; then
-  if ! hisat2 -p "$THREADS" -x "$REF_GENOME" -1 "$INPUT_1" -2 "$INPUT_2" | samtools view -Sbh >"$OUTPUT" ; then
+  if ! hisat2 -p "$THREADS" -x "$REF_GENOME" -1 "$INPUT_1" -2 "$INPUT_2" | samtools view -Sbh >"$TMPOUTPUT"; then
     echo "An error occurred during HISAT 2 execution!"
     exit 7
   fi
 else
-  if ! hisat2 -p "$THREADS" -x "$REF_GENOME"  -U "$INPUT_1" | samtools view -Sbh >"$OUTPUT"; then
+  if ! hisat2 -p "$THREADS" -x "$REF_GENOME" -U "$INPUT_1" | samtools view -Sbh >"$TMPOUTPUT"; then
     echo "An error occurred during HISAT 2 execution!"
     exit 7
   fi
 fi
 
+if [ ! -f "$TMPOUTPUT" ]; then
+  echo "Unable to find HISAT2 output file!"
+  exit 8
+fi
+
+echo "Sorting and indexing..."
+if ! samtools sort --threads "$THREADS" "$TMPOUTPUT" -o "$OUTPUT"; then
+  echo "Unable to sort HISAT2 output"
+  exit 9
+fi
+
 # Check SAM file
 if [ ! -f "$OUTPUT" ]; then
-	echo "Unable to find output sam file!"
-	exit 8
+  echo "Unable to find sorted output file!"
+  exit 10
 fi
+
+rm "$TMPOUTPUT"
+
+if ! samtools index "$OUTPUT"; then
+  echo "Unable to index output file!"
+  exit 11
+fi
+chmod 777 "$OUTPUT.bai"
