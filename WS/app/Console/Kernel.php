@@ -20,6 +20,8 @@ class Kernel extends ConsoleKernel
         Commands\ListPackages::class,
         Commands\InstallPackage::class,
         Commands\ClearQueue::class,
+        Commands\CheckForUpdate::class,
+        Commands\UpdateRun::class,
     ];
 
     /**

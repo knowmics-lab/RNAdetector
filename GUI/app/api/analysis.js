@@ -1,6 +1,5 @@
 /* eslint-disable camelcase */
 // @flow
-
 import type { ResponseType } from '../types/common';
 import type { Job } from '../types/jobs';
 import Connector from './connector';

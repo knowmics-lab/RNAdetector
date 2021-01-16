@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# Update the distro
+DEBIAN_FRONTEND=noninteractive /usr/bin/apt update
+DEBIAN_FRONTEND=noninteractive /usr/bin/apt dist-upgrade -y
+
 # Create Web Service Directory
 mkdir /rnadetector/
 

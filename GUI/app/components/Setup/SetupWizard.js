@@ -300,6 +300,28 @@ class SetupWizard extends React.Component<Props, State> {
           settingsSaved(Api.Settings.getConfig());
           activeWindow().reload();
         }, 1000);
+      } else {
+        log += 'Validating configuration:\n';
+        this.setLog(log);
+        const checkedSettings = await Check.checkConfig(
+          newSettings,
+          Api.Settings.getConfig(),
+          msg => {
+            log += msg;
+            this.setLog(log);
+          }
+        );
+        log += 'Saving configuration...';
+        this.setLog(log);
+        Api.Settings.saveConfig(checkedSettings);
+        log +=
+          'Ok!\nInstallation completed! Please wait for the interface to be reloaded.';
+        this.setLog(log);
+        resetInstance();
+        setTimeout(() => {
+          settingsSaved(Api.Settings.getConfig());
+          activeWindow().reload();
+        }, 1000);
       }
     } catch (e) {
       log += `An error occurred: ${e.message}\n`;

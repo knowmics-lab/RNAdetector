@@ -21,6 +21,12 @@ use ZipArchive;
 final class Utils
 {
 
+    public const VERSION = '0.0.3';
+
+    public const VERSION_NUMBER = 3;
+
+    public const DEFAULT_VERSION_NUMBER = 2;
+
     public const IGNORED_ERROR_CODE = '===IGNORED===';
 
     /**
