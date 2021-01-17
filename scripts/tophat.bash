@@ -110,6 +110,13 @@ if ! samtools index "$OUTPUT"; then
 fi
 chmod 777 "$OUTPUT.bai"
 
+echo "Computing BAM coverage"
+if ! bamCoverage -b "$OUTPUT" -o "$OUTPUT.coverage.bw"; then
+  echo "Unable to compute coverate!"
+  exit 13
+fi
+chmod 777 "$OUTPUT.coverage.bw"
+
 # Removing items of tmp directory
 if [ -d "$TEMP_DIR" ]; then
   rm -rf "$TEMP_DIR"

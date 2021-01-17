@@ -79,6 +79,9 @@ cd /rnadetector/tmp || exit 100
 rm -rf htseq-release_0.11.1/
 rm htseq.tar.gz
 
+# Install deeptools
+pip3 install deeptools
+
 # Install the web service
 cd /rnadetector/ws/ || exit 100
 mv .env.docker .env

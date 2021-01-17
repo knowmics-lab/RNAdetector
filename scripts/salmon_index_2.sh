@@ -27,6 +27,8 @@ if [ -z "$FASTA" ] || [ ! -f "$FASTA" ]; then
 	exit 3
 fi
 
+[ ! -f "$FASTA.fai" ] && samtools faidx "$FASTA" && chmod 777 "$FASTA.fai"
+
 #### Indexed transcriptome ####
 if ! salmon index -t "$FASTA" -i "$INDEXED_FASTA" -k 31 2>/dev/null; then
 	echo "An error occurred during salmon index execution!"

@@ -7,5 +7,15 @@ for FASTA in $REFERENCES; do
     echo "No fasta index found for $FASTA. Indexing..."
     samtools faidx "$FASTA"
   fi
-  rm "$FASTA.fai" #@todo remove this line for production
+done
+
+ANNOTATIONS=$(find "/rnadetector/ws/storage/app/annotations" -name '*.gtf')
+
+for GTF in $ANNOTATIONS; do
+  OUTPUT_DIRECTORY=$(dirname "$GTF")
+  NAME=$(basename "$GTF" ".gtf")
+  if [ ! -f "$OUTPUT_DIRECTORY/$NAME.gff3.gz" ]; then
+    echo "No index found for $GTF. Indexing..."
+    bash /rnadetector/scripts/prepare_gtf.sh "$GTF"
+  fi
 done

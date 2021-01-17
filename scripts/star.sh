@@ -91,5 +91,9 @@ rm -r "$TEMP_DIR"
 
 samtools index "$OUTPUT" || exit_abnormal "Unable to write index file!" 11
 
+echo "Computing BAM coverage"
+bamCoverage -b "$OUTPUT" -o "$OUTPUT.coverage.bw" || exit_abnormal "Unable to compute coverate!" 12
+
 chmod 777 "$OUTPUT"
 chmod 777 "$OUTPUT.bai"
+chmod 777 "$OUTPUT.coverage.bw"

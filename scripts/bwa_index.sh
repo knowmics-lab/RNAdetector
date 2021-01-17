@@ -41,6 +41,8 @@ if [ ! -w "$(dirname "$PREFIX_OUTPUT")" ]; then
 	exit 5
 fi
 
+[ ! -f "$FASTA_FILE.fai" ] && samtools faidx "$FASTA_FILE" && chmod 777 "$FASTA_FILE.fai"
+
 #### Genome indexing ####
 if ! bwa index -p "$PREFIX_OUTPUT" -a bwtsw "$FASTA_FILE"; then
 	echo "An error occurred during bwa index execution!"

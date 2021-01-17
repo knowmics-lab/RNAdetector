@@ -99,3 +99,10 @@ if ! samtools index "$OUTPUT"; then
   exit 11
 fi
 chmod 777 "$OUTPUT.bai"
+
+echo "Computing BAM coverage"
+if ! bamCoverage -b "$OUTPUT" -o "$OUTPUT.coverage.bw"; then
+  echo "Unable to compute coverate!"
+  exit 12
+fi
+chmod 777 "$OUTPUT.coverage.bw"
