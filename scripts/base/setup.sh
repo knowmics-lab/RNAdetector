@@ -85,6 +85,7 @@ mv .env.docker .env
 composer install --optimize-autoloader --no-dev
 php artisan key:generate
 php artisan storage:link
+php artisan make:links
 
 # Download MITHrIL index
 ORGANISMS="hsa rno mmu cel"

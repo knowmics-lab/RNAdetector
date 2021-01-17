@@ -22,6 +22,7 @@ class Kernel extends ConsoleKernel
         Commands\ClearQueue::class,
         Commands\CheckForUpdate::class,
         Commands\UpdateRun::class,
+        Commands\MakeLinks::class,
     ];
 
     /**
