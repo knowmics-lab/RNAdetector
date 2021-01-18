@@ -117,9 +117,29 @@ class Reference extends Model
     }
 
     /**
+     * Checks if this reference sequence FASTA file is indexed
+     *
+     * @return bool
+     */
+    public function isFastaIndexed(): bool
+    {
+        return file_exists($this->path . '.fai');
+    }
+
+    /**
+     * Returns the URI of the FASTA file of this reference
+     *
+     * @return string
+     */
+    public function getReferenceUri(): string
+    {
+        return '/references/' . str_ireplace(env('REFERENCES_PATH'), '', $this->path);
+    }
+
+    /**
      * @inheritDoc
      */
-    public function delete()
+    public function delete(): ?bool
     {
         if (file_exists($this->basedir())) {
             self::_deletePath($this->basedir());

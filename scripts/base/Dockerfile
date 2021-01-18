@@ -12,7 +12,7 @@ RUN DEBIAN_FRONTEND=noninteractive /usr/bin/apt update && \
     DEBIAN_FRONTEND=noninteractive apt-get clean
 
 RUN DEBIAN_FRONTEND=noninteractive /usr/bin/apt install -y nginx php7.3-cli php7.3-fpm php7.3-json php7.3-sqlite3 php7.3-mysql \
-                                                           php7.3-intl php7.3-mbstring php7.3-xml php7.3-zip supervisor gffread \
+                                                           php7.3-intl php7.3-mbstring php7.3-xml php7.3-zip supervisor cufflinks \
                                                            git composer python-setuptools python3-setuptools pandoc tabix \
                                                            python-dev curl tophat bwa samtools python-pip libssl-dev bedtools \
                                                            subread cutadapt fastqc r-base-dev cmake wget cython swig rna-star python3-pip \

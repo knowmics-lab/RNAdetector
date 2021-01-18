@@ -1,0 +1,148 @@
+{
+    "assemblies": [
+        {
+            "name": "Human_hg38_genome",
+            "sequence": {
+                "type": "ReferenceSequenceTrack",
+                "trackId": "Human_hg38_genome",
+                "adapter": {
+                    "type": "IndexedFastaAdapter",
+                    "fastaLocation": {
+                        "uri": "/references/Human_hg38_genome/reference.fa"
+                    },
+                    "faiLocation": {
+                        "uri": "/references/Human_hg38_genome/reference.fa.fai"
+                    }
+                }
+            }
+        }
+    ],
+    "tracks": [
+        {
+            "type": "FeatureTrack",
+            "trackId": "Human_hg38_gencode_33_gtf",
+            "assemblyNames": ["Human_hg38_genome"],
+            "name": "Human_hg38_gencode_33_gtf",
+            "category": ["Miscellaneous"],
+            "adapter": {
+                "type": "Gff3TabixAdapter",
+                "gffGzLocation": {
+                    "uri": "/annotations/Human_hg38_gencode_33_gtf.gff3.gz"
+                },
+                "index": {
+                    "location": {
+                        "uri": "/annotations/Human_hg38_gencode_33_gtf.gff3.gz.tbi"
+                    }
+                }
+            }
+        },
+        {
+            "type": "AlignmentsTrack",
+            "trackId": "lipo863-shcon-sample-1-alignment",
+            "name": "Lipo863 shcon sample 1 - Alignment",
+            "assemblyNames": ["Human_hg38_genome"],
+            "category": ["Alignments"],
+            "adapter": {
+                "type": "BamAdapter",
+                "bamLocation": {
+                    "uri": "/storage/jobs/84/star_output_lipo863-shcon-sample-1.bam"
+                },
+                "index": {
+                    "location": {
+                        "uri": "/storage/jobs/84/star_output_lipo863-shcon-sample-1.bam.bai"
+                    }
+                }
+            }
+        },
+        {
+            "type": "QuantitativeTrack",
+            "trackId": "lipo863-shcon-sample-1-coverage",
+            "name": "Lipo863 shcon sample 1 - coverage",
+            "assemblyNames": ["Human_hg38_genome"],
+            "category": ["BigWig"],
+            "adapter": {
+                "type": "BigWigAdapter",
+                "bigWigLocation": {
+                    "uri": "/storage/jobs/84/star_output_lipo863-shcon-sample-1.bam.coverage.bw"
+                }
+            }
+        }
+    ],
+    "connections": [],
+    "defaultSession": {
+        "name": "TITLE GOES HERE",
+        "views": [
+            {
+                "id": "lipo863-shcon-sample-1-view",
+                "type": "LinearGenomeView",
+                "tracks": [
+                    {
+                        "id": "0T7fBVkST",
+                        "type": "ReferenceSequenceTrack",
+                        "configuration": "Human_hg38_genome",
+                        "displays": [
+                            {
+                                "id": "ERp8LfKxn1",
+                                "type": "LinearReferenceSequenceDisplay",
+                                "height": 180,
+                                "configuration": "Human_hg38_genome-LinearReferenceSequenceDisplay",
+                                "showForward": true,
+                                "showReverse": true,
+                                "showTranslation": true
+                            }
+                        ]
+                    },
+                    {
+                        "id": "BE3QAGQj_",
+                        "type": "FeatureTrack",
+                        "configuration": "Human_hg38_gencode_33_gtf",
+                        "displays": [
+                            {
+                                "id": "cdNQZiSTJ",
+                                "type": "LinearBasicDisplay",
+                                "height": 100,
+                                "configuration": "Human_hg38_gencode_33_gtf-LinearBasicDisplay"
+                            }
+                        ]
+                    },
+                    {
+                        "id": "usgdEEm4k",
+                        "type": "QuantitativeTrack",
+                        "configuration": "lipo863-shcon-sample-1-coverage",
+                        "displays": [
+                            {
+                                "id": "YlDsZG6DaZ",
+                                "type": "LinearWiggleDisplay",
+                                "height": 100,
+                                "configuration": "lipo863-shcon-sample-1-coverage-LinearWiggleDisplay",
+                                "selectedRendering": "",
+                                "resolution": 1,
+                                "constraints": {}
+                            }
+                        ]
+                    }
+                ],
+                "hideHeader": false,
+                "hideHeaderOverview": false,
+                "trackSelectorType": "hierarchical",
+                "trackLabels": "overlapping",
+                "showCenterLine": false
+            }
+        ],
+        "widgets": {
+            "hierarchicalTrackSelector": {
+                "id": "hierarchicalTrackSelector",
+                "type": "HierarchicalTrackSelectorWidget",
+                "collapsed": {},
+                "filterText": "",
+                "view": "lipo863-shcon-sample-1-view"
+            }
+        },
+        "activeWidgets": {
+            "hierarchicalTrackSelector": "hierarchicalTrackSelector"
+        }
+    },
+    "configuration": {
+        "disableAnalytics": true
+    }
+}

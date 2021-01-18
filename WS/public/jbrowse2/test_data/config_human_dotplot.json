@@ -1,0 +1,58 @@
+{
+  "assemblies": [
+    {
+      "name": "hg19",
+      "sequence": {
+        "trackId": "hg19_seq",
+        "type": "ReferenceSequenceTrack",
+        "adapter": {
+          "type": "ChromSizesAdapter",
+          "chromSizesLocation": {
+            "uri": "hg19.chrom.sizes"
+          }
+        }
+      }
+    },
+    {
+      "name": "hg38",
+      "sequence": {
+        "trackId": "hg38_seq",
+        "type": "ReferenceSequenceTrack",
+        "adapter": {
+          "type": "ChromSizesAdapter",
+          "chromSizesLocation": {
+            "uri": "hg38.chrom.sizes"
+          }
+        }
+      }
+    }
+  ],
+  "tracks": [],
+  "defaultSession": {
+    "name": "hg19 vs hg38",
+    "width": 1850,
+    "drawerWidth": 384,
+    "views": [
+      {
+        "id": "MiDMyyWpp",
+        "type": "DotplotView",
+        "assemblyNames": ["hg38", "hg19"],
+        "hview": {
+          "displayedRegions": [],
+          "bpPerPx": 100000,
+          "offsetPx": 0
+        },
+        "vview": {
+          "displayedRegions": [],
+          "bpPerPx": 200000,
+          "offsetPx": 0
+        },
+        "headerHeight": 44,
+        "width": 1850,
+        "height": 600,
+        "displayName": "hg19 vs hg38 dotplot",
+        "trackSelectorType": "hierarchical"
+      }
+    ]
+  }
+}

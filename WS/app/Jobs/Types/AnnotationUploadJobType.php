@@ -111,6 +111,30 @@ class AnnotationUploadJobType extends AbstractJob
                 throw new ProcessingJobException('Unable to create map file.');
             }
         }
+        if ($type === 'gtf') {
+            $this->log('Preparing gtf index for the genomic browser...');
+            self::runCommand(
+                [
+                    'bash',
+                    self::scriptPath('prepare_gtf.sh'),
+                    '-f',
+                    $annotationFileName,
+                ],
+                $this->model->getAbsoluteJobDirectory(),
+                null,
+                function ($type, $buffer) {
+                    $this->log($buffer, false);
+                },
+                [
+                    3 => 'Input file does not exist',
+                    4 => 'Output directory is not writable',
+                    5 => 'Unable to convert GTF to GFF3',
+                    6 => 'Unable to sort GFF3 file',
+                    7 => 'Unable to index GFF3 file',
+                    8 => 'Unable to remove temporary files'
+                ]
+            );
+        }
         Annotation::create(
             [
                 'name'     => $name,

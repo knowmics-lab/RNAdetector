@@ -273,6 +273,18 @@ class Job extends Model
     }
 
     /**
+     * Returns the URI of a file inside this job
+     *
+     * @param string $path
+     *
+     * @return string
+     */
+    public function getJobUri(string $path): string
+    {
+        return '/storage/jobs/' . $this->id . '/' . $path;
+    }
+
+    /**
      * Returns the path of a temporary file in the job directory
      *
      * @param string $prefix

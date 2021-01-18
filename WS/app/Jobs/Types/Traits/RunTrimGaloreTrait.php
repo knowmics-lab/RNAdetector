@@ -62,7 +62,7 @@ trait RunTrimGaloreTrait
         if ($hardTrim) {
             $command[] = '-h';
         }
-        $output = AbstractJob::runCommand(
+        AbstractJob::runCommand(
             $command,
             $model->getAbsoluteJobDirectory(),
             null,

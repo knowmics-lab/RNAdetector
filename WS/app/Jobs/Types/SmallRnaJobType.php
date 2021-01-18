@@ -13,11 +13,13 @@ use App\Exceptions\ProcessingJobException;
 use App\Jobs\Types\Traits\ConvertsSamToBamTrait;
 use App\Jobs\Types\Traits\HandlesCompressedFastqTrait;
 use App\Jobs\Types\Traits\HasCommonParameters;
+use App\Jobs\Types\Traits\IndexesBAMTrait;
 use App\Jobs\Types\Traits\RunTrimGaloreTrait;
 use App\Jobs\Types\Traits\UseAlignmentTrait;
 use App\Jobs\Types\Traits\UseCountingTrait;
 use App\Jobs\Types\Traits\UseGenome;
 use App\Jobs\Types\Traits\UseGenomeAnnotation;
+use App\Jobs\Types\Traits\UsesJBrowseTrait;
 use App\Jobs\Types\Traits\UseTranscriptome;
 use App\Models\Annotation;
 use App\Models\Job;
@@ -28,7 +30,7 @@ use Illuminate\Validation\Rule;
 class SmallRnaJobType extends AbstractJob
 {
     use HasCommonParameters, ConvertsSamToBamTrait, RunTrimGaloreTrait, UseAlignmentTrait, UseCountingTrait, HandlesCompressedFastqTrait;
-    use UseTranscriptome, UseGenome, UseGenomeAnnotation;
+    use UseTranscriptome, UseGenome, UseGenomeAnnotation, IndexesBAMTrait, UsesJBrowseTrait;
 
     /**
      * Returns an array containing for each input parameter an help detailing its content and use.
@@ -40,7 +42,7 @@ class SmallRnaJobType extends AbstractJob
         return array_merge(
             self::commonParametersSpec(),
             [
-                'algorithm'         => 'Alignment/quantification algorithm: salmon, tophat, hisat2 (Default: hisat2)',
+                'algorithm'         => 'Alignment/quantification algorithm: salmon, tophat, hisat2, star (Default: star)',
                 'countingAlgorithm' => 'The counting algorithm htseq, feature-counts, or salmon (Default: feature-counts)',
                 'genome'            => 'An optional name for a reference genome (Default human hg19)',
                 'transcriptome'     => 'An optional name for a transcriptome if counting algorithm is salmon (Default human hg19)',
@@ -98,7 +100,7 @@ class SmallRnaJobType extends AbstractJob
         if (!$this->validateCommonParameters($this->model, self::VALID_INPUT_TYPES, self::FASTQ)) {
             return false;
         }
-        $algorithm = $this->model->getParameter('algorithm', self::HISAT2);
+        $algorithm = $this->model->getParameter('algorithm', self::STAR);
         if (!in_array($algorithm, self::VALID_ALIGN_QUANT_METHODS, true)) {
             return false;
         }
@@ -129,7 +131,7 @@ class SmallRnaJobType extends AbstractJob
         $trimGaloreQuality = (int)$this->getParameter('trimGalore.quality', 20);
         $trimGaloreLength = (int)$this->getParameter('trimGalore.length', 14);
         $threads = (int)$this->getParameter('threads', 1);
-        $algorithm = $this->getParameter('algorithm', self::HISAT2);
+        $algorithm = $this->getParameter('algorithm', self::STAR);
         $countingAlgorithm = $this->getParameter('countingAlgorithm', self::FEATURECOUNTS_COUNTS);
         if ($inputType === self::SAM) {
             $firstInputFile = self::convertSamToBam($this->model, $firstInputFile);
@@ -150,6 +152,7 @@ class SmallRnaJobType extends AbstractJob
         $harmonizedTxFile = null;
         $harmonizedTxUrl = null;
         $countingInputFile = '';
+        $bamOutput = null;
         $count = true;
         if ($inputType === self::FASTQ) {
             $this->log('Checking if input is compressed...');
@@ -190,6 +193,17 @@ class SmallRnaJobType extends AbstractJob
                         $threads
                     );
                     break;
+                case self::STAR:
+                    $countingInputFile = $this->runSTAR(
+                        $this->model,
+                        $paired,
+                        $firstTrimmedFastq,
+                        $secondTrimmedFastq,
+                        $this->getGenome(),
+                        $this->getGenomeAnnotation('HUMAN_SNCRNA_ANNOTATION_NAME'),
+                        $threads
+                    );
+                    break;
                 case self::SALMON:
                     [
                         $outputFile,
@@ -210,8 +224,12 @@ class SmallRnaJobType extends AbstractJob
                     $count = false;
                     break;
             }
+            if ($countingInputFile) {
+                $bamOutput = $this->getFilePaths($countingInputFile);
+            }
         } else {
             $countingInputFile = $firstInputFile;
+            $bamOutput = $this->indexBAM($this->model, $countingInputFile, true, $threads);
         }
         if ($count) {
             switch ($countingAlgorithm) {
@@ -251,13 +269,21 @@ class SmallRnaJobType extends AbstractJob
                     throw new ProcessingJobException('Invalid counting algorithm');
             }
         }
+        $jbrowseConfig = $this->makeJBrowseConfig(
+            $this->model,
+            $bamOutput,
+            $this->getGenome(),
+            $this->getGenomeAnnotation('HUMAN_SNCRNA_ANNOTATION_NAME')
+        );
         $output = [
-            'type'           => self::OUT_TYPE_ANALYSIS_HARMONIZED,
-            'outputFile'     => [
+            'type'              => self::OUT_TYPE_ANALYSIS_HARMONIZED,
+            'outputFile'        => [
                 'path' => $outputFile,
                 'url'  => $outputUrl,
             ],
-            'harmonizedFile' => [
+            'outputBamFile'     => $this->getFilePathsForOutput($bamOutput),
+            'outputJBrowseFile' => $this->getFilePathsForOutput($jbrowseConfig),
+            'harmonizedFile'    => [
                 'path' => $harmonizedGeneFile,
                 'url'  => $harmonizedGeneUrl,
             ],

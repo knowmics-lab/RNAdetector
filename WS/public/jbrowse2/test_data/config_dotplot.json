@@ -1,0 +1,121 @@
+{
+  "assemblies": [
+    {
+      "name": "grape",
+      "sequence": {
+        "trackId": "grape_seq",
+        "type": "ReferenceSequenceTrack",
+        "adapter": {
+          "type": "ChromSizesAdapter",
+          "chromSizesLocation": {
+            "uri": "grape.chrom.sizes"
+          }
+        }
+      }
+    },
+    {
+      "name": "peach",
+      "sequence": {
+        "trackId": "peach_seq",
+        "type": "ReferenceSequenceTrack",
+        "adapter": {
+          "type": "ChromSizesAdapter",
+          "chromSizesLocation": {
+            "uri": "peach.chrom.sizes"
+          }
+        }
+      }
+    }
+  ],
+  "tracks": [
+    {
+      "trackId": "grape_peach_synteny_mcscan",
+      "type": "SyntenyTrack",
+      "assemblyNames": ["peach", "grape"],
+      "trackIds": [],
+      "renderDelay": 100,
+      "adapter": {
+        "mcscanAnchorsLocation": {
+          "uri": "grape.peach.anchors"
+        },
+        "subadapters": [
+          {
+            "type": "NCListAdapter",
+            "rootUrlTemplate": {
+              "uri": "https://jbrowse.org/genomes/synteny/peach_gene/{refseq}/trackData.json"
+            }
+          },
+          {
+            "type": "NCListAdapter",
+            "rootUrlTemplate": {
+              "uri": "https://jbrowse.org/genomes/synteny/grape_gene/{refseq}/trackData.json"
+            }
+          }
+        ],
+        "assemblyNames": ["peach", "grape"],
+        "type": "MCScanAnchorsAdapter"
+      },
+      "name": "Grape peach synteny (MCScan)",
+      "category": ["Annotation"]
+    },
+    {
+      "trackId": "grape_peach_paf",
+      "type": "SyntenyTrack",
+      "name": "Grape vs Peach (PAF)",
+      "assemblyNames": ["peach", "grape"],
+      "adapter": {
+        "type": "PAFAdapter",
+        "pafLocation": {
+          "uri": "https://s3.amazonaws.com/jbrowse.org/genomes/synteny/peach_grape.paf"
+        },
+        "assemblyNames": ["peach", "grape"]
+      }
+    },
+    {
+      "type": "SyntenyTrack",
+      "trackId": "dotplot_track_small",
+      "name": "Grape vs peach small (PAF)",
+      "assemblyNames": ["grape", "peach"],
+      "adapter": {
+        "type": "PAFAdapter",
+        "pafLocation": {
+          "uri": "peach_grape_small.paf"
+        },
+        "assemblyNames": ["peach", "grape"]
+      }
+    }
+  ],
+  "defaultSession": {
+    "name": "Grape vs Peach (small)",
+    "views": [
+      {
+        "id": "MiDMyyWpp",
+        "type": "DotplotView",
+        "assemblyNames": ["peach", "grape"],
+        "hview": {
+          "displayedRegions": [],
+          "bpPerPx": 100000,
+          "offsetPx": 0
+        },
+        "vview": {
+          "displayedRegions": [],
+          "bpPerPx": 100000,
+          "offsetPx": 0
+        },
+        "tracks": [
+          {
+            "type": "SyntenyTrack",
+            "configuration": "dotplot_track_small",
+            "displays": [
+              {
+                "type": "DotplotDisplay",
+                "configuration": "dotplot_track_small-DotplotDisplay"
+              }
+            ]
+          }
+        ],
+        "displayName": "Grape vs Peach dotplot"
+      }
+    ]
+  }
+}

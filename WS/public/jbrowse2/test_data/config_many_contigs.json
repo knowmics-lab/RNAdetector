@@ -1,0 +1,18 @@
+{
+  "configuration": {},
+  "assemblies": [
+    {
+      "name": "large",
+      "sequence": {
+        "type": "ReferenceSequenceTrack",
+        "trackId": "large_ref_seq",
+        "adapter": {
+          "type": "ChromSizesAdapter",
+          "chromSizesLocation": {
+            "uri": "large.chrom.sizes"
+          }
+        }
+      }
+    }
+  ]
+}

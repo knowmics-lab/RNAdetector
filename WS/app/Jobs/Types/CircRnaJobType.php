@@ -13,9 +13,11 @@ use App\Jobs\Types\Traits\ConvertsBamToFastqTrait;
 use App\Jobs\Types\Traits\ConvertsSamToBamTrait;
 use App\Jobs\Types\Traits\HandlesCompressedFastqTrait;
 use App\Jobs\Types\Traits\HasCommonParameters;
+use App\Jobs\Types\Traits\IndexesBAMTrait;
 use App\Jobs\Types\Traits\RunTrimGaloreTrait;
 use App\Jobs\Types\Traits\UseGenome;
 use App\Jobs\Types\Traits\UseGenomeAnnotation;
+use App\Jobs\Types\Traits\UsesJBrowseTrait;
 use App\Models\Annotation;
 use App\Models\Job;
 use App\Models\Reference;
@@ -26,7 +28,7 @@ class CircRnaJobType extends AbstractJob
 {
 
     use HasCommonParameters, ConvertsBamToFastqTrait, RunTrimGaloreTrait, ConvertsSamToBamTrait, HandlesCompressedFastqTrait;
-    use UseGenome, UseGenomeAnnotation;
+    use UseGenome, UseGenomeAnnotation, IndexesBAMTrait, UsesJBrowseTrait;
 
     /**
      * Returns an array containing for each input parameter an help detailing its content and use.
@@ -232,12 +234,8 @@ class CircRnaJobType extends AbstractJob
         if (!$annotation->isGtf()) {
             throw new ProcessingJobException('The selected annotation must be in GTF format.');
         }
-        $ciriOutputRelative = $this->model->getJobFile('ciri_output_', '.txt');
-        $ciriOutput = $this->model->absoluteJobPath($ciriOutputRelative);
-        $ciriOutputUrl = \Storage::disk('public')->url($ciriOutputRelative);
-        $ciriHarmonizedRelative = $this->model->getJobFile('ciri_harmonized_', '.txt');
-        $ciriHarmonized = $this->model->absoluteJobPath($ciriHarmonizedRelative);
-        $ciriHarmonizedUrl = \Storage::disk('public')->url($ciriHarmonizedRelative);
+        [$ciriOutputRelative, $ciriOutput, $ciriOutputUrl] = $this->getJobFilePaths('ciri_output_', '.txt');
+        [$ciriHarmonizedRelative, $ciriHarmonized, $ciriHarmonizedUrl] = $this->getJobFilePaths('ciri_harmonized_', '.txt');
         $command = [
             'bash',
             self::scriptPath('ciri.bash'),
@@ -358,12 +356,8 @@ class CircRnaJobType extends AbstractJob
         if (!$bedAnnotation->isBed()) {
             throw new ProcessingJobException('The BED annotation file is not valid.');
         }
-        $quantOutputRelative = $this->model->getJobFile('quant_output_', '.gtf');
-        $quantOutput = $this->model->absoluteJobPath($quantOutputRelative);
-        $quantOutputUrl = \Storage::disk('public')->url($quantOutputRelative);
-        $quantHarmonizedRelative = $this->model->getJobFile('ciri_harmonized_', '.txt');
-        $quantHarmonized = $this->model->absoluteJobPath($quantHarmonizedRelative);
-        $quantHarmonizedUrl = \Storage::disk('public')->url($quantHarmonizedRelative);
+        [$quantOutputRelative, $quantOutput, $quantOutputUrl] = $this->getJobFilePaths('quant_output_', '.gtf');
+        [$quantHarmonizedRelative, $quantHarmonized, $quantHarmonizedUrl] = $this->getJobFilePaths('ciri_harmonized_', '.txt');
         $command = [
             'bash',
             self::scriptPath('ciri_quant.sh'),
@@ -436,6 +430,7 @@ class CircRnaJobType extends AbstractJob
         $bedAnnotationName = $this->getParameter('bedAnnotation', 'Human_hg19_circRNAs_bed');
         $bedAnnotation = Annotation::whereName($bedAnnotationName)->first();
         $ciriInputFile = null;
+        $bamOutput = null;
         if ($inputType === self::SAM && $ciriQuant) {
             $inputType = self::BAM;
             $firstInputFile = self::convertSamToBam($this->model, $firstInputFile);
@@ -530,6 +525,7 @@ class CircRnaJobType extends AbstractJob
             } else {
                 $ciriInputFile = $firstInputFile;
             }
+            $bamOutput = $this->indexBAM($this->model, $ciriInputFile, true, $threads);
             $this->log('Computing counts of CircRNA using CIRI.');
             [$circOutput, $circOutputUrl, $circHarmonized, $circHarmonizedUrl] = $this->runCIRI(
                 $ciriInputFile,
@@ -542,15 +538,23 @@ class CircRnaJobType extends AbstractJob
                 $bedAnnotation
             );
         }
+        $jbrowseConfig = $this->makeJBrowseConfig(
+            $this->model,
+            $bamOutput,
+            $this->getGenome(),
+            $this->getGenomeAnnotation('HUMAN_CIRC_ANNOTATION_NAME')
+        );
         $this->log('CircRNA Analysis completed!');
         $this->model->setOutput(
             [
-                'type'           => self::OUT_TYPE_ANALYSIS_HARMONIZED,
-                'outputFile'     => [
+                'type'              => self::OUT_TYPE_ANALYSIS_HARMONIZED,
+                'outputFile'        => [
                     'path' => $circOutput,
                     'url'  => $circOutputUrl,
                 ],
-                'harmonizedFile' => [
+                'outputBamFile'     => $this->getFilePathsForOutput($bamOutput),
+                'outputJBrowseFile' => $this->getFilePathsForOutput($jbrowseConfig),
+                'harmonizedFile'    => [
                     'path' => $circHarmonized,
                     'url'  => $circHarmonizedUrl,
                 ],

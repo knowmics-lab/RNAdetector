@@ -57,7 +57,7 @@ STAR --runThreadN "$THREADS" \
   --runMode genomeGenerate \
   --genomeDir "$REFERENCE_DIR" \
   --genomeFastaFiles "$FASTA_FILE" || (
-  echo "An error occurred during hisat2-build execution!" && exit 6
+  echo "An error occurred during indexing!" && exit 6
 )
 
 chmod -R 777 "$REFERENCE_DIR"

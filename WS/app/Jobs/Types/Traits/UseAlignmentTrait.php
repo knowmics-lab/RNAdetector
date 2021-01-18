@@ -75,19 +75,106 @@ trait UseAlignmentTrait
                 $model->appendLog($buffer, false);
             },
             [
-                3 => 'Annotation file does not exist.',
-                4 => 'Input file does not exist.',
-                5 => 'Second input file does not exist.',
-                6 => 'Output file must be specified.',
-                7 => 'Output directory is not writable.',
-                8 => 'An error occurred during tophat2 execution.',
-                9 => 'Unable to find output bam file.',
+                3   => 'Annotation file does not exist.',
+                4   => 'Input file does not exist.',
+                5   => 'Second input file does not exist.',
+                6   => 'Output file must be specified.',
+                7   => 'Output directory is not writable.',
+                8   => 'An error occurred during tophat2 execution.',
+                9   => 'Unable to find output bam file.',
+                101 => 'Unsorted BAM file does not exist.',
+                102 => 'Unable to sort BAM file',
+                103 => 'BAM file does not exist.',
+                104 => 'Unable to write BAM index file.',
+                105 => 'Unable to compute BAM coverage.',
             ]
         );
         if (!file_exists($bamOutput)) {
             throw new ProcessingJobException('Unable to create TopHat output file');
         }
         // $model->appendLog($output);
+        $model->appendLog('Alignment completed.');
+
+        return $bamOutput;
+    }
+
+    /**
+     * Runs TopHat
+     *
+     * @param \App\Models\Job        $model
+     * @param bool                   $paired
+     * @param string                 $firstInputFile
+     * @param string|null            $secondInputFile
+     * @param \App\Models\Reference  $genome
+     * @param \App\Models\Annotation $annotation
+     * @param int                    $threads
+     *
+     * @return string
+     * @throws \App\Exceptions\ProcessingJobException
+     */
+    private function runSTAR(
+        Job $model,
+        bool $paired,
+        string $firstInputFile,
+        ?string $secondInputFile,
+        Reference $genome,
+        Annotation $annotation,
+        int $threads = 1
+    ): string {
+        if (!$genome->isAvailableFor('star')) {
+            throw new ProcessingJobException('The selected reference has not been indexed for star.');
+        }
+        if (!$annotation->isGtf()) {
+            throw new ProcessingJobException('The selected annotation must be in GTF format.');
+        }
+        $model->appendLog('Aligning reads using STAR.');
+        $bamOutput = $model->getJobFileAbsolute('star_output_', '.bam');
+        $command = [
+            'bash',
+            AbstractJob::scriptPath('star.sh'),
+            '-a',
+            $annotation->path,
+            '-g',
+            $genome->basename(),
+            '-t',
+            $threads,
+            '-f',
+            $firstInputFile,
+            '-o',
+            $bamOutput,
+        ];
+        if ($paired) {
+            $command[] = '-s';
+            $command[] = $secondInputFile;
+        }
+        AbstractJob::runCommand(
+            $command,
+            $model->getAbsoluteJobDirectory(),
+            null,
+            static function ($type, $buffer) use ($model) {
+                $model->appendLog($buffer, false);
+            },
+            [
+                3   => 'Annotation file does not exist.',
+                4   => 'Input file does not exist.',
+                5   => 'Second input file does not exist.',
+                6   => 'Output file must be specified.',
+                7   => 'Output directory is not writable.',
+                8   => 'Unable to create temporary directory.',
+                9   => 'An error occurred during STAR alignment.',
+                10  => 'Unable to find STAR output file.',
+                11  => 'Unable to move output file.',
+                12  => 'Unable to find output file.',
+                101 => 'Unsorted BAM file does not exist.',
+                102 => 'Unable to sort BAM file',
+                103 => 'BAM file does not exist.',
+                104 => 'Unable to write BAM index file.',
+                105 => 'Unable to compute BAM coverage.',
+            ]
+        );
+        if (!file_exists($bamOutput)) {
+            throw new ProcessingJobException('Unable to create STAR output file');
+        }
         $model->appendLog('Alignment completed.');
 
         return $bamOutput;
@@ -143,12 +230,17 @@ trait UseAlignmentTrait
                 $model->appendLog($buffer, false);
             },
             [
-                3 => 'Input file does not exist.',
-                4 => 'Second input file does not exist.',
-                5 => 'Output file must be specified.',
-                6 => 'Output directory is not writable.',
-                7 => 'An error occurred during HISAT 2 execution.',
-                8 => 'Unable to find output sam file.',
+                3   => 'Input file does not exist.',
+                4   => 'Second input file does not exist.',
+                5   => 'Output file must be specified.',
+                6   => 'Output directory is not writable.',
+                7   => 'An error occurred during HISAT 2 execution.',
+                8   => 'Unable to find output sam file.',
+                101 => 'Unsorted BAM file does not exist.',
+                102 => 'Unable to sort BAM file',
+                103 => 'BAM file does not exist.',
+                104 => 'Unable to write BAM index file.',
+                105 => 'Unable to compute BAM coverage.',
             ]
         );
         if (!file_exists($bamOutput)) {

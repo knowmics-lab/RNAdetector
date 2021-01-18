@@ -91,31 +91,7 @@ if [ ! -f "$BAM" ]; then
   exit 9
 fi
 
-echo "Sorting and indexing..."
-if ! samtools sort --threads "$THREADS" "$BAM" -o "$OUTPUT"; then
-  echo "Unable to sort tophat output"
-  exit 10
-fi
-
-# Check BAM file
-if [ ! -f "$OUTPUT" ]; then
-  echo "Unable to find sorted output file!"
-  exit 11
-fi
-chmod 777 "$OUTPUT"
-
-if ! samtools index "$OUTPUT"; then
-  echo "Unable to index output file!"
-  exit 12
-fi
-chmod 777 "$OUTPUT.bai"
-
-echo "Computing BAM coverage"
-if ! bamCoverage -b "$OUTPUT" -o "$OUTPUT.coverage.bw"; then
-  echo "Unable to compute coverate!"
-  exit 13
-fi
-chmod 777 "$OUTPUT.coverage.bw"
+bash /rnadetector/scripts/prepare_bam.sh -f "$OUTPUT" -s -u "$BAM" -t "$THREADS" || exit_abnormal "Unable to prepare BAM file" "$?"
 
 # Removing items of tmp directory
 if [ -d "$TEMP_DIR" ]; then

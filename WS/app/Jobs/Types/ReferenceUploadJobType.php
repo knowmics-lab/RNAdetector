@@ -31,6 +31,7 @@ class ReferenceUploadJobType extends AbstractJob
                 'tophat' => 'A boolean for enabling tophat indexing',
                 'salmon' => 'A boolean for enabling salmon indexing',
                 'hisat'  => 'A boolean for enabling hisat2 indexing',
+                'star'   => 'A boolean for enabling STAR indexing',
             ],
             'map_file'  => 'An optional map file (tab-separated with two columns) where each line contains the ID of a transcript/gene and its Entrez Gene Id (Mirbase mature name for miRNAs).',
         ];
@@ -65,6 +66,7 @@ class ReferenceUploadJobType extends AbstractJob
             'index.tophat' => ['filled', 'boolean'],
             'index.salmon' => ['filled', 'boolean'],
             'index.hisat'  => ['filled', 'boolean'],
+            'index.star'   => ['filled', 'boolean'],
             'map_file'     => ['nullable', 'string'],
         ];
     }
@@ -223,6 +225,40 @@ class ReferenceUploadJobType extends AbstractJob
         $this->log('Reference sequence indexed for Hisat 2.');
     }
 
+    /**
+     * @param string $referenceFilename
+     * @param string $referenceDirname
+     *
+     * @throws \App\Exceptions\ProcessingJobException
+     */
+    private function indexStar(string $referenceFilename, string $referenceDirname): void
+    {
+        $this->log('Indexing reference for STAR.');
+        self::runCommand(
+            [
+                'bash',
+                self::scriptPath('star_index.sh'),
+                '-f',
+                $referenceFilename,
+                '-p',
+                $referenceDirname . '/reference',
+            ],
+            $this->model->getAbsoluteJobDirectory(),
+            null,
+            function ($type, $buffer) {
+                $this->log($buffer, false);
+            },
+            [
+                3 => 'Input file does not exist.',
+                4 => 'Output directory must be specified.',
+                5 => 'Output directory must be writeable.',
+                6 => 'An unknown error occurred while indexing.',
+            ]
+        );
+        // $this->log($output);
+        $this->log('Reference sequence indexed for STAR.');
+    }
+
 
     /**
      * Handles all the computation for this job.
@@ -257,6 +293,7 @@ class ReferenceUploadJobType extends AbstractJob
         $tophat = (bool)($index['tophat'] ?? false);
         $salmon = (bool)($index['salmon'] ?? false);
         $hisat = (bool)($index['hisat'] ?? false);
+        $star = (bool)($index['star'] ?? false);
         if ($bwa) {
             $this->indexBWA($referenceFilename, $referenceDirname);
         }
@@ -268,6 +305,9 @@ class ReferenceUploadJobType extends AbstractJob
         }
         if ($hisat) {
             $this->indexHisat($referenceFilename, $referenceDirname);
+        }
+        if ($star) {
+            $this->indexStar($referenceFilename, $referenceDirname);
         }
         $mapFileName = null;
         if ($mapFile) {
@@ -286,6 +326,7 @@ class ReferenceUploadJobType extends AbstractJob
                     'tophat' => $tophat,
                     'salmon' => $salmon,
                     'hisat'  => $hisat,
+                    'star'   => $star,
                 ],
                 'map_path'      => $mapFileName,
             ]

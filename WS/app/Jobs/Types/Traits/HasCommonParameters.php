@@ -16,6 +16,8 @@ use Storage;
 trait HasCommonParameters
 {
 
+    abstract protected function validateFileParameter(string $parameter): bool;
+
     /**
      * Get a list of common parameters specs
      *
@@ -82,21 +84,11 @@ trait HasCommonParameters
     {
         $paired = (bool)$model->getParameter('paired', false);
         $inputType = $model->getParameter('inputType');
-        $firstInputFile = $model->getParameter('firstInputFile');
-        $secondInputFile = $model->getParameter('secondInputFile');
-        if (!in_array($inputType, $validInputTypes, true)) {
-            return false;
-        }
-        $disk = Storage::disk('public');
-        $dir = $model->getJobDirectory() . '/';
-        if (!$disk->exists($dir . $firstInputFile)) {
-            return false;
-        }
-        if ($paired && $inputType === $fastQType && (empty($secondInputFile) || !$disk->exists($dir . $secondInputFile))) {
+        if (!in_array($inputType, $validInputTypes, true) || !$this->validateFileParameter('firstInputFile')) {
             return false;
         }
 
-        return true;
+        return !($paired && $inputType === $fastQType && !$this->validateFileParameter('secondInputFile'));
     }
 
 }

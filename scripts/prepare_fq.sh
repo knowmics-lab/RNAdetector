@@ -2,12 +2,12 @@
 
 INPUT="${1}"
 
-if [ -z $INPUT ]; then
+if [ -z "$INPUT" ]; then
   echo "Input file is required"
   exit 1
 fi
 
-if [ ! -f $INPUT ]; then
+if [ ! -f "$INPUT" ]; then
   echo "Input file does not exist."
   exit 2
 fi

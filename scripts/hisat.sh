@@ -80,11 +80,7 @@ if [ ! -f "$TMPOUTPUT" ]; then
   exit 8
 fi
 
-echo "Sorting and indexing..."
-if ! samtools sort --threads "$THREADS" "$TMPOUTPUT" -o "$OUTPUT"; then
-  echo "Unable to sort HISAT2 output"
-  exit 9
-fi
+bash /rnadetector/scripts/prepare_bam.sh -f "$OUTPUT" -s -u "$TMPOUTPUT" -t "$THREADS" || exit_abnormal "Unable to prepare BAM file" "$?"
 
 # Check SAM file
 if [ ! -f "$OUTPUT" ]; then
@@ -93,16 +89,3 @@ if [ ! -f "$OUTPUT" ]; then
 fi
 
 rm "$TMPOUTPUT"
-
-if ! samtools index "$OUTPUT"; then
-  echo "Unable to index output file!"
-  exit 11
-fi
-chmod 777 "$OUTPUT.bai"
-
-echo "Computing BAM coverage"
-if ! bamCoverage -b "$OUTPUT" -o "$OUTPUT.coverage.bw"; then
-  echo "Unable to compute coverate!"
-  exit 12
-fi
-chmod 777 "$OUTPUT.coverage.bw"

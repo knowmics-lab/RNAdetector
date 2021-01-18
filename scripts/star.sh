@@ -37,12 +37,12 @@ done
 #Check input files
 { [ -z "$GTF_FILE" ] || [ ! -f "$GTF_FILE" ]; } && exit_abnormal "Annotation file does not exist!" 3
 
-{ [ -z "$INPUT_1" ] || [ ! -f "$INPUT_1" ]; } && exit_abnormal "Input file does not exist!" 3
+{ [ -z "$INPUT_1" ] || [ ! -f "$INPUT_1" ]; } && exit_abnormal "Input file does not exist!" 4
 
 if [ -z "$INPUT_2" ]; then
   PAIRED=false
 elif [ ! -f "$INPUT_2" ]; then
-  exit_abnormal "Second input file does not exist!" 4
+  exit_abnormal "Second input file does not exist!" 5
 else
   PAIRED=true
 fi
@@ -51,8 +51,8 @@ fi
 [ -z "$THREADS" ] && THREADS=1
 
 # Check output
-[ -z "$OUTPUT" ] && exit_abnormal "Output file must be specified!" 5
-[ ! -w "$(dirname "$OUTPUT")" ] && exit_abnormal "Output directory is not writable!" 6
+[ -z "$OUTPUT" ] && exit_abnormal "Output file must be specified!" 6
+[ ! -w "$(dirname "$OUTPUT")" ] && exit_abnormal "Output directory is not writable!" 7
 
 REFERENCE_DIR="${REF_GENOME}_star"
 
@@ -63,37 +63,30 @@ echo "Setting sjdbOverhang to ${MAX_SIZE}."
 
 TEMP_DIR="$(dirname "$OUTPUT")/star_tmp/"
 
-([ ! -d "$TEMP_DIR" ] && mkdir -p "$TEMP_DIR") || exit_abnormal "Unable to create temp directory" 7
+([ ! -d "$TEMP_DIR" ] && mkdir -p "$TEMP_DIR") || exit_abnormal "Unable to create temp directory" 8
 
 if [ $PAIRED = "true" ]; then
   STAR --runThreadN "$THREADS" --runMode alignReads \
     --genomeDir "$REFERENCE_DIR" --sjdbGTFfile "$GTF_FILE" \
     --sjdbOverhang "$MAX_SIZE" --outSAMtype BAM SortedByCoordinate --outSAMunmapped Within \
     --readFilesIn "$INPUT_1" "$INPUT_2" \
-    --outFileNamePrefix "$TEMP_DIR" || exit_abnormal "An error occurred during STAR execution!" 8
+    --outFileNamePrefix "$TEMP_DIR" || exit_abnormal "An error occurred during STAR execution!" 9
 else
   STAR --runThreadN "$THREADS" --runMode alignReads \
     --genomeDir "$REFERENCE_DIR" --sjdbGTFfile "$GTF_FILE" \
     --sjdbOverhang "$MAX_SIZE" --outSAMtype BAM SortedByCoordinate --outSAMunmapped Within \
     --readFilesIn "$INPUT_1" \
-    --outFileNamePrefix "$TEMP_DIR" || exit_abnormal "An error occurred during STAR execution!" 8
+    --outFileNamePrefix "$TEMP_DIR" || exit_abnormal "An error occurred during STAR execution!" 9
 fi
 
-[ ! -f "$TEMP_DIR/Aligned.sortedByCoord.out.bam" ] && exit_abnormal "Unable to find STAR output file!" 9
+[ ! -f "$TEMP_DIR/Aligned.sortedByCoord.out.bam" ] && exit_abnormal "Unable to find STAR output file!" 10
 
 [ -f "$TEMP_DIR/Log.final.out" ] && cat "$TEMP_DIR/Log.final.out"
 
-mv "$TEMP_DIR/Aligned.sortedByCoord.out.bam" "$OUTPUT" || exit_abnormal "Unable to move output file!" 10
+mv "$TEMP_DIR/Aligned.sortedByCoord.out.bam" "$OUTPUT" || exit_abnormal "Unable to move output file!" 11
 
-[ ! -f "$OUTPUT" ] && exit_abnormal "Unable to find output file!" 10
+[ ! -f "$OUTPUT" ] && exit_abnormal "Unable to find output file!" 12
 
 rm -r "$TEMP_DIR"
 
-samtools index "$OUTPUT" || exit_abnormal "Unable to write index file!" 11
-
-echo "Computing BAM coverage"
-bamCoverage -b "$OUTPUT" -o "$OUTPUT.coverage.bw" || exit_abnormal "Unable to compute coverate!" 12
-
-chmod 777 "$OUTPUT"
-chmod 777 "$OUTPUT.bai"
-chmod 777 "$OUTPUT.coverage.bw"
+bash /rnadetector/scripts/prepare_bam.sh -f "$OUTPUT" || exit_abnormal "Unable to prepare BAM file" "$?"

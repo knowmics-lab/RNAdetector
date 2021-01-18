@@ -1,0 +1,160 @@
+{
+    "assemblies": [
+        {
+            "name": "{GENOME_NAME}",
+            "sequence": {
+                "type": "ReferenceSequenceTrack",
+                "trackId": "{GENOME_ID}",
+                "adapter": {
+                    "type": "IndexedFastaAdapter",
+                    "fastaLocation": {
+                        "uri": "{GENOME_PATH}"
+                    },
+                    "faiLocation": {
+                        "uri": "{GENOME_PATH}.fai"
+                    }
+                }
+            }
+        }
+    ],
+    "tracks": [
+        {
+            "type": "FeatureTrack",
+            "trackId": "{ANNOTATION_ID}",
+            "assemblyNames": [
+                "{GENOME_NAME}"
+            ],
+            "name": "{ANNOTATION_NAME}",
+            "category": [
+                "Miscellaneous"
+            ],
+            "adapter": {
+                "type": "Gff3TabixAdapter",
+                "gffGzLocation": {
+                    "uri": "{ANNOTATION_GFF3_PATH}"
+                },
+                "index": {
+                    "location": {
+                        "uri": "{ANNOTATION_GFF3_PATH}.tbi"
+                    }
+                }
+            }
+        },
+        {
+            "type": "AlignmentsTrack",
+            "trackId": "{SAMPLE_CODE}-alignment",
+            "name": "{SAMPLE_NAME} - Alignment",
+            "assemblyNames": [
+                "{GENOME_NAME}"
+            ],
+            "category": [
+                "Alignments"
+            ],
+            "adapter": {
+                "type": "BamAdapter",
+                "bamLocation": {
+                    "uri": "{SAMPLE_BAM_PATH}"
+                },
+                "index": {
+                    "location": {
+                        "uri": "{SAMPLE_BAM_PATH}.bai"
+                    }
+                }
+            }
+        },
+        {
+            "type": "QuantitativeTrack",
+            "trackId": "{SAMPLE_CODE}-coverage",
+            "name": "{SAMPLE_NAME} - coverage",
+            "assemblyNames": [
+                "{GENOME_NAME}"
+            ],
+            "category": [
+                "BigWig"
+            ],
+            "adapter": {
+                "type": "BigWigAdapter",
+                "bigWigLocation": {
+                    "uri": "{SAMPLE_BAM_PATH}.coverage.bw"
+                }
+            }
+        }
+    ],
+    "connections": [],
+    "defaultSession": {
+        "name": "{SAMPLE_NAME} - Genomic Viewer",
+        "views": [
+            {
+                "id": "{SAMPLE_CODE}-view",
+                "type": "LinearGenomeView",
+                "tracks": [
+                    {
+                        "id": "0T7fBVkST",
+                        "type": "ReferenceSequenceTrack",
+                        "configuration": "{GENOME_NAME}",
+                        "displays": [
+                            {
+                                "id": "ERp8LfKxn1",
+                                "type": "LinearReferenceSequenceDisplay",
+                                "height": 180,
+                                "configuration": "{GENOME_NAME}-LinearReferenceSequenceDisplay",
+                                "showForward": true,
+                                "showReverse": true,
+                                "showTranslation": true
+                            }
+                        ]
+                    },
+                    {
+                        "id": "BE3QAGQj_",
+                        "type": "FeatureTrack",
+                        "configuration": "{ANNOTATION_ID}",
+                        "displays": [
+                            {
+                                "id": "cdNQZiSTJ",
+                                "type": "LinearBasicDisplay",
+                                "height": 100,
+                                "configuration": "{ANNOTATION_ID}-LinearBasicDisplay"
+                            }
+                        ]
+                    },
+                    {
+                        "id": "usgdEEm4k",
+                        "type": "QuantitativeTrack",
+                        "configuration": "{SAMPLE_CODE}-coverage",
+                        "displays": [
+                            {
+                                "id": "YlDsZG6DaZ",
+                                "type": "LinearWiggleDisplay",
+                                "height": 100,
+                                "configuration": "{SAMPLE_CODE}-coverage-LinearWiggleDisplay",
+                                "selectedRendering": "",
+                                "resolution": 1,
+                                "constraints": {}
+                            }
+                        ]
+                    }
+                ],
+                "hideHeader": false,
+                "hideHeaderOverview": false,
+                "trackSelectorType": "hierarchical",
+                "trackLabels": "overlapping",
+                "showCenterLine": false
+            }
+        ],
+        "widgets": {
+            "hierarchicalTrackSelector": {
+                "id": "hierarchicalTrackSelector",
+                "type": "HierarchicalTrackSelectorWidget",
+                "collapsed": {},
+                "filterText": "",
+                "view": "{SAMPLE_CODE}-view"
+            }
+        },
+        "activeWidgets": {
+            "hierarchicalTrackSelector": "hierarchicalTrackSelector"
+        }
+    },
+    "configuration": {
+        "disableAnalytics": true
+    }
+}
