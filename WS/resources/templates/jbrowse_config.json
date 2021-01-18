@@ -91,13 +91,13 @@
                     {
                         "id": "0T7fBVkST",
                         "type": "ReferenceSequenceTrack",
-                        "configuration": "{GENOME_NAME}",
+                        "configuration": "{GENOME_ID}",
                         "displays": [
                             {
                                 "id": "ERp8LfKxn1",
                                 "type": "LinearReferenceSequenceDisplay",
                                 "height": 180,
-                                "configuration": "{GENOME_NAME}-LinearReferenceSequenceDisplay",
+                                "configuration": "{GENOME_ID}-LinearReferenceSequenceDisplay",
                                 "showForward": true,
                                 "showReverse": true,
                                 "showTranslation": true
