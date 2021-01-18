@@ -45,7 +45,6 @@ trait UsesJBrowseTrait
         }
         if (!$annotation->hasGFF3()) {
             $this->log('Unable to generate JBrowse config file since the genome annotation has not been processed for JBrowse2.');
-            $this->log($annotation->getGFF3Path()); //@TODO remove this line
 
             return null;
         }

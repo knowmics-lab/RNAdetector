@@ -333,7 +333,7 @@ abstract class AbstractJob
      */
     protected function getFilePaths(string $filename): array
     {
-        $filename = str_ireplace($this->model->getJobDirectory(), '', $filename);
+        $filename = str_ireplace($this->model->getAbsoluteJobDirectory(), '', $filename);
 
         return $this->pathHelper($this->model->getJobDirectory() . '/' . $filename);
     }
