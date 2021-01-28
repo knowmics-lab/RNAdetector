@@ -35,7 +35,7 @@ class ClearQueue extends Command
      *
      * @return mixed
      */
-    public function handle()
+    public function handle(): int
     {
         while (($j = Queue::pop()) !== null) {
             $j->delete();

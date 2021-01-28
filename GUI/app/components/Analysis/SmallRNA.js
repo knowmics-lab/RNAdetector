@@ -17,6 +17,10 @@ import IconButton from '@material-ui/core/IconButton';
 import Icon from '@material-ui/core/Icon';
 import * as Api from '../../api';
 import { JOBS } from '../../constants/routes.json';
+import {
+  alignment as ALGORITHMS,
+  counting as COUNTING_ALGORITHMS
+} from '../../constants/algorithms.json';
 import SelectField from '../Form/SelectField';
 import TextField from '../Form/TextField';
 import Wizard from '../UI/Wizard';
@@ -79,18 +83,6 @@ const style = theme => ({
     color: '#fff'
   }
 });
-
-const ALGORITHMS = {
-  salmon: 'Salmon',
-  tophat: 'Tophat',
-  hisat2: 'Hisat 2'
-};
-
-const COUNTING_ALGORITHMS = {
-  htseq: 'HT-seq',
-  'feature-counts': 'Feature Counts',
-  salmon: 'Salmon'
-};
 
 type State = {
   isLoading: boolean,
@@ -293,7 +285,9 @@ class SmallRNA extends React.Component<Props, State> {
           name="algorithm"
           options={ALGORITHMS}
         />
-        {(algorithm === 'tophat' || algorithm === 'hisat2') && (
+        {(algorithm === 'tophat' ||
+          algorithm === 'hisat2' ||
+          algorithm === 'star') && (
           <SelectField
             label="Counting Algorithm"
             name="countingAlgorithm"
@@ -314,7 +308,9 @@ class SmallRNA extends React.Component<Props, State> {
           Choose reference genome/transcriptome, and genome annotations if
           required.
         </Typography>
-        {(algorithm === 'tophat' || algorithm === 'hisat2') && (
+        {(algorithm === 'tophat' ||
+          algorithm === 'hisat2' ||
+          algorithm === 'star') && (
           <SelectField
             label="Reference Genome"
             name="genome"
@@ -331,7 +327,8 @@ class SmallRNA extends React.Component<Props, State> {
           />
         )}
         {((algorithm !== 'salmon' && countingAlgorithm !== 'salmon') ||
-          algorithm === 'tophat') && (
+          algorithm === 'tophat' ||
+          algorithm === 'star') && (
           <SelectField
             label="Genome Annotation"
             name="annotation"
@@ -755,7 +752,7 @@ class SmallRNA extends React.Component<Props, State> {
                   quality: 20,
                   length: 14
                 },
-                algorithm: 'hisat2',
+                algorithm: 'star',
                 countingAlgorithm: 'feature-counts',
                 genome: 'Human_hg19_genome',
                 transcriptome: 'Human_hg19_transcriptome',

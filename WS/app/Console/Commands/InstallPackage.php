@@ -33,7 +33,7 @@ class InstallPackage extends Command
      *
      * @return mixed
      */
-    public function handle()
+    public function handle(): int
     {
         $name = $this->argument('name');
         $local = $this->option('local');

@@ -27,6 +27,21 @@ class ListPackages extends Command
      */
     protected $description = 'List all packages available in the main repository';
 
+    private static function doesNeedUpdate(string $name, string $version): ?bool
+    {
+        $referenceDir = env('REFERENCES_PATH') . '/' . $name;
+        $versionFile = $referenceDir . '/.version';
+        if ($version === '' || !self::isPackageInstalled($name)) {
+            return false;
+        }
+        if (!file_exists($versionFile)) {
+            return true;
+        }
+        $currentVersion = file_get_contents($versionFile);
+
+        return (strcasecmp($currentVersion, $version) !== 0);
+    }
+
     private static function isPackageInstalled(string $name): bool
     {
         $referenceDir = env('REFERENCES_PATH') . '/' . $name;
@@ -44,12 +59,21 @@ class ListPackages extends Command
     public static function filterPackages(array $packages): array
     {
         if (isset($packages['packages'])) {
-            $packages['packages'] = array_values(array_filter(
-                $packages['packages'],
-                static function ($pkg) {
-                    return !self::isPackageInstalled($pkg['name']);
-                }
-            ));
+            $packages['packages'] = array_values(
+                array_filter(
+                    array_map(
+                        static function ($pkg) {
+                            $pkg['needsUpdate'] = self::doesNeedUpdate($pkg['name'], $pkg['version'] ?? '');
+
+                            return $pkg;
+                        },
+                        $packages['packages']
+                    ),
+                    static function ($pkg) {
+                        return !self::isPackageInstalled($pkg['name']) || $pkg['needsUpdate'];
+                    }
+                )
+            );
         }
 
         return $packages;
@@ -62,13 +86,8 @@ class ListPackages extends Command
      */
     public static function fetchPackages(): array
     {
-        $key = 'repo-packages';
         $url = 'https://rnadetector.atlas.dmi.unict.it/repo/packages.json';
-        if (Cache::has($key)) {
-            return self::filterPackages(Cache::get($key));
-        }
         $content = json_decode(file_get_contents($url), true);
-        Cache::put($key, $content, 24 * 60 * 60); // store for 1 day
 
         return self::filterPackages($content);
     }
@@ -78,7 +97,7 @@ class ListPackages extends Command
      *
      * @return mixed
      */
-    public function handle()
+    public function handle(): int
     {
         try {
             $this->line(json_encode(self::fetchPackages()));
