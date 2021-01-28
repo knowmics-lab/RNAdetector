@@ -7,9 +7,9 @@
 
 namespace App\Console\Commands;
 
+use App\Packages;
 use App\Utils;
 use Illuminate\Console\Command;
-use Symfony\Component\Process\Process;
 
 class InstallPackage extends Command
 {
@@ -52,16 +52,9 @@ class InstallPackage extends Command
                 return 2;
             }
         } else {
-            $this->info('Fetching packages list...');
-            $packages = ListPackages::fetchPackages();
-            $this->info('Searching for the requested package...');
-            $package = null;
-            foreach ($packages['packages'] as $pkg) {
-                if ($pkg['name'] === $name) {
-                    $package = $pkg;
-                    break;
-                }
-            }
+            $this->info('Fetching package details...');
+            $packages = new Packages();
+            $package = $packages->fetchOne($name);
             if ($package === null) {
                 $this->error('Package not found in the repository.');
 

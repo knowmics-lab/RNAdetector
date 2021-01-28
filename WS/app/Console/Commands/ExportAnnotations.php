@@ -98,6 +98,15 @@ class ExportAnnotations extends Command
                 }
                 $res[] = $mapFile;
             }
+            if ($ann->hasGFF3()) {
+                $gff3File = $baseDir . '/' . $ann->name . '.gff3.gz';
+                @copy($ann->getGFF3Path(), $gff3File);
+                if (!file_exists($gff3File)) {
+                    $this->warn('Unable to copy GFF3 file for ' . $ann->name . '.');
+                    continue;
+                }
+                $res[] = $gff3File;
+            }
         }
 
         return $res;
@@ -108,7 +117,7 @@ class ExportAnnotations extends Command
      *
      * @return mixed
      */
-    public function handle()
+    public function handle(): int
     {
         $name = $this->argument('name');
         $annotations = $this->option('annotation');

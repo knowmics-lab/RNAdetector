@@ -101,6 +101,15 @@ class ExportReference extends Command
                 }
                 $res[] = $mapFile;
             }
+            if ($ann->hasGFF3()) {
+                $gff3File = $baseDir . '/' . $ann->name . '.gff3.gz';
+                @copy($ann->getGFF3Path(), $gff3File);
+                if (!file_exists($gff3File)) {
+                    $this->warn('Unable to copy GFF3 file for ' . $ann->name . '.');
+                    continue;
+                }
+                $res[] = $gff3File;
+            }
         }
 
         return $res;
@@ -111,7 +120,7 @@ class ExportReference extends Command
      *
      * @return mixed
      */
-    public function handle()
+    public function handle(): int
     {
         $reference = $this->argument('reference');
         $annotations = $this->option('annotation');
@@ -131,9 +140,15 @@ class ExportReference extends Command
         $outputFile = $outputDir . '/' . $reference . '.tar.bz2';
         $baseDir = realpath($refModel->basedir());
         $installedFile = $baseDir . '/.installed';
+        $versionFile = $baseDir . '/.version';
         $hasInstalled = file_exists($installedFile);
+        $hasVersion = file_exists($versionFile);
+        $version = ($hasVersion) ? file_get_contents($versionFile) : '';
         if ($hasInstalled) {
             @unlink($installedFile);
+        }
+        if ($hasVersion) {
+            @unlink($versionFile);
         }
         $this->info('Creating config file...');
         $configFile = $this->makeConfigFile($refModel, $annModel, $baseDir);
@@ -168,6 +183,10 @@ class ExportReference extends Command
         if ($hasInstalled) {
             @touch($installedFile);
             @chmod($installedFile, 0777);
+        }
+        if ($hasVersion) {
+            @file_put_contents($versionFile, $version);
+            @chmod($versionFile, 0777);
         }
         $this->info('Completed! Results have been stored in ' . $outputFile);
 

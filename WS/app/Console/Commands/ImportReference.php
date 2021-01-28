@@ -9,6 +9,7 @@ namespace App\Console\Commands;
 
 use App\Models\Annotation;
 use App\Models\Reference;
+use App\Packages;
 use App\Utils;
 use DirectoryIterator;
 use Illuminate\Console\Command;
@@ -46,17 +47,19 @@ class ImportReference extends Command
      * Import a reference genome and its annotations
      *
      * @param string $name
+     * @param string $version
+     * @param bool   $isUpdating
      *
      * @return int
      */
-    private function import(string $name): int
+    private function import(string $name, string $version, bool $isUpdating): int
     {
         if (!$this->isValidFilename($name)) {
             $this->error('Reference sequence name is not valid!');
 
             return 11;
         }
-        if (Reference::whereName($name)->count() > 0) {
+        if (!$isUpdating && Reference::whereName($name)->count() > 0) {
             $this->error('Another reference sequence with this name already exists!');
 
             return 12;
@@ -91,15 +94,18 @@ class ImportReference extends Command
                     $mapPath = $realMapPath;
                 }
             }
-            Reference::create(
+            Reference::updateOrCreate(
                 [
-                    'name'          => $name,
+                    'name' => $name,
+                ],
+                [
                     'path'          => realpath($genomePath . 'reference.fa'),
                     'available_for' => [
                         'bwa'    => $indexedFor['bwa'] ?? false,
-                        'tophat' => $indexedFor['tophat'] ?? false,
-                        'salmon' => $indexedFor['salmon'] ?? false,
                         'hisat'  => $indexedFor['hisat'] ?? false,
+                        'salmon' => $indexedFor['salmon'] ?? false,
+                        'star'   => $indexedFor['star'] ?? false,
+                        'tophat' => $indexedFor['tophat'] ?? false,
                     ],
                     'map_path'      => $mapPath,
                 ]
@@ -111,7 +117,7 @@ class ImportReference extends Command
         $annotations = (array)($config['annotations'] ?? []);
         foreach ($annotations as $annotationSpec) {
             $annotation = $annotationSpec['name'];
-            if (Annotation::whereName($annotation)->count() > 0) {
+            if (!$isUpdating && Annotation::whereName($annotation)->count() > 0) {
                 $this->error('Another reference annotation with the name "' . $name . '" already exists!');
 
                 return 16;
@@ -152,25 +158,37 @@ class ImportReference extends Command
                     }
                 }
             }
-            Annotation::create(
+            $annModel = Annotation::updateOrCreate(
                 [
-                    'name'     => $annotation,
+                    'name' => $annotation,
+                ],
+                [
                     'type'     => $type,
                     'path'     => realpath($annotationDestinationFile),
                     'map_path' => $annotationMapPath,
                 ]
-            )->save();
+            );
+            $gff3File = $genomePath . $annotation . '.gff3.gz';
+            if (file_exists($gff3File)) {
+                @rename($gff3File, $annModel->getGFF3Path());
+                if (!$annModel->hasGFF3()) {
+                    $this->warn('Unable to write GFF3 file for ' . $annotation . '.');
+                }
+            }
+            $annModel->save();
         }
         $this->info('Annotations imported correctly!');
         @unlink($configFile);
         @touch($genomePath . '/.installed');
         @chmod($genomePath . '/.installed', 0777);
+        @file_put_contents($genomePath . '/.version', $version);
+        @chmod($genomePath . '/.version', 0777);
 
         return 0;
     }
 
     /**
-     * Extract a ZIP file
+     * Extract a .tar.bz2 archive
      *
      * @param string $filename
      *
@@ -213,11 +231,33 @@ class ImportReference extends Command
     }
 
     /**
+     * Recursively delete a folder
+     *
+     * @param string $dir
+     */
+    private function recursiveRmdir(string $dir)
+    {
+        if (is_dir($dir)) {
+            $objects = scandir($dir);
+            foreach ($objects as $object) {
+                if ($object !== "." && $object !== "..") {
+                    if (is_dir($dir . DIRECTORY_SEPARATOR . $object) && !is_link($dir . DIRECTORY_SEPARATOR . $object)) {
+                        $this->recursiveRmdir($dir . DIRECTORY_SEPARATOR . $object);
+                    } else {
+                        unlink($dir . DIRECTORY_SEPARATOR . $object);
+                    }
+                }
+            }
+            rmdir($dir);
+        }
+    }
+
+    /**
      * Execute the console command.
      *
      * @return mixed
      */
-    public function handle()
+    public function handle(): int
     {
         $name = $this->argument('name');
         $referenceDir = env('REFERENCES_PATH') . '/' . $name;
@@ -227,16 +267,27 @@ class ImportReference extends Command
 
             return 1;
         }
-        if (file_exists($referenceDir) && is_dir($referenceDir) && file_exists($referenceDir . '/.installed')) {
-            $this->error('An archive with the same name has already been processed.');
+        $packages = new Packages();
+        $isUpdating = false;
+        if (Packages::isPackageInstalled($name)) {
+            if (!$packages->canBeUpdated($name)) {
+                $this->error('A package with the same name has already been installed and no update is available.');
 
-            return 2;
+                return 2;
+            }
+
+            $this->info('Package already exists but an update has been found...installing update...');
+            $this->info('Removing old package directory...');
+            $this->recursiveRmdir($referenceDir);
+            $isUpdating = true;
         }
         $this->info('Extracting reference archive...');
         $this->extract($filename);
         $this->recursiveChmod($referenceDir, 0777);
+        $package = $packages->fetchOne($name);
+        $version = $package['version'] ?? '';
         $this->info('Importing reference sequence...');
 
-        return $this->import($name);
+        return $this->import($name, $version, $isUpdating);
     }
 }
