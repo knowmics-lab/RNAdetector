@@ -235,7 +235,7 @@ class ImportReference extends Command
      *
      * @param string $dir
      */
-    private function recursiveRmdir(string $dir)
+    private function recursiveRmdir(string $dir): void
     {
         if (is_dir($dir)) {
             $objects = scandir($dir);

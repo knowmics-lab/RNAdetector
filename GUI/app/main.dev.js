@@ -12,13 +12,12 @@
  *
  * @flow
  */
-import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, shell } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { download } from 'electron-dl';
 import tus from 'tus-js-client';
 import fs from 'fs';
-import { Dock } from '@material-ui/icons';
 import MenuBuilder from './menu';
 import { Settings, Docker } from './api';
 
@@ -270,6 +269,30 @@ app.on('ready', async () => {
       upload.start();
     }
   );
+
+  ipcMain.on('open-jbrowse', (event, { url }) => {
+    const win = new BrowserWindow({
+      parent: mainWindow,
+      modal: false,
+      width: 1400,
+      height: 800,
+      webPreferences: {
+        nodeIntegration: false,
+        nativeWindowOpen: true,
+        webviewTag: false,
+        nodeIntegrationInSubFrames: false
+      }
+    });
+    win.setMenuBarVisibility(false);
+    win.loadURL(url, {
+      userAgent: 'Chrome'
+    });
+    win.webContents.on('new-window', (e1, outboundUrl) => {
+      e1.preventDefault();
+      shell.openExternal(outboundUrl);
+    });
+    win.focus();
+  });
 
   mainWindow.webContents.on(
     'new-window',

@@ -3,6 +3,7 @@
 import path from 'path';
 import fs from 'fs-extra';
 import { api as electron } from 'electron-util';
+import { ipcRenderer } from 'electron';
 import Settings from './settings';
 import type { Job, JobsCollection, JobTypesCollection } from '../types/jobs';
 import type { SortingSpec } from '../types/common';
@@ -112,6 +113,23 @@ export default {
       return win;
     }
     throw new Error('This job does not contain any report file');
+  },
+  async openJBrowse(jobId: number): Promise<*> {
+    const job = await this.fetchJobById(jobId);
+    if (
+      job.output &&
+      job.output.outputJBrowseFile &&
+      typeof job.output.outputJBrowseFile === 'object'
+    ) {
+      const { path: configPath } = job.output.outputJBrowseFile;
+      const configURI = Settings.getPublicUri(configPath);
+      const url = Settings.getJBrowseUrl(configURI);
+      ipcRenderer.send('open-jbrowse', {
+        url
+      });
+    } else {
+      throw new Error('This job does not contain a JBrowse2 config file');
+    }
   },
   async processDeletedList(deleted: number[]): Promise<number[]> {
     if (deleted.length === 0) return deleted;

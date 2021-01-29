@@ -8,7 +8,7 @@ import { ConnectTable } from './UI/PaginatedRemoteTable';
 import * as ReferencesActions from '../actions/references';
 import * as Api from '../api';
 import type { StateType } from '../reducers/types';
-import { CREATE_REFERENCE } from '../constants/routes';
+import { CREATE_REFERENCE } from '../constants/routes.json';
 import SelectPackageDialog from './UI/SelectPackageDialog';
 
 const ReferencesTable = ConnectTable(

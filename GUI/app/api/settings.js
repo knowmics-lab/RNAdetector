@@ -48,6 +48,17 @@ export default {
     const path = config.apiPath.replace(/^\/|\/$/gm, '');
     return `${config.apiProtocol}://${config.apiHostname}:${config.apiPort}/${path}/`;
   },
+  getJBrowseUrl(configUri: string): string {
+    const config = this.getConfig();
+    return `${config.apiProtocol}://${config.apiHostname}:${
+      config.apiPort
+    }/jbrowse2/index.html?config=${encodeURIComponent(configUri)}`;
+  },
+  getPublicUri(p: string = ''): string {
+    const config = this.getConfig();
+    const path = config.publicPath.replace(/^\/|\/$/gm, '');
+    return `/${path}/${p ? p.replace(/^\//, '') : ''}`;
+  },
   getPublicUrl(p: string = ''): string {
     const config = this.getConfig();
     const path = config.publicPath.replace(/^\/|\/$/gm, '');

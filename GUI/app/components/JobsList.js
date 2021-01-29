@@ -101,6 +101,14 @@ class JobsList extends React.Component<Props, State> {
     e.preventDefault();
   };
 
+  openJBrowse = (e, row) => {
+    const { pushNotification } = this.props;
+    Api.Jobs.openJBrowse(row.id).catch(ex =>
+      pushNotification(`An error occurred ${ex.message}`, 'error')
+    );
+    e.preventDefault();
+  };
+
   openReport = (e, row) => {
     const { pushNotification } = this.props;
     Api.Jobs.openReport(row.id).catch(ex =>
@@ -264,6 +272,11 @@ class JobsList extends React.Component<Props, State> {
     const isCompleted = r => r.status === 'completed';
     const isConfirmation = r => r.output && r.output.type === OUT_TYPE_C;
     const isReport = r => r.output && r.output.type === OUT_TYPE_AR;
+    const hasBrowser = r =>
+      r.output &&
+      r.output.outputJBrowseFile &&
+      typeof r.output.outputJBrowseFile === 'object';
+
     return [
       {
         shown: r => !cd(r) && isReady(r) && !cs(r),
@@ -296,6 +309,12 @@ class JobsList extends React.Component<Props, State> {
         icon: 'fas fa-folder-open',
         tooltip: 'Open results folder',
         onClick: this.openResultsFolder
+      },
+      {
+        shown: r => !cd(r) && isCompleted(r) && !cw(r) && hasBrowser(r),
+        icon: 'fas fa-dna',
+        tooltip: 'Show Genome Browser',
+        onClick: this.openJBrowse
       },
       {
         shown: r => !cd(r) && isCompleted(r) && !cw(r) && isReport(r),

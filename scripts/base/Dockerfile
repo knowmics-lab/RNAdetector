@@ -16,7 +16,7 @@ RUN DEBIAN_FRONTEND=noninteractive /usr/bin/apt install -y nginx php7.3-cli php7
                                                            git composer python-setuptools python3-setuptools pandoc tabix \
                                                            python-dev curl tophat bwa samtools python-pip libssl-dev bedtools \
                                                            subread cutadapt fastqc r-base-dev cmake wget cython swig rna-star python3-pip \
-                                                           libxml2-dev libcurl4-gnutls-dev hisat2 mysql-server libyaml-dev libgit2-dev
+                                                           libxml2-dev libcurl4-gnutls-dev hisat2 mysql-server libyaml-dev libgit2-dev rna-star
 RUN systemctl enable nginx && systemctl enable php7.3-fpm && systemctl enable supervisor && systemctl enable mysql
 
 RUN rm -rf /var/log/mysql && rm -rf /var/lib/mysql

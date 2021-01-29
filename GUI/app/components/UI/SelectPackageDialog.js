@@ -11,6 +11,7 @@ import Button from '@material-ui/core/Button';
 import { Formik } from 'formik';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import { Tooltip } from '@material-ui/core';
 import * as Api from '../../api';
 import TableField from '../Form/TableField';
 import { pushNotificationSimple } from '../../actions/notifications';
@@ -164,6 +165,19 @@ function SelectPackageDialog({
                 {
                   dataField: 'description',
                   label: 'Description'
+                },
+                {
+                  dataField: 'needsUpdate',
+                  label: '',
+                  format: v => {
+                    return v ? (
+                      <Tooltip title="An update is available!">
+                        <i className="fas fa-exclamation-circle" />
+                      </Tooltip>
+                    ) : (
+                      ''
+                    );
+                  }
                 }
               ]}
             />

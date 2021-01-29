@@ -95,6 +95,18 @@ final class Packages
                     }
                 )
             );
+            usort(
+                $packages['packages'],
+                static function ($a, $b) {
+                    // If one of the two packages needs an update, then it should be displayed before the others
+                    if ($a['needsUpdate'] !== $b['needsUpdate']) {
+                        return !$a['needsUpdate'] - !$b['needsUpdate'];
+                    }
+
+                    // If both packages need (or do not need) an update, then they will be sorted by name
+                    return strcasecmp($a['name'], $b['name']);
+                }
+            );
         }
 
         return $packages;
