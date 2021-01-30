@@ -36,10 +36,11 @@ RUN /usr/bin/apt update --fix-missing && \
 # Install common packages
 RUN /usr/bin/apt install -y wget unzip curl tar openjdk-14-jre grep tzdata rename apt-utils nano beanstalkd apache2 \
                             jq pwgen mysql-server zip pigz git python-setuptools python3-setuptools pandoc python-dev \
-                            libssl-dev r-base-dev cmake wget cython swig python3-pip libxml2-dev \
-                            libcurl4-gnutls-dev libyaml-dev libgit2-dev php-xdebug composer php-cli libapache2-mod-php \
-                            php-mysql php-apcu php-gd php-xml php-mbstring php-zip php-curl php-intl php-json \
-                            cufflinks tabix bwa samtools bedtools subread cutadapt fastqc rna-star hisat2 rna-star && \
+                            libssl-dev r-base-dev cmake wget cython swig python3-pip libxml2-dev libcurl4-gnutls-dev \
+                            libyaml-dev libgit2-dev php7.4-xdebug composer php7.4-cli libapache2-mod-php7.4 \
+                            php7.4-mysql php7.4-apcu php7.4-gd php7.4-xml php7.4-mbstring php7.4-zip php7.4-curl \
+                            php7.4-intl php7.4-json cufflinks tabix bwa samtools bedtools subread cutadapt fastqc \
+                            rna-star hisat2 rna-star && \
     apt autoremove -y && \
     echo "ServerName localhost" >> /etc/apache2/apache2.conf
 

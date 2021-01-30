@@ -5,10 +5,10 @@ DEBIAN_FRONTEND=noninteractive /usr/bin/apt update
 DEBIAN_FRONTEND=noninteractive /usr/bin/apt dist-upgrade -y
 
 # Create Web Service Directory
-[ -d /rnadetector ] && mkdir /rnadetector/
+[ ! -d /rnadetector ] && mkdir -p /rnadetector/
 
 # Create and fill temporary directory
-[ -d /rnadetector/tmp/ ] && mkdir /rnadetector/tmp/
+[ ! -d /rnadetector/tmp/ ] && mkdir -p /rnadetector/tmp/
 cd /rnadetector/tmp/ || exit 100
 tar -zxvf /repo.tar.gz
 mv /rnadetector/tmp/RNAdetector/WS/ /rnadetector/ws/

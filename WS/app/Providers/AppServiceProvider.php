@@ -43,18 +43,6 @@ class AppServiceProvider extends ServiceProvider
                     @touch($bootedFile);
                     @chmod($bootedFile, 0777);
                 }
-                $versionNumberFile = storage_path('app/version_number');
-                if (!file_exists($versionNumberFile)) {
-                    @file_put_contents(
-                        $versionNumberFile,
-                        json_encode(
-                            [
-                                'version' => Utils::VERSION_NUMBER,
-                            ]
-                        )
-                    );
-                    @chmod($versionNumberFile, 0644);
-                }
             }
         );
     }

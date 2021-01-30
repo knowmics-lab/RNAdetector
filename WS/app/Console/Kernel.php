@@ -23,6 +23,7 @@ class Kernel extends ConsoleKernel
         Commands\CheckForUpdate::class,
         Commands\UpdateRun::class,
         Commands\MakeLinks::class,
+        Commands\FirstBoot::class,
     ];
 
     /**

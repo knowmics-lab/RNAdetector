@@ -27,5 +27,6 @@ mysql -uroot -e "CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` DEFAULT CHARACTER 
 mysql -uroot -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'%'"
 
 php /rnadetector/ws/artisan migrate --seed --force || exit 100
+php /rnadetector/ws/artisan first:boot || exit 101
 
 mysqladmin -uroot shutdown
