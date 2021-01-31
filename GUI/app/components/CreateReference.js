@@ -103,7 +103,7 @@ class CreateReference extends React.Component<Props, State> {
           message: 'The field must contain only letters, numbers, and dashes.'
         }),
       availableFor: Yup.array()
-        .of(Yup.string().oneOf(['bwa', 'tophat', 'hisat', 'salmon', 'star']))
+        .of(Yup.string().oneOf(['bwa', 'hisat', 'salmon', 'star']))
         .required()
     });
 
@@ -138,8 +138,7 @@ class CreateReference extends React.Component<Props, State> {
             bwa: 'BWA',
             hisat: 'HISAT2',
             salmon: 'Salmon',
-            star: 'STAR',
-            tophat: 'TopHat 2'
+            star: 'STAR'
           }}
           multiple
           required

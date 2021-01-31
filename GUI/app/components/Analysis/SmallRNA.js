@@ -285,9 +285,7 @@ class SmallRNA extends React.Component<Props, State> {
           name="algorithm"
           options={ALGORITHMS}
         />
-        {(algorithm === 'tophat' ||
-          algorithm === 'hisat2' ||
-          algorithm === 'star') && (
+        {(algorithm === 'hisat2' || algorithm === 'star') && (
           <SelectField
             label="Counting Algorithm"
             name="countingAlgorithm"
@@ -308,9 +306,7 @@ class SmallRNA extends React.Component<Props, State> {
           Choose reference genome/transcriptome, and genome annotations if
           required.
         </Typography>
-        {(algorithm === 'tophat' ||
-          algorithm === 'hisat2' ||
-          algorithm === 'star') && (
+        {(algorithm === 'hisat2' || algorithm === 'star') && (
           <SelectField
             label="Reference Genome"
             name="genome"
@@ -327,7 +323,6 @@ class SmallRNA extends React.Component<Props, State> {
           />
         )}
         {((algorithm !== 'salmon' && countingAlgorithm !== 'salmon') ||
-          algorithm === 'tophat' ||
           algorithm === 'star') && (
           <SelectField
             label="Genome Annotation"

@@ -2,7 +2,6 @@
   "alignment": {
     "star": "STAR - Most accurate genome aligner (requires >32GB of RAM)",
     "hisat2": "Hisat 2 - Less accurate than STAR but faster (recommended with <32GB of RAM)",
-    "tophat": "Tophat - Recommended only if STAR and HISAT2 are not able to complete the job",
     "salmon": "Salmon - Recommended for transcriptome alignment"
   },
   "counting": {

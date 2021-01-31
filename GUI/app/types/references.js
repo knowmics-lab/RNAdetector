@@ -5,7 +5,7 @@ import type {
   StatePaginationType
 } from './common';
 
-export type IndexingAlgorithm = 'bwa' | 'hisat' | 'salmon' | 'tophat' | 'star';
+export type IndexingAlgorithm = 'bwa' | 'hisat' | 'salmon' | 'star';
 
 export type Reference = {
   id: number,

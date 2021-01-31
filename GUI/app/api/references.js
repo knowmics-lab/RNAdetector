@@ -23,7 +23,7 @@ export default {
         name,
         fastaFile,
         index: Object.fromEntries(
-          ['bwa', 'tophat', 'hisat', 'salmon', 'star'].map(v => [
+          ['bwa', 'hisat', 'salmon', 'star'].map(v => [
             v,
             availableFor.includes(v)
           ])
