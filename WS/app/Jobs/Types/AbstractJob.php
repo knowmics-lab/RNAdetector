@@ -43,10 +43,9 @@ abstract class AbstractJob
     public const SALMON                 = 'salmon';
     public const VALID_COUNTING_METHODS = [self::HTSEQ_COUNTS, self::FEATURECOUNTS_COUNTS, self::SALMON];
 
-    public const TOPHAT                    = 'tophat';
     public const HISAT2                    = 'hisat2';
     public const STAR                      = 'star';
-    public const VALID_ALIGN_QUANT_METHODS = [self::SALMON, self::TOPHAT, self::HISAT2, self::STAR];
+    public const VALID_ALIGN_QUANT_METHODS = [self::SALMON, self::HISAT2, self::STAR];
 
     public const OUT_TYPE_CONFIRMATION                                = 'confirmation';
     public const OUT_TYPE_ANALYSIS                                    = 'analysis';

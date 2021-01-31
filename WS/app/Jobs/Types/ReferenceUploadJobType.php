@@ -28,7 +28,6 @@ class ReferenceUploadJobType extends AbstractJob
             'fastaFile' => 'The fasta file for this reference sequence',
             'index'     => [
                 'bwa'    => 'A boolean for enabling bwa indexing',
-                'tophat' => 'A boolean for enabling tophat indexing',
                 'salmon' => 'A boolean for enabling salmon indexing',
                 'hisat'  => 'A boolean for enabling hisat2 indexing',
                 'star'   => 'A boolean for enabling STAR indexing',
@@ -63,7 +62,6 @@ class ReferenceUploadJobType extends AbstractJob
             'fastaFile'    => ['required', 'string'],
             'index'        => ['required', 'array'],
             'index.bwa'    => ['filled', 'boolean'],
-            'index.tophat' => ['filled', 'boolean'],
             'index.salmon' => ['filled', 'boolean'],
             'index.hisat'  => ['filled', 'boolean'],
             'index.star'   => ['filled', 'boolean'],
@@ -124,39 +122,6 @@ class ReferenceUploadJobType extends AbstractJob
         );
         // $this->log($output);
         $this->log('Reference sequence indexed for bwa.');
-    }
-
-    /**
-     * @param string $referenceFilename
-     * @param string $referenceDirname
-     *
-     * @throws \App\Exceptions\ProcessingJobException
-     */
-    private function indexTopHat(string $referenceFilename, string $referenceDirname): void
-    {
-        $this->log('Indexing reference for TopHat.');
-        $output = self::runCommand(
-            [
-                'bash',
-                self::scriptPath('bowtie2_index.sh'),
-                '-f',
-                $referenceFilename,
-                '-p',
-                $referenceDirname . '/reference',
-            ],
-            $this->model->getAbsoluteJobDirectory(),
-            null,
-            function ($type, $buffer) {
-                $this->log($buffer, false);
-            },
-            [
-                3 => 'Input file does not exist.',
-                4 => 'Output prefix must be specified.',
-                5 => 'Output directory is not writable',
-            ]
-        );
-        // $this->log($output);
-        $this->log('Reference sequence indexed for TopHat.');
     }
 
     /**
@@ -290,15 +255,11 @@ class ReferenceUploadJobType extends AbstractJob
             throw new ProcessingJobException('Unable to create source fasta file.');
         }
         $bwa = (bool)($index['bwa'] ?? false);
-        $tophat = (bool)($index['tophat'] ?? false);
         $salmon = (bool)($index['salmon'] ?? false);
         $hisat = (bool)($index['hisat'] ?? false);
         $star = (bool)($index['star'] ?? false);
         if ($bwa) {
             $this->indexBWA($referenceFilename, $referenceDirname);
-        }
-        if ($tophat) {
-            $this->indexTopHat($referenceFilename, $referenceDirname);
         }
         if ($salmon) {
             $this->indexSalmon($referenceFilename, $referenceDirname);
@@ -323,7 +284,6 @@ class ReferenceUploadJobType extends AbstractJob
                 'path'          => $referenceFilename,
                 'available_for' => [
                     'bwa'    => $bwa,
-                    'tophat' => $tophat,
                     'salmon' => $salmon,
                     'hisat'  => $hisat,
                     'star'   => $star,

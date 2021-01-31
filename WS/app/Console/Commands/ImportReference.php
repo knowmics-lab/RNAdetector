@@ -105,7 +105,6 @@ class ImportReference extends Command
                         'hisat'  => $indexedFor['hisat'] ?? false,
                         'salmon' => $indexedFor['salmon'] ?? false,
                         'star'   => $indexedFor['star'] ?? false,
-                        'tophat' => $indexedFor['tophat'] ?? false,
                     ],
                     'map_path'      => $mapPath,
                 ]

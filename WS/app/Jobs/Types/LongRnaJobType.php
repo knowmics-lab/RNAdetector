@@ -42,9 +42,9 @@ class LongRnaJobType extends AbstractJob
         return array_merge(
             self::commonParametersSpec(),
             [
-                'algorithm'         => 'Alignment/quantification algorithm: salmon, tophat, hisat2, star (Default: star)',
+                'algorithm'         => 'Alignment/quantification algorithm: salmon, hisat2, star (Default: star)',
                 'countingAlgorithm' => 'Counting algorithm in case of alignment: htseq, feature-counts, or salmon (Default feature-counts)',
-                'genome'            => 'An optional genome for tophat or hisat (Default: human hg19)',
+                'genome'            => 'An optional genome for star or hisat2 (Default: human hg19)',
                 'annotation'        => 'An optional annotation file for counting (Default: human hg19 mRNAs and lncRNAs)',
                 'transcriptome'     => 'An optional transcriptome for quantification with salmon (Default: human hg19 mRNAs and lncRNAs)',
                 'threads'           => 'Number of threads for this analysis (Default 1)',
@@ -79,7 +79,7 @@ class LongRnaJobType extends AbstractJob
         $requiredAlignment = static function () use ($parameters) {
             $algorithm = data_get($parameters, 'algorithm', self::SALMON);
 
-            return $algorithm === self::TOPHAT || $algorithm === self::HISAT2;
+            return $algorithm === self::HISAT2 || $algorithm === self::STAR;
         };
 
         return array_merge(
@@ -192,17 +192,6 @@ class LongRnaJobType extends AbstractJob
                 );
             }
             switch ($algorithm) {
-                case self::TOPHAT:
-                    $countingInputFile = $this->runTophat(
-                        $this->model,
-                        $paired,
-                        $firstTrimmedFastq,
-                        $secondTrimmedFastq,
-                        $this->getGenome(),
-                        $this->getGenomeAnnotation(),
-                        $threads
-                    );
-                    break;
                 case self::HISAT2:
                     $countingInputFile = $this->runHisat(
                         $this->model,

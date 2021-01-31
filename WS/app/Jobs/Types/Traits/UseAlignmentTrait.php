@@ -19,87 +19,7 @@ trait UseAlignmentTrait
 {
 
     /**
-     * Runs TopHat
-     *
-     * @param \App\Models\Job        $model
-     * @param bool                   $paired
-     * @param string                 $firstInputFile
-     * @param string|null            $secondInputFile
-     * @param \App\Models\Reference  $genome
-     * @param \App\Models\Annotation $annotation
-     * @param int                    $threads
-     *
-     * @return string
-     * @throws \App\Exceptions\ProcessingJobException
-     */
-    private function runTophat(
-        Job $model,
-        bool $paired,
-        string $firstInputFile,
-        ?string $secondInputFile,
-        Reference $genome,
-        Annotation $annotation,
-        int $threads = 1
-    ): string {
-        if (!$genome->isAvailableFor('tophat')) {
-            throw new ProcessingJobException('The selected reference has not been indexed for tophat.');
-        }
-        if (!$annotation->isGtf()) {
-            throw new ProcessingJobException('The selected annotation must be in GTF format.');
-        }
-        $model->appendLog('Aligning reads using TopHat.');
-        $bamOutput = $model->getJobFileAbsolute('tophat_output_', '.bam');
-        $command = [
-            'bash',
-            AbstractJob::scriptPath('tophat.bash'),
-            '-a',
-            $annotation->path,
-            '-g',
-            $genome->basename(),
-            '-t',
-            $threads,
-            '-f',
-            $firstInputFile,
-            '-o',
-            $bamOutput,
-        ];
-        if ($paired) {
-            $command[] = '-s';
-            $command[] = $secondInputFile;
-        }
-        $output = AbstractJob::runCommand(
-            $command,
-            $model->getAbsoluteJobDirectory(),
-            null,
-            static function ($type, $buffer) use ($model) {
-                $model->appendLog($buffer, false);
-            },
-            [
-                3   => 'Annotation file does not exist.',
-                4   => 'Input file does not exist.',
-                5   => 'Second input file does not exist.',
-                6   => 'Output file must be specified.',
-                7   => 'Output directory is not writable.',
-                8   => 'An error occurred during tophat2 execution.',
-                9   => 'Unable to find output bam file.',
-                101 => 'Unsorted BAM file does not exist.',
-                102 => 'Unable to sort BAM file',
-                103 => 'BAM file does not exist.',
-                104 => 'Unable to write BAM index file.',
-                105 => 'Unable to compute BAM coverage.',
-            ]
-        );
-        if (!file_exists($bamOutput)) {
-            throw new ProcessingJobException('Unable to create TopHat output file');
-        }
-        // $model->appendLog($output);
-        $model->appendLog('Alignment completed.');
-
-        return $bamOutput;
-    }
-
-    /**
-     * Runs TopHat
+     * Runs STAR
      *
      * @param \App\Models\Job        $model
      * @param bool                   $paired
@@ -181,7 +101,7 @@ trait UseAlignmentTrait
     }
 
     /**
-     * Runs TopHat
+     * Runs HISAT
      *
      * @param \App\Models\Job       $model
      * @param bool                  $paired

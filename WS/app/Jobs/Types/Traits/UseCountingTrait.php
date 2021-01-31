@@ -159,19 +159,19 @@ trait UseCountingTrait
      *
      * @param \App\Models\Job       $model
      * @param bool                  $paired
-     * @param string                $topHatInputFile
+     * @param string                $inputFile
      * @param \App\Models\Reference $transcriptome
      * @param int                   $threads
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
      */
-    private function runSalmonCount(Job $model, bool $paired, string $topHatInputFile, Reference $transcriptome, int $threads = 1): array
+    private function runSalmonCount(Job $model, bool $paired, string $inputFile, Reference $transcriptome, int $threads = 1): array
     {
         if (!$transcriptome->isAvailableFor('salmon')) {
             throw new ProcessingJobException('The specified reference sequence is not indexed for salmon analysis.');
         }
-        [$firstTempFastQ, $secondTempFastQ] = self::convertBamToFastq($model, $paired, $topHatInputFile, true);
+        [$firstTempFastQ, $secondTempFastQ] = self::convertBamToFastq($model, $paired, $inputFile, true);
         $model->appendLog('Quantifying with salmon');
         $salmonOutputRelative = $model->getJobFile('salmon_output_', '.txt');
         $salmonOutput = $model->absoluteJobPath($salmonOutputRelative);

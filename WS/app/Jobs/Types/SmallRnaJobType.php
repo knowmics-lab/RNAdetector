@@ -42,7 +42,7 @@ class SmallRnaJobType extends AbstractJob
         return array_merge(
             self::commonParametersSpec(),
             [
-                'algorithm'         => 'Alignment/quantification algorithm: salmon, tophat, hisat2, star (Default: star)',
+                'algorithm'         => 'Alignment/quantification algorithm: salmon, hisat2, star (Default: star)',
                 'countingAlgorithm' => 'The counting algorithm htseq, feature-counts, or salmon (Default: feature-counts)',
                 'genome'            => 'An optional name for a reference genome (Default human hg19)',
                 'transcriptome'     => 'An optional name for a transcriptome if counting algorithm is salmon (Default human hg19)',
@@ -172,17 +172,6 @@ class SmallRnaJobType extends AbstractJob
                 );
             }
             switch ($algorithm) {
-                case self::TOPHAT:
-                    $countingInputFile = $this->runTophat(
-                        $this->model,
-                        $paired,
-                        $firstTrimmedFastq,
-                        $secondTrimmedFastq,
-                        $this->getGenome(),
-                        $this->getGenomeAnnotation('HUMAN_SNCRNA_ANNOTATION_NAME'),
-                        $threads
-                    );
-                    break;
                 case self::HISAT2:
                     $countingInputFile = $this->runHisat(
                         $this->model,
