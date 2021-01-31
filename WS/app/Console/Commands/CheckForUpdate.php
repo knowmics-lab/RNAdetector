@@ -48,6 +48,8 @@ class CheckForUpdate extends Command
                 $error = true;
                 $message = $ex->getMessage();
             }
+        } else {
+            $updateNeeded = true;
         }
         try {
             $this->line(

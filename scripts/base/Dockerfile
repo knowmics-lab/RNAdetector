@@ -141,6 +141,8 @@ ADD  scripts/CIRI1.pl                                /usr/local/bin/CIRI1.pl
 ADD  scripts/CIRI2.pl                                /usr/local/bin/CIRI2.pl
 ADD  scripts/genkey.sh                               /genkey.sh
 ADD  scripts/import_reference.sh                     /import_reference.sh
+ADD  scripts/update_check.sh                         /update_check.sh
+ADD  scripts/update_run.sh                           /update_run.sh
 ADD  scripts/start-apache2.sh                        /usr/local/bin/start-apache2.sh
 ADD  scripts/start-mysqld.sh                         /usr/local/bin/start-mysqld.sh
 ADD  conf/apache_default.conf                        /etc/apache2/sites-available/000-default.conf
