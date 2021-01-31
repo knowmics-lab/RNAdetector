@@ -4,6 +4,7 @@ set -e
 [[ $DEBUG == true ]] && set -x
 
 MYSQL_DATA_DIR="/rnadetector/ws/storage/app/database/"
+RNADETECTOR_DB_ARCHIVE="/opt/database.tar.bz2"
 MYSQL_USER="www-data"
 MYSQL_GROUP="staff"
 MYSQL_RUN_DIR="/var/run/mysqld"
@@ -31,17 +32,29 @@ create_run_dir() {
 
 initialize_mysql_database() {
   # initialize MySQL data directory
-  if [ ! -d ${MYSQL_DATA_DIR}/mysql ]; then
-    echo "Installing database..."
-    mysqld --initialize-insecure
-    if [ $? -ne 0 ]; then
-      mysql_install_db >/dev/null 2>&1
+  if [[ $DEBUG == true ]] || [ ! -f "${RNADETECTOR_DB_ARCHIVE}" ]; then
+    if [ ! -d "${MYSQL_DATA_DIR}/mysql" ]; then
+      echo "Installing database..."
+      if ! mysqld --initialize-insecure; then
+        mysql_install_db >/dev/null 2>&1
+      fi
     fi
-  fi
-  if [ ! -d ${MYSQL_DATA_DIR}/${DB_NAME} ]; then
-    echo "Creating users..."
-    if /usr/local/bin/create_mysql_users.sh; then
-      export DB_CREATED="true"
+    if [ ! -d "${MYSQL_DATA_DIR}/${DB_NAME}" ]; then
+      echo "Creating users..."
+      if /usr/local/bin/create_mysql_users.sh; then
+        export DB_CREATED="true"
+      fi
+    fi
+  else
+    if [ ! -d "${MYSQL_DATA_DIR}/${DB_NAME}" ]; then
+      echo "Extracting database..."
+      tar -jxvf "${RNADETECTOR_DB_ARCHIVE}" --directory="/"
+      chmod -R 0777 ${MYSQL_DATA_DIR}
+      chown -R ${MYSQL_USER}:${MYSQL_GROUP} ${MYSQL_DATA_DIR}
+      echo "Seeding database..."
+      if /usr/local/bin/create_mysql_users_fast.sh; then
+        export DB_CREATED="true"
+      fi
     fi
   fi
 }

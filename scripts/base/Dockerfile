@@ -136,6 +136,7 @@ ADD  scripts/bootstrap.sh                            /usr/local/bin/
 ADD  scripts/installPackages.R                       /usr/local/bin/
 ADD  scripts/setup.sh                                /usr/local/bin/
 ADD  scripts/create_mysql_users.sh                   /usr/local/bin/
+ADD  scripts/create_mysql_users_fast.sh              /usr/local/bin/
 ADD  scripts/CIRI1.pl                                /usr/local/bin/CIRI1.pl
 ADD  scripts/CIRI2.pl                                /usr/local/bin/CIRI2.pl
 ADD  scripts/genkey.sh                               /genkey.sh
@@ -149,6 +150,7 @@ ADD  conf/supervisord-beanstalkd.conf                /etc/supervisor/conf.d/supe
 ADD  conf/supervisord-worker.conf                    /etc/supervisor/conf.d/supervisord-worker.conf
 ADD  conf/supervisord.conf                           /etc/supervisor/supervisord.conf
 ADD  conf/mysqld_innodb.cnf                          /etc/mysql/conf.d/mysqld_innodb.cnf
+COPY database.tar.bz2                                /opt/database.tar.bz2
 COPY repo.tar.gz                                     /repo.tar.gz
 
 RUN chmod 755 /usr/local/bin/*
