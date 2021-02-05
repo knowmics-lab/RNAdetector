@@ -7,6 +7,7 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\Types\AbstractJob;
 use App\Models\Annotation;
 use App\Models\Reference;
 use App\Utils;
@@ -32,6 +33,16 @@ class ExportAnnotations extends Command
      * @var string
      */
     protected $description = 'Export an indexed genome to a zip archive';
+
+    private $jsonTemplate = <<<TEMPLATE
+    {
+      "name": "%s",
+      "title": "%s",
+      "description": "{DESCRIPTION}",
+      "url": "{URL}/%s",
+      "md5": "{URL}/%s"
+    },
+TEMPLATE;
 
     /**
      * Make config file
@@ -130,6 +141,7 @@ class ExportAnnotations extends Command
         $referenceDirname = env('REFERENCES_PATH') . '/' . $name;
         if (!file_exists($referenceDirname) && !mkdir($referenceDirname, 0777) && !is_dir($referenceDirname)) {
             $this->warn(sprintf('Directory "%s" was not created', $referenceDirname));
+
             return 3;
         }
         $annModel = array_map(
@@ -182,7 +194,37 @@ class ExportAnnotations extends Command
         if (file_exists($referenceDirname)) {
             @rmdir($referenceDirname);
         }
+        $this->info('Computing MD5 checksum...');
+        Utils::runCommand(
+            [
+                'bash',
+                AbstractJob::scriptPath('compute_md5.sh'),
+                '-i',
+                $outputFile,
+            ],
+            dirname($baseDir),
+            null,
+            function ($type, $buffer) {
+                if ($type === Process::ERR) {
+                    $this->error($buffer);
+                }
+            }
+        );
+        $md5File = $outputFile . ".md5";
+        if (!file_exists($md5File)) {
+            $this->error('MD5 checksum does not exist!');
+
+            return 3;
+        }
+        $hash = preg_split("/\\s+/", file_get_contents($md5File))[0];
+        if (empty($hash)) {
+            $this->error('MD5 checksum does not exist!');
+
+            return 4;
+        }
         $this->info('Completed! Results have been stored in ' . $outputFile);
+        $this->info('JSON Template for the repository: ');
+        $this->info(sprintf($this->jsonTemplate, $name, str_replace(['-', '_'], ' ', $name), $outputFile, $md5File));
 
         return 0;
     }

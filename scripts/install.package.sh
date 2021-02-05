@@ -73,7 +73,7 @@ if [ ! -f "$MD5_FILE" ]; then
 fi
 
 CURR_PWD=$(pwd)
-cd $REF_DIR
+cd "$REF_DIR"
 
 echo "Checking package integrity..."
 if ! md5sum -c "$MD5_FILE"; then
