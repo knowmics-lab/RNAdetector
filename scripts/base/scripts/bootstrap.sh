@@ -8,7 +8,7 @@ RNADETECTOR_DB_ARCHIVE="/opt/database.tar.bz2"
 MYSQL_USER="www-data"
 MYSQL_GROUP="staff"
 MYSQL_RUN_DIR="/var/run/mysqld"
-MYSQL_LOG_FILE="/rnadetector/ws/storage/app/logs/"
+MYSQL_LOG_FILE="/rnadetector/ws/storage/app/logs/mysqld.log"
 DB_NAME="rnadetector"
 
 create_data_dir() {
