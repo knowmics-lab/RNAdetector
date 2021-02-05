@@ -42,8 +42,9 @@ class ExportReference extends Command
       "title": "%s",
       "description": "{DESCRIPTION}",
       "url": "{URL}/%s",
-      "md5": "{URL}/%s"
-    },
+      "md5": "{URL}/%s",
+      "version": "%s"
+    }
 TEMPLATE;
 
 
@@ -66,8 +67,8 @@ TEMPLATE;
             'annotations' => array_map(
                 static function (Annotation $model) {
                     return [
-                        'name'    => $model->name,
-                        'type'    => $model->type,
+                        'name' => $model->name,
+                        'type' => $model->type,
                         'mapFile' => $model->map_path !== null,
                     ];
                 },
@@ -232,7 +233,16 @@ TEMPLATE;
         }
         $this->info('Completed! Results have been stored in ' . $outputFile);
         $this->info('JSON Template for the repository: ');
-        $this->info(sprintf($this->jsonTemplate, $reference, str_replace(['-', '_'], ' ', $reference), $outputFile, $md5File));
+        $this->info(
+            sprintf(
+                $this->jsonTemplate,
+                $reference,
+                str_replace(['-', '_'], ' ', $reference),
+                basename($outputFile),
+                basename($md5File),
+                $hash
+            )
+        );
 
         return 0;
     }

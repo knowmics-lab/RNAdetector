@@ -40,8 +40,9 @@ class ExportAnnotations extends Command
       "title": "%s",
       "description": "{DESCRIPTION}",
       "url": "{URL}/%s",
-      "md5": "{URL}/%s"
-    },
+      "md5": "{URL}/%s",
+      "version": "%s"
+    }
 TEMPLATE;
 
     /**
@@ -224,7 +225,9 @@ TEMPLATE;
         }
         $this->info('Completed! Results have been stored in ' . $outputFile);
         $this->info('JSON Template for the repository: ');
-        $this->info(sprintf($this->jsonTemplate, $name, str_replace(['-', '_'], ' ', $name), $outputFile, $md5File));
+        $this->info(
+            sprintf($this->jsonTemplate, $name, str_replace(['-', '_'], ' ', $name), basename($outputFile), basename($md5File), $hash)
+        );
 
         return 0;
     }
