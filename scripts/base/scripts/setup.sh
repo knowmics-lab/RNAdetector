@@ -44,10 +44,8 @@ sed -i "s/export APACHE_RUN_GROUP=www-data/export APACHE_RUN_GROUP=staff/" /etc/
 
 
 apply_configuration_fixes() {
-  sed -i 's/^log_error/# log_error/' /etc/mysql/mysql.conf.d/mysqld.cnf
+  sed -i 's/^log_error.*/log_error = \/rnadetector\/ws\/storage\/app\/logs\/mysqld.log/' /etc/mysql/mysql.conf.d/mysqld.cnf
   sed -i 's/.*datadir.*/datadir = \/rnadetector\/ws\/storage\/app\/database/' /etc/mysql/mysql.conf.d/mysqld.cnf
-  sed -i "s/.*bind-address.*/bind-address = 0.0.0.0/" /etc/mysql/my.cnf
-  sed -i "s/.*bind-address.*/bind-address = 0.0.0.0/" /etc/mysql/mysql.conf.d/mysqld.cnf
   sed -i "s/user.*/user = www-data/" /etc/mysql/mysql.conf.d/mysqld.cnf
   cat >/etc/mysql/conf.d/mysql-skip-name-resolv.cnf <<EOF
 [mysqld]

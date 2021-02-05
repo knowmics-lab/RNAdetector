@@ -8,6 +8,7 @@ RNADETECTOR_DB_ARCHIVE="/opt/database.tar.bz2"
 MYSQL_USER="www-data"
 MYSQL_GROUP="staff"
 MYSQL_RUN_DIR="/var/run/mysqld"
+MYSQL_LOG_FILE="/rnadetector/ws/storage/app/logs/"
 DB_NAME="rnadetector"
 
 create_data_dir() {
@@ -28,6 +29,14 @@ create_run_dir() {
     rm ${MYSQL_RUN_DIR}/mysqld.sock
   fi
   rm -rf ${MYSQL_RUN_DIR}/mysqld.sock.lock
+}
+
+create_log_dir() {
+  if [ ! -f ${MYSQL_LOG_FILE} ]; then
+    touch ${MYSQL_LOG_FILE}
+  fi
+  chmod -R 0775 ${MYSQL_LOG_FILE}
+  chown -R ${MYSQL_USER}:${MYSQL_GROUP} ${MYSQL_LOG_FILE}
 }
 
 initialize_mysql_database() {
@@ -67,6 +76,7 @@ initialize_mysql_database() {
 
 create_data_dir
 create_run_dir
+create_log_dir
 initialize_mysql_database
 
 chown -R www-data:staff "/rnadetector/ws"

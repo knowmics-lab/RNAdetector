@@ -40,4 +40,4 @@ if [ ! -d "$INDEXED_FASTA" ]; then
 	exit 4
 fi
 
-chmod -R 777 "$(dirname "$PREFIX_OUTPUT")"
+chmod -R 777 "$INDEXED_FASTA"
