@@ -16,6 +16,6 @@ for GTF in $ANNOTATIONS; do
   NAME=$(basename "$GTF" ".gtf")
   if [ ! -f "$OUTPUT_DIRECTORY/$NAME.gff3.gz" ]; then
     echo "No index found for $GTF. Indexing..."
-    bash /rnadetector/scripts/prepare_gtf.sh "$GTF"
+    bash /rnadetector/scripts/prepare_gtf.sh -f "$GTF"
   fi
 done
