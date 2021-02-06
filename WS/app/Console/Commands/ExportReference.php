@@ -243,6 +243,8 @@ TEMPLATE;
                 $hash
             )
         );
+        @chmod($outputFile, 0777);
+        @chmod($jsonFile, 0777);
         $this->info('Completed! Results have been stored in ' . $outputDir);
 
         return 0;
