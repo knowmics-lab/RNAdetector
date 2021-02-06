@@ -37,14 +37,14 @@ class ExportReference extends Command
     protected $description = 'Export an indexed genome to a zip archive';
 
     private $jsonTemplate = <<<TEMPLATE
-    {
-      "name": "%s",
-      "title": "%s",
-      "description": "{DESCRIPTION}",
-      "url": "{URL}/%s",
-      "md5": "{URL}/%s",
-      "version": "%s"
-    }
+{
+  "name": "%s",
+  "title": "%s",
+  "description": "{DESCRIPTION}",
+  "url": "{URL}/%s",
+  "md5": "{URL}/%s",
+  "version": "%s"
+}
 TEMPLATE;
 
 
@@ -67,8 +67,8 @@ TEMPLATE;
             'annotations' => array_map(
                 static function (Annotation $model) {
                     return [
-                        'name' => $model->name,
-                        'type' => $model->type,
+                        'name'    => $model->name,
+                        'type'    => $model->type,
                         'mapFile' => $model->map_path !== null,
                     ];
                 },
@@ -231,9 +231,9 @@ TEMPLATE;
 
             return 4;
         }
-        $this->info('Completed! Results have been stored in ' . $outputFile);
-        $this->info('JSON Template for the repository: ');
-        $this->info(
+        $jsonFile = $outputFile . ".json";
+        file_put_contents(
+            $jsonFile,
             sprintf(
                 $this->jsonTemplate,
                 $reference,
@@ -243,6 +243,7 @@ TEMPLATE;
                 $hash
             )
         );
+        $this->info('Completed! Results have been stored in ' . $outputDir);
 
         return 0;
     }

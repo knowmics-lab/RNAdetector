@@ -35,14 +35,14 @@ class ExportAnnotations extends Command
     protected $description = 'Export an indexed genome to a zip archive';
 
     private $jsonTemplate = <<<TEMPLATE
-    {
-      "name": "%s",
-      "title": "%s",
-      "description": "{DESCRIPTION}",
-      "url": "{URL}/%s",
-      "md5": "{URL}/%s",
-      "version": "%s"
-    }
+{
+  "name": "%s",
+  "title": "%s",
+  "description": "{DESCRIPTION}",
+  "url": "{URL}/%s",
+  "md5": "{URL}/%s",
+  "version": "%s"
+}
 TEMPLATE;
 
     /**
@@ -223,11 +223,12 @@ TEMPLATE;
 
             return 4;
         }
-        $this->info('Completed! Results have been stored in ' . $outputFile);
-        $this->info('JSON Template for the repository: ');
-        $this->info(
+        $jsonFile = $outputFile . ".json";
+        file_put_contents(
+            $jsonFile,
             sprintf($this->jsonTemplate, $name, str_replace(['-', '_'], ' ', $name), basename($outputFile), basename($md5File), $hash)
         );
+        $this->info('Completed! Results have been stored in ' . $outputDir);
 
         return 0;
     }
