@@ -118,6 +118,13 @@ TEMPLATE;
                     continue;
                 }
                 $res[] = $gff3File;
+                $tbiFile = $baseDir . '/' . $ann->name . '.gff3.gz.tbi';
+                @copy($ann->getGFF3Path() . '.tbi', $tbiFile);
+                if (!file_exists($tbiFile)) {
+                    $this->warn('Unable to copy GFF3 index file for ' . $ann->name . '.');
+                    continue;
+                }
+                $res[] = $tbiFile;
             }
         }
 

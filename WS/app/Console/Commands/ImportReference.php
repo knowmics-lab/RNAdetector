@@ -174,6 +174,13 @@ class ImportReference extends Command
                     $this->warn('Unable to write GFF3 file for ' . $annotation . '.');
                 }
             }
+            $tbiFile = $genomePath . $annotation . '.gff3.gz.tbi';
+            if (file_exists($tbiFile)) {
+                @rename($tbiFile, $annModel->getGFF3Path() . '.tbi');
+                if (!file_exists($annModel->getGFF3Path() . '.tbi')) {
+                    $this->warn('Unable to write GFF3 index file for ' . $annotation . '.');
+                }
+            }
             $annModel->save();
         }
         $this->info('Annotations imported correctly!');
