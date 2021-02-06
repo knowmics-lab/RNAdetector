@@ -33,8 +33,14 @@ OUTPUT_DIRECTORY=$(dirname "$GTF_FILE")
 
 NAME=$(basename "$GTF_FILE" ".gtf")
 
-gffread -E "$GTF_FILE" -o "$OUTPUT_DIRECTORY/$NAME.gff3" || exit_abnormal "Unable to convert GTF to GFF3" 5
-bedtools sort -i "$OUTPUT_DIRECTORY/$NAME.gff3" | bgzip > "$OUTPUT_DIRECTORY/$NAME.gff3.gz"  || exit_abnormal "Unable to sort GFF3" 6
+gffread -ME "$GTF_FILE" -o "$OUTPUT_DIRECTORY/$NAME.gff3" || (
+  (
+    cp "$GTF_FILE" "$GTF_FILE.old_gtf" &&
+      Rscript /rnadetector/scripts/correct_gtf.R -i "$GTF_FILE.old_gtf" -o "$GTF_FILE" &&
+      gffread -ME "$GTF_FILE" -o "$OUTPUT_DIRECTORY/$NAME.gff3"
+  ) || exit_abnormal "Unable to convert GTF to GFF3" 5
+)
+bedtools sort -i "$OUTPUT_DIRECTORY/$NAME.gff3" | bgzip >"$OUTPUT_DIRECTORY/$NAME.gff3.gz" || exit_abnormal "Unable to sort GFF3" 6
 tabix -p gff "$OUTPUT_DIRECTORY/$NAME.gff3.gz" || exit_abnormal "Unable to index GFF3" 7
 rm "$OUTPUT_DIRECTORY/$NAME.gff3" || exit_abnormal "Unable to remove temporary files" 8
 
