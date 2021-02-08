@@ -311,6 +311,7 @@ export class DockerManager {
               timeout,
               maxTries
             );
+            await this.runUpdateScript(showMessage, displayLog);
           }
         } catch (e) {
           if (e instanceof TimeoutError) {
@@ -322,6 +323,41 @@ export class DockerManager {
           }
         }
       }
+    }
+  }
+
+  async runUpdateScript(
+    showMessage: (string, boolean) => void,
+    displayLog: ?(string) => void
+  ): Promise<void> {
+    if (await this.isUpdateScriptNeeded()) {
+      showMessage('Running update script...', false);
+      let log = '';
+      let timer;
+      const displayStatus = l => {
+        log += l;
+      };
+      if (displayLog) {
+        timer = setInterval(() => {
+          if (log) displayLog(log);
+        }, 500);
+      }
+      return new Promise((resolve, reject) => {
+        this.execDockerCommandLive(
+          ['/update_run.sh'],
+          displayStatus,
+          displayStatus,
+          code => {
+            if (code !== 0) {
+              showMessage(`An unknown error occurred! Code: ${code}.`, true);
+            }
+            if (displayLog && timer) {
+              clearInterval(timer);
+            }
+            resolve();
+          }
+        ).catch(reject);
+      });
     }
   }
 
@@ -448,6 +484,14 @@ export class DockerManager {
       return stdout;
     }
     throw new Error('Unable to exec command. Container is not running');
+  }
+
+  async isUpdateScriptNeeded(): Promise<boolean> {
+    const result = await this.execDockerCommand(['/update_check.sh']);
+    if (!result.error) {
+      return !!result.updateNeeded;
+    }
+    throw new Error(result.message);
   }
 
   async generateAuthToken(): Promise<string> {

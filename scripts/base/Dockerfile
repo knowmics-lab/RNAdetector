@@ -158,6 +158,8 @@ COPY repo.tar.gz                                     /repo.tar.gz
 RUN chmod 755 /usr/local/bin/*
 RUN chmod 755 /genkey.sh
 RUN chmod 755 /import_reference.sh
+RUN chmod 755 /update_check.sh
+RUN chmod 755 /update_run.sh
 
 # Install R packages
 RUN /usr/bin/Rscript /usr/local/bin/installPackages.R
