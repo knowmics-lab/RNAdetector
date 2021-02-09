@@ -15,7 +15,7 @@ exit_abnormal() {
 }
 
 SORT=false
-while getopts "s:f:u:t:" opt; do
+while getopts "sf:u:t:" opt; do
   case $opt in
   f) BAM=$OPTARG ;;
   s) SORT=true ;;

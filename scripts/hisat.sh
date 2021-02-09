@@ -26,6 +26,8 @@ while getopts ":g:t:f:s:o:" opt; do
   esac
 done
 
+echo "$0 $*"
+
 #### Check parameters ####
 #Check input files
 if [ -z "$INPUT_1" ] || [ ! -f "$INPUT_1" ]; then
@@ -61,26 +63,28 @@ if [ ! -w "$(dirname "$OUTPUT")" ]; then
 fi
 
 #### Alignment ####
-# | samtools view -Sbh > hisat2_output.bam
-TMPOUTPUT=$(mktemp --suffix=".bam")
+TMP_OUTPUT="$(dirname "$OUTPUT")/temp.bam"
 if [ $PAIRED = "true" ]; then
-  if ! hisat2 -p "$THREADS" -x "$REF_GENOME" -1 "$INPUT_1" -2 "$INPUT_2" | samtools view -Sbh >"$TMPOUTPUT"; then
+  if ! hisat2 -p "$THREADS" -x "$REF_GENOME" -1 "$INPUT_1" -2 "$INPUT_2" | samtools view -Sbh >"$TMP_OUTPUT"; then
     echo "An error occurred during HISAT 2 execution!"
     exit 7
   fi
 else
-  if ! hisat2 -p "$THREADS" -x "$REF_GENOME" -U "$INPUT_1" | samtools view -Sbh >"$TMPOUTPUT"; then
+  if ! hisat2 -p "$THREADS" -x "$REF_GENOME" -U "$INPUT_1" | samtools view -Sbh >"$TMP_OUTPUT"; then
     echo "An error occurred during HISAT 2 execution!"
     exit 7
   fi
 fi
 
-if [ ! -f "$TMPOUTPUT" ]; then
+if [ ! -f "$TMP_OUTPUT" ]; then
   echo "Unable to find HISAT2 output file!"
   exit 8
 fi
 
-bash /rnadetector/scripts/prepare_bam.sh -f "$OUTPUT" -s -u "$TMPOUTPUT" -t "$THREADS" || exit_abnormal "Unable to prepare BAM file" "$?"
+if ! bash /rnadetector/scripts/prepare_bam.sh -f "$OUTPUT" -s -u "$TMP_OUTPUT" -t "$THREADS"; then
+  echo "Unable to find HISAT2 output file!"
+  exit 9
+fi
 
 # Check SAM file
 if [ ! -f "$OUTPUT" ]; then
@@ -88,4 +92,4 @@ if [ ! -f "$OUTPUT" ]; then
   exit 10
 fi
 
-rm "$TMPOUTPUT"
+rm "$TMP_OUTPUT"

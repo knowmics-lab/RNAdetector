@@ -63,7 +63,8 @@ echo "Setting sjdbOverhang to ${MAX_SIZE}."
 
 TEMP_DIR="$(dirname "$OUTPUT")/star_tmp/"
 
-([ ! -d "$TEMP_DIR" ] && mkdir -p "$TEMP_DIR") || exit_abnormal "Unable to create temp directory" 8
+[ -d "$TEMP_DIR" ] && rm -r "$TEMP_DIR"
+mkdir -p "$TEMP_DIR" || exit_abnormal "Unable to create temp directory" 8
 
 if [ $PAIRED = "true" ]; then
   STAR --runThreadN "$THREADS" --runMode alignReads \
