@@ -26,8 +26,6 @@ while getopts ":g:t:f:s:o:" opt; do
   esac
 done
 
-echo "$0 $*"
-
 #### Check parameters ####
 #Check input files
 if [ -z "$INPUT_1" ] || [ ! -f "$INPUT_1" ]; then
