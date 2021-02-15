@@ -35,7 +35,7 @@ function InstallingDialog({
   const logRef = React.createRef();
   React.useEffect(() => {
     if (logRef.current) {
-      logRef.current.scrollIntoView({ behavior: 'smooth' });
+      logRef.current.scrollTop = logRef.current.scrollHeight;
     }
   });
 
@@ -43,8 +43,17 @@ function InstallingDialog({
     <Dialog fullScreen open={open}>
       <DialogTitle>Installing package</DialogTitle>
       <DialogContent>
-        <pre>{content}</pre>
-        <div ref={logRef} />
+        <textarea
+          value={content}
+          ref={logRef}
+          readOnly
+          style={{
+            border: 0,
+            resize: 'none',
+            width: '100%',
+            height: '100%'
+          }}
+        />
       </DialogContent>
       {closeButton && (
         <DialogActions>
@@ -105,7 +114,7 @@ function SelectPackageDialog({
         m =>
           setLogState(prev => ({
             ...prev,
-            content: `${prev.content.trimEnd()}\n${m}`
+            content: `${prev.content}${m}`
           })),
         e =>
           setLogState(prev => ({

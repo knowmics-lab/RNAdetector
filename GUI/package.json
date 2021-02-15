@@ -1,7 +1,7 @@
 {
   "name": "rna-detector",
   "productName": "RNAdetector",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "A pipeline for the analysis of RNA-seq data",
   "scripts": {
     "build": "concurrently \"yarn build-main\" \"yarn build-renderer\"",
@@ -84,9 +84,7 @@
     },
     "mac": {
       "target": [
-        "dmg",
-        "zip",
-        "pkg"
+        "zip"
       ]
     },
     "win": {

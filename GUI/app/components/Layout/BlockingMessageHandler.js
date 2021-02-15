@@ -50,7 +50,13 @@ class LogHandler extends React.Component<{}, LogState> {
 
   render() {
     const { log } = this.state;
-    return <>{log ? <pre>{log}</pre> : null}</>;
+    return (
+      <>
+        {log ? (
+          <pre style={{ maxHeight: '400px', overflow: 'auto' }}>{log}</pre>
+        ) : null}
+      </>
+    );
   }
 }
 

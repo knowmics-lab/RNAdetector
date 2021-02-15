@@ -273,7 +273,7 @@ export class DockerManager {
     displayLog: ?(string) => void,
     timeout: number = 120000,
     maxTries: number = 3
-  ) {
+  ): Promise<boolean> {
     if (this.config.local) {
       showMessage('Checking internet connection...', false);
       if (!(await this.isRunning()) && (await Utils.isOnline())) {
@@ -311,7 +311,7 @@ export class DockerManager {
               timeout,
               maxTries
             );
-            await this.runUpdateScript(showMessage, displayLog);
+            return true;
           }
         } catch (e) {
           if (e instanceof TimeoutError) {
@@ -324,6 +324,7 @@ export class DockerManager {
         }
       }
     }
+    return false;
   }
 
   async runUpdateScript(
@@ -367,7 +368,12 @@ export class DockerManager {
     timeout: number = 120000,
     maxTries: number = 3
   ) {
-    await this.checkForUpdates(showMessage, displayLog, timeout, maxTries);
+    const updated = await this.checkForUpdates(
+      showMessage,
+      displayLog,
+      timeout,
+      maxTries
+    );
     try {
       await Utils.retryFunction(
         async (t: number) => {
@@ -388,6 +394,9 @@ export class DockerManager {
         timeout,
         maxTries
       );
+      if (updated) {
+        await this.runUpdateScript(showMessage, displayLog);
+      }
     } catch (e) {
       if (e instanceof TimeoutError) {
         throw new Error(

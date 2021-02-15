@@ -68,6 +68,8 @@ initialize_mysql_database() {
   fi
 }
 
+[ ! -f "/rnadetector/ws/storage/app/version_number" ] && [ -d "$MYSQL_DATA_DIR" ] && rm $MYSQL_DATA_DIR/ib_logfile*
+
 [ ! -d "/rnadetector/ws/storage/app/public/" ] && mkdir -p "/rnadetector/ws/storage/app/public/"
 [ ! -d "/rnadetector/ws/storage/app/annotations/" ] && mkdir -p "/rnadetector/ws/storage/app/annotations/"
 [ ! -d "/rnadetector/ws/storage/app/references/" ] && mkdir -p "/rnadetector/ws/storage/app/references/"
