@@ -81,8 +81,8 @@ create_run_dir
 create_log_dir
 initialize_mysql_database
 
-chown -R www-data:staff "/rnadetector/ws"
-chmod -R 777 "/rnadetector/ws/storage/"
+chown -R www-data:staff "/rnadetector/ws" &
+chmod -R 777 "/rnadetector/ws/storage/" &
 
 [ "$DB_CREATED" = "true" ] && touch "${MYSQL_DATA_DIR}/ready"
 

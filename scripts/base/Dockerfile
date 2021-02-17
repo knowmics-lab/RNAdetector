@@ -41,14 +41,20 @@ RUN /usr/bin/apt install -y wget unzip curl tar openjdk-14-jre grep tzdata renam
                             php7.4-mysql php7.4-apcu php7.4-gd php7.4-xml php7.4-mbstring php7.4-zip php7.4-curl \
                             php7.4-intl php7.4-json cufflinks tabix bwa samtools bedtools subread cutadapt fastqc \
                             rna-star hisat2 rna-star && \
-    apt autoremove -y && \
-    echo "ServerName localhost" >> /etc/apache2/apache2.conf
+    /usr/bin/apt autoremove -y && \
+    echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
+    /usr/bin/apt autoclean && \
+    /usr/bin/apt clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Fix certificate issues
 RUN apt-get update && \
     apt-get install ca-certificates-java && \
     apt-get clean && \
-    update-ca-certificates -f
+    update-ca-certificates -f && \
+    apt autoclean && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install supervisor 4
 RUN curl -L https://pypi.io/packages/source/s/supervisor/supervisor-${SUPERVISOR_VERSION}.tar.gz | tar xvz && \
@@ -62,37 +68,34 @@ RUN a2enmod rewrite
 # Remove pre-installed database
 RUN rm -rf /var/log/mysql && rm -rf /var/lib/mysql
 
-# Create RNAdetector and temp dir
-RUN mkdir -p /rnadetector/tmp/
-
 # Install trim_galore
-RUN PW=$(pwd) && cd /rnadetector/tmp/ && \
+RUN mkdir -p /rnadetector/tmp/ && PW=$(pwd) && cd /rnadetector/tmp/ && \
     curl -fsSL https://github.com/FelixKrueger/TrimGalore/archive/0.6.5.tar.gz -o trim_galore.tar.gz && \
     tar -zxvf trim_galore.tar.gz && \
-    cp TrimGalore-0.6.5/trim_galore /usr/local/bin/ && cd "$PW"
+    cp TrimGalore-0.6.5/trim_galore /usr/local/bin/ && cd "$PW" && rm -r /rnadetector/tmp/
 
 # Install pandoc 2.9.2.1
-RUN PW=$(pwd) && cd /rnadetector/tmp/ && \
+RUN mkdir -p /rnadetector/tmp/ && PW=$(pwd) && cd /rnadetector/tmp/ && \
     apt remove -y pandoc && \
     curl -fsSL https://github.com/jgm/pandoc/releases/download/2.9.2.1/pandoc-2.9.2.1-1-amd64.deb -o pandoc.deb && \
-    dpkg -i pandoc.deb && cd "$PW"
+    dpkg -i pandoc.deb && cd "$PW" && rm -r /rnadetector/tmp/
 
 # Install salmon
-RUN PW=$(pwd) && cd /rnadetector/tmp/ && \
+RUN mkdir -p /rnadetector/tmp/ && PW=$(pwd) && cd /rnadetector/tmp/ && \
     curl -fsSL https://github.com/COMBINE-lab/salmon/releases/download/v1.4.0/salmon-1.4.0_linux_x86_64.tar.gz -o salmon.tar.gz && \
     tar -zxvf salmon.tar.gz && \
     mv salmon-latest_linux_x86_64/ /opt/salmon/ && \
-    ln -s /opt/salmon/bin/salmon /usr/bin/salmon && cd "$PW"
+    ln -s /opt/salmon/bin/salmon /usr/bin/salmon && cd "$PW" && rm -r /rnadetector/tmp/
 
 # Install bbmap for re-pair utility
-RUN PW=$(pwd) && cd /rnadetector/tmp/ && \
+RUN mkdir -p /rnadetector/tmp/ && PW=$(pwd) && cd /rnadetector/tmp/ && \
     curl -fsSL https://sourceforge.net/projects/bbmap/files/latest/download -o bbmap.tar.gz && \
     tar -zxvf bbmap.tar.gz --directory=/opt/ && \
     chmod 755 /opt/bbmap/* && \
-    rm bbmap.tar.gz && cd "$PW"
+    rm bbmap.tar.gz && cd "$PW" && rm -r /rnadetector/tmp/
 
 # Install stringtie from source
-RUN PW=$(pwd) && cd /rnadetector/tmp/ && \
+RUN mkdir -p /rnadetector/tmp/ && PW=$(pwd) && cd /rnadetector/tmp/ && \
     curl -fsSL http://ccb.jhu.edu/software/stringtie/dl/stringtie-2.0.6.tar.gz -o stringtie.tar.gz && \
     tar -xzvf stringtie.tar.gz && \
     cd /rnadetector/tmp/stringtie-2.0.6 && \
@@ -101,21 +104,21 @@ RUN PW=$(pwd) && cd /rnadetector/tmp/ && \
     cp prepDE.py /usr/local/bin/prepDE.py && \
     cd /rnadetector/tmp && \
     rm -rf stringtie-2.0.5.Linux_x86_64/  && \
-    rm stringtie.tar.gz  && cd "$PW"
+    rm stringtie.tar.gz  && cd "$PW" && rm -r /rnadetector/tmp/
 
 # Install latest version of CIRIquant
-RUN PW=$(pwd) && cd /rnadetector/tmp/ && \
+RUN mkdir -p /rnadetector/tmp/ && PW=$(pwd) && cd /rnadetector/tmp/ && \
     curl -fsSL https://downloads.sourceforge.net/project/ciri/CIRIquant/CIRIquant_v1.0.tar.gz -o CIRIquant.tar.gz && \
     tar -zxvf CIRIquant.tar.gz && cd /rnadetector/tmp/CIRIquant && \
-    python setup.py install && cd "$PW"
+    python setup.py install && cd "$PW" && rm -r /rnadetector/tmp/
 
 # Install latest version of fastq-pair
-RUN PW=$(pwd) && cd /rnadetector/tmp/ && \
+RUN mkdir -p /rnadetector/tmp/ && PW=$(pwd) && cd /rnadetector/tmp/ && \
     git clone https://github.com/linsalrob/fastq-pair.git && \
-    cd fastq-pair/ && mkdir build && cd build && cmake .. && make && make install && cd "$PW"
+    cd fastq-pair/ && mkdir build && cd build && cmake .. && make && make install && cd "$PW" && rm -r /rnadetector/tmp/
 
 # Install latest version of htseq-count
-RUN PW=$(pwd) && cd /rnadetector/tmp/ && \
+RUN mkdir -p /rnadetector/tmp/ && PW=$(pwd) && cd /rnadetector/tmp/ && \
     curl -fsSL https://github.com/simon-anders/htseq/archive/release_0.11.1.tar.gz -o htseq.tar.gz && \
     tar -xzvf htseq.tar.gz && \
     cd /rnadetector/tmp/htseq-release_0.11.1 && \
@@ -123,13 +126,10 @@ RUN PW=$(pwd) && cd /rnadetector/tmp/ && \
     python setup.py install && \
     cd /rnadetector/tmp && \
     rm -rf htseq-release_0.11.1/ && \
-    rm htseq.tar.gz && cd "$PW"
+    rm htseq.tar.gz && cd "$PW" && rm -r /rnadetector/tmp/
 
 # Install deeptools
 RUN pip3 install deeptools
-
-# Remove tempo directory
-RUN rm -r /rnadetector/tmp/
 
 # Add all support files
 ADD  scripts/bootstrap.sh                            /usr/local/bin/
@@ -169,11 +169,6 @@ RUN /bin/bash /usr/local/bin/setup.sh
 
 # Link bootstrap script
 RUN ln -s /usr/local/bin/bootstrap.sh /
-
-# Clean up the container
-RUN /usr/bin/apt autoclean && \
-    /usr/bin/apt clean && \
-    rm -rf /var/lib/apt/lists/*
 
 EXPOSE 80
 VOLUME [ "/rnadetector/ws/storage/app/" ]

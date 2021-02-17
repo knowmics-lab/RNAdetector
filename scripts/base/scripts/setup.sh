@@ -69,3 +69,8 @@ chmod -R 777 /rnadetector/ws/bootstrap/cache
 chmod -R 777 /rnadetector/ws/storage
 chmod 755 /genkey.sh
 chmod 755 /import_reference.sh
+
+# Cleanup
+apt autoclean
+apt clean
+rm -rf /var/lib/apt/lists/*
