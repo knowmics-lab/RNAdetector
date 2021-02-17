@@ -68,7 +68,7 @@ initialize_mysql_database() {
   fi
 }
 
-[ ! -f "/rnadetector/ws/storage/app/version_number" ] && [ -d "$MYSQL_DATA_DIR" ] && rm $MYSQL_DATA_DIR/ib_logfile*
+[ ! -f "/rnadetector/ws/storage/app/version_number" ] && [ -d "$MYSQL_DATA_DIR" ] && ( rm -f $MYSQL_DATA_DIR/ib_logfile* || echo "Nothing to remove" )
 
 [ ! -d "/rnadetector/ws/storage/app/public/" ] && mkdir -p "/rnadetector/ws/storage/app/public/"
 [ ! -d "/rnadetector/ws/storage/app/annotations/" ] && mkdir -p "/rnadetector/ws/storage/app/annotations/"
