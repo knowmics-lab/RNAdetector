@@ -83,7 +83,7 @@ table.dataTable{clear:both;margin-top:6px !important;margin-bottom:6px !importan
 
 ```{js, echo=FALSE}
 $(function() {
-  $(window).load(function() {
+  $(window).on('load', function() {
     $('#preloader').fadeOut('slow',function(){$(this).remove();});
   });
 });

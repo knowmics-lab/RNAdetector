@@ -587,13 +587,13 @@ class LongRNA extends React.Component<Props, State> {
   submitAnalysis = async (analysisJob: Job[], groupJob: ?Job) => {
     const { pushNotification } = this.props;
     // Submit all jobs in order of creation
-    for (let i = 0, l = analysisJob.length; i < l; i += 1) {
-      // eslint-disable-next-line no-await-in-loop
-      await Api.Jobs.submitJob(analysisJob[i].id);
-    }
-    if (groupJob) {
-      await Api.Jobs.submitJob(groupJob.id);
-    }
+    // for (let i = 0, l = analysisJob.length; i < l; i += 1) {
+    //   // eslint-disable-next-line no-await-in-loop
+    //   await Api.Jobs.submitJob(analysisJob[i].id);
+    // }
+    // if (groupJob) {
+    //   // await Api.Jobs.submitJob(groupJob.id);
+    // }
     pushNotification('Analysis jobs queued!');
   };
 
