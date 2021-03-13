@@ -446,6 +446,9 @@ class DiffExprAnalysisJobType extends AbstractJob
                     $args = $parameters[$par] ?? [];
                     $finalParameters[$mapKey] = [];
                     foreach (array_keys($val) as $f) {
+                        if (array_key_exists($f, $args) && $args[$f] === null) {
+                            continue;
+                        }
                         $mapFilter = self::PARAMETERS_KEY_CONVERSION[$f] ?? $f;
                         $filterArgs = $args[$f] ?? $val[$f];
                         $finalParameters[$mapKey][$mapFilter] = ($filterArgs !== null) ? self::mapKeys(
