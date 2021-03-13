@@ -158,9 +158,9 @@ suppressWarnings({
     gene.filters = gene.filters,
     qc.plots=c(
       "mds", "biodetection", "countsbio", "saturation", "readnoise",
-      "filtered", "correl", "pairwise", "boxplot", "lengthbias", 
+      "filtered", "correl", "pairwise", "boxplot", # "lengthbias", 
       "deheatmap", "volcano", # "meandiff", "meanvar", "rnacomp", 
-      "biodist","venn"
+      "biodist", "venn"
     ),
     fig.format=check.vector(params$fig.formats, c("png","pdf")),
     export.where=config$output.directory,
