@@ -34,7 +34,7 @@ The genomic annotations of all these above-mentioned classes of ncRNAs are alrea
 - Graphical User Interface (GUI)
 - Interactive graphical reports with the results of the analysis
 # RNAdetector installation
-**Information about the [system requirements and installation](https://github.com/alessandrolaferlita/RNAdetector/wiki/Requirements-and-Setup) can be found in the wiki section of this GitHub project**
+**Information about the [system requirements and installation](https://github.com/alessandrolaferlita/RNAdetector/wiki/Requirements-and-Setup) can be found in the wiki section**
 ## Installation on Windows Professional
 - Install **Docker Desktop** in your computer by downloading the installer at this link [Docker Desktop](https://hub.docker.com/editions/community/docker-ce-desktop-windows/)
 - Once the installer is downloaded, then double-click **Docker Desktop Installer.exe** to run the installer.
@@ -91,7 +91,7 @@ Once one of the abovementioned analysis is performed, it is possibile to execute
 - **Differential expression analysis** to compare difference in the expression profile of such RNA molecules between case vs control samples
 - **Pathway analysis** to execute a  miRNA-sensitive topological pathway analysis on the results obtained by the differential expression analysis. However, only the differentially expressed ***mRNAs*** and ***miRNAs*** can be analyzed.
 
-**A more detailed [user guide](https://github.com/alessandrolaferlita/RNAdetector/wiki) with several screenshots of the user interface is available in the wiki section of this GitHub project**
+**A more detailed [user guide](https://github.com/alessandrolaferlita/RNAdetector/wiki) is available in the wiki**
 
 # Cite us
 if you use ***RNAdetector*** cite:
