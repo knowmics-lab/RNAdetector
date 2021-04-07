@@ -146,7 +146,7 @@ TEMPLATE;
 
             return 1;
         }
-        $referenceDirname = env('REFERENCES_PATH') . '/' . $name;
+        $referenceDirname = config('rnadetector.reference_path') . '/' . $name;
         if (!file_exists($referenceDirname) && !mkdir($referenceDirname, 0777) && !is_dir($referenceDirname)) {
             $this->warn(sprintf('Directory "%s" was not created', $referenceDirname));
 

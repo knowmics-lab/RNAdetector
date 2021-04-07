@@ -38,9 +38,9 @@ class InstallPackage extends Command
         $name = $this->argument('name');
         $local = $this->option('local');
         if ($local) {
-            $packageFile = env('REFERENCES_PATH') . '/' . $name . '.tar.bz2';
+            $packageFile = config('rnadetector.reference_path') . '/' . $name . '.tar.bz2';
             $packageUrl = $packageFile;
-            $packageMd5 = env('REFERENCES_PATH') . '/' . $name . '.tar.bz2.md5';
+            $packageMd5 = config('rnadetector.reference_path') . '/' . $name . '.tar.bz2.md5';
             if (!file_exists($packageFile)) {
                 $this->error('The requested package does not exist locally.');
 
@@ -71,7 +71,7 @@ class InstallPackage extends Command
         Utils::runCommand(
             [
                 'bash',
-                realpath(env('BASH_SCRIPT_PATH') . '/install.package.sh'),
+                realpath(config('rnadetector.scripts_path') . '/install.package.sh'),
                 '-n',
                 $name,
                 '-u',
@@ -79,7 +79,7 @@ class InstallPackage extends Command
                 '-m',
                 $packageMd5,
             ],
-            env('REFERENCES_PATH'),
+            config('rnadetector.reference_path'),
             null,
             function ($type, $buffer) {
                 $this->output->write('<info>' . $buffer . '</info>');

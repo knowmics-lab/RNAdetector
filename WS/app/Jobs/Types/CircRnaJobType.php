@@ -471,8 +471,8 @@ class CircRnaJobType extends AbstractJob
             }
             $this->log('Building CIRIquant config file');
             $configFile = $this->makeQuantConfig(
-                $this->getGenome('HUMAN_GENOME_NAME'),
-                $this->getGenomeAnnotation('HUMAN_CIRC_ANNOTATION_NAME')
+                $this->getGenome('human_genome_name'),
+                $this->getGenomeAnnotation('human_circ_annotation_name')
             );
             $this->log('Starting CIRIquant analysis');
             [$circOutput, $circOutputUrl, $circHarmonized, $circHarmonizedUrl] = $this->runCIRIQuant(
@@ -489,8 +489,8 @@ class CircRnaJobType extends AbstractJob
                     $paired,
                     $firstInputFile,
                     $secondInputFile,
-                    $this->getGenome('HUMAN_GENOME_NAME'),
-                    $this->getGenomeAnnotation('HUMAN_CIRC_ANNOTATION_NAME'),
+                    $this->getGenome('human_genome_name'),
+                    $this->getGenomeAnnotation('human_circ_annotation_name'),
                     $threads,
                     $useFastqPair
                 );
@@ -529,8 +529,8 @@ class CircRnaJobType extends AbstractJob
             $this->log('Computing counts of CircRNA using CIRI.');
             [$circOutput, $circOutputUrl, $circHarmonized, $circHarmonizedUrl] = $this->runCIRI(
                 $ciriInputFile,
-                $this->getGenome('HUMAN_GENOME_NAME'),
-                $this->getGenomeAnnotation('HUMAN_CIRC_ANNOTATION_NAME'),
+                $this->getGenome('human_genome_name'),
+                $this->getGenomeAnnotation('human_circ_annotation_name'),
                 $ciriSpanningDistance,
                 $threads,
                 $paired,
@@ -542,7 +542,7 @@ class CircRnaJobType extends AbstractJob
             $this->model,
             $bamOutput,
             $this->getGenome(),
-            $this->getGenomeAnnotation('HUMAN_CIRC_ANNOTATION_NAME')
+            $this->getGenomeAnnotation('human_circ_annotation_name')
         );
         $this->log('CircRNA Analysis completed!');
         $this->model->setOutput(

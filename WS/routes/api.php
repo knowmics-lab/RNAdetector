@@ -19,55 +19,53 @@ use Illuminate\Http\Request;
 */
 
 Route::get('/ping', 'Api\\PingController@ping');
-Route::middleware('auth:api')->get('/auth-ping', 'Api\\PingController@ping');
 
-Route::apiResource('users', 'Api\\UserController')->names(
+Route::group(
     [
-        'show' => 'users.show',
-    ]
-)->middleware('auth:api');
+        'middleware' => 'auth:api',
+    ],
+    static function () {
+        Route::get('/auth-ping', 'Api\\PingController@ping');
+        Route::get('/sys-info', 'Api\\PingController@sysInfo');
 
-Route::middleware(
-    [
-        'auth:api',
-        'can:generate-token,user',
-    ]
-)->get('/users/{user}/token', 'Api\\UserController@token');
+        Route::apiResource('users', 'Api\\UserController')->names(
+            [
+                'show' => 'users.show',
+            ]
+        );
 
-Route::middleware('auth:api')->get('/user', 'Api\\PingController@user');
+        Route::middleware('can:generate-token,user')->get('/users/{user}/token', 'Api\\UserController@token');
 
-Route::apiResource('jobs', 'Api\\JobController')->names(
-    [
-        'show' => 'jobs.show',
-    ]
-)->middleware('auth:api');
+        Route::get('/user', 'Api\\PingController@user');
 
-Route::middleware(
-    [
-        'auth:api',
-        'can:submit-job,job',
-    ]
-)->get('/jobs/{job}/submit', 'Api\\JobController@submit')->name('jobs.submit');
+        Route::apiResource('jobs', 'Api\\JobController')->names(
+            [
+                'show' => 'jobs.show',
+            ]
+        );
 
-Route::middleware(
-    [
-        'auth:api',
-        'can:upload-job,job',
-    ]
-)->any('/jobs/{job}/upload/{any?}', 'Api\\JobController@upload')->where('any', '.*')->name('jobs.upload');
+        Route::middleware('can:submit-job,job')->get('/jobs/{job}/submit', 'Api\\JobController@submit')->name('jobs.submit');
 
-Route::middleware('auth:api')->get('/job-types', 'Api\\JobTypeController@index')->name('job-types.index');
-Route::middleware('auth:api')->get('/job-types/{type}', 'Api\\JobTypeController@show')->name('job-types.show');
+        Route::middleware('can:upload-job,job')->any('/jobs/{job}/upload/{any?}', 'Api\\JobController@upload')->where('any', '.*')->name(
+            'jobs.upload'
+        );
 
-Route::apiResource('annotations', 'Api\\AnnotationController')->names(
-    [
-        'show' => 'annotation.show',
-    ]
-)->middleware('auth:api')->except(['create', 'store', 'update']);
+        Route::get('/job-types', 'Api\\JobTypeController@index')->name('job-types.index');
+        Route::get('/job-types/{type}', 'Api\\JobTypeController@show')->name('job-types.show');
 
-Route::apiResource('references', 'Api\\ReferenceController')->names(
-    [
-        'show' => 'reference.show',
-    ]
-)->middleware('auth:api')->except(['create', 'store', 'update']);
+        Route::apiResource('annotations', 'Api\\AnnotationController')->names(
+            [
+                'show' => 'annotation.show',
+            ]
+        )->except(['create', 'store', 'update']);
+
+        Route::get('references/packages', 'Api\\ReferenceController@listPackages');
+
+        Route::apiResource('references', 'Api\\ReferenceController')->names(
+            [
+                'show' => 'reference.show',
+            ]
+        )->except(['create', 'store', 'update']);
+    }
+);
 

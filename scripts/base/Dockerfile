@@ -132,28 +132,29 @@ RUN mkdir -p /rnadetector/tmp/ && PW=$(pwd) && cd /rnadetector/tmp/ && \
 RUN pip3 install deeptools
 
 # Add all support files
-ADD  scripts/bootstrap.sh                            /usr/local/bin/
-ADD  scripts/installPackages.R                       /usr/local/bin/
-ADD  scripts/setup.sh                                /usr/local/bin/
-ADD  scripts/create_mysql_users.sh                   /usr/local/bin/
-ADD  scripts/create_mysql_users_fast.sh              /usr/local/bin/
-ADD  scripts/CIRI1.pl                                /usr/local/bin/CIRI1.pl
-ADD  scripts/CIRI2.pl                                /usr/local/bin/CIRI2.pl
-ADD  scripts/genkey.sh                               /genkey.sh
-ADD  scripts/import_reference.sh                     /import_reference.sh
-ADD  scripts/update_check.sh                         /update_check.sh
-ADD  scripts/update_run.sh                           /update_run.sh
-ADD  scripts/start-apache2.sh                        /usr/local/bin/start-apache2.sh
-ADD  scripts/start-mysqld.sh                         /usr/local/bin/start-mysqld.sh
-ADD  conf/apache_default.conf                        /etc/apache2/sites-available/000-default.conf
-ADD  conf/supervisord-apache2.conf                   /etc/supervisor/conf.d/supervisord-apache2.conf
-ADD  conf/supervisord-mysqld.conf                    /etc/supervisor/conf.d/supervisord-mysqld.conf
-ADD  conf/supervisord-beanstalkd.conf                /etc/supervisor/conf.d/supervisord-beanstalkd.conf
-ADD  conf/supervisord-worker.conf                    /etc/supervisor/conf.d/supervisord-worker.conf
-ADD  conf/supervisord.conf                           /etc/supervisor/supervisord.conf
-ADD  conf/mysqld_innodb.cnf                          /etc/mysql/conf.d/mysqld_innodb.cnf
-COPY database.tar.bz2                                /opt/database.tar.bz2
-COPY repo.tar.gz                                     /repo.tar.gz
+COPY  scripts/bootstrap.sh                            /usr/local/bin/
+COPY  scripts/installPackages.R                       /usr/local/bin/
+COPY  scripts/setup.sh                                /usr/local/bin/
+COPY  scripts/create_mysql_users.sh                   /usr/local/bin/
+COPY  scripts/create_mysql_users_fast.sh              /usr/local/bin/
+COPY  scripts/CIRI1.pl                                /usr/local/bin/CIRI1.pl
+COPY  scripts/CIRI2.pl                                /usr/local/bin/CIRI2.pl
+COPY  scripts/genkey.sh                               /genkey.sh
+COPY  scripts/import_reference.sh                     /import_reference.sh
+COPY  scripts/update_check.sh                         /update_check.sh
+COPY  scripts/update_run.sh                           /update_run.sh
+COPY  scripts/start-apache2.sh                        /usr/local/bin/start-apache2.sh
+COPY  scripts/start-mysqld.sh                         /usr/local/bin/start-mysqld.sh
+COPY  conf/apache_default.conf                        /etc/apache2/sites-available/000-default.conf
+COPY  conf/supervisord-apache2.conf                   /etc/supervisor/conf.d/supervisord-apache2.conf
+COPY  conf/supervisord-mysqld.conf                    /etc/supervisor/conf.d/supervisord-mysqld.conf
+COPY  conf/supervisord-beanstalkd.conf                /etc/supervisor/conf.d/supervisord-beanstalkd.conf
+COPY  conf/supervisord-worker.conf                    /etc/supervisor/conf.d/supervisord-worker.conf
+COPY  conf/supervisord-cloud.conf                     /etc/supervisor/supervisord-cloud.conf.disabled
+COPY  conf/supervisord.conf                           /etc/supervisor/supervisord.conf
+COPY  conf/mysqld_innodb.cnf                          /etc/mysql/conf.d/mysqld_innodb.cnf
+COPY database.tar.bz2                                 /opt/database.tar.bz2
+COPY repo.tar.gz                                      /repo.tar.gz
 
 RUN chmod 755 /usr/local/bin/*
 RUN chmod 755 /genkey.sh

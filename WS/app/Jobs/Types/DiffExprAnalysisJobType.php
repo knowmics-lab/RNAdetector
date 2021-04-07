@@ -210,8 +210,16 @@ class DiffExprAnalysisJobType extends AbstractJob
                 'num_cores'         => 'Number of cores for parallel processing.',
             ],
         ];
-
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function threads(): int
+    {
+        return (int)$this->getParameter('parameters.num_cores', $this->defaultNumberOfThreads);
+    }
+
 
     /**
      * Returns an array containing for each output value an help detailing its use.
@@ -229,68 +237,68 @@ class DiffExprAnalysisJobType extends AbstractJob
     /**
      * Returns an array containing rules for input validation.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param  \Illuminate\Http\Request  $request
      *
      * @return array
      */
     public static function validationSpec(Request $request): array
     {
-        $statDeseq = 'stats_args.' . self::DESEQ;
-        $statEdger = 'stats_args.' . self::EDGER;
-        $statLimma = 'stats_args.' . self::LIMMA;
+        $statDeseq = 'parameters.stats_args.' . self::DESEQ;
+        $statEdger = 'parameters.stats_args.' . self::EDGER;
+        $statLimma = 'parameters.stats_args.' . self::LIMMA;
 
         return [
-            'source_sample_group'              => ['required', Rule::exists('jobs', 'id')],
-            'sample_type'                      => ['required', Rule::in(self::VALID_SAMPLE_TYPE)],
-            'condition_variables'              => ['required', 'array'],
-            'contrasts'                        => ['required', 'array', 'min:1'],
-            'contrasts.*.control'              => ['required', 'string'],
-            'contrasts.*.case'                 => ['required', 'string'],
-            'parameters'                       => ['filled', 'array'],
-            'pcut'                             => ['filled', 'numeric', 'min:0', 'max:1'],
-            'log_offset'                       => ['filled', 'numeric'],
-            'when_apply_filter'                => ['filled', Rule::in(self::VALID_WHEN_APPLY_FILTERS)],
-            'norm'                             => ['filled', Rule::in(self::VALID_NORM_METHODS)],
-            'norm_args'                        => ['filled', 'array'],
-            'norm_args.method'                 => ['filled', Rule::in(self::VALID_NORM_ARGS_METHOD)],
-            'norm_args.locfunc'                => ['filled', Rule::in(self::VALID_NORM_ARGS_LOCFUNC)],
-            'stats'                            => ['filled', 'array', Rule::in(self::VALID_DEGS_METHODS)],
-            'stats_args'                       => ['filled', 'array'],
-            $statDeseq                         => ['filled', 'array'],
-            $statDeseq . '.fitType'            => ['filled', Rule::in(self::VALID_DESEQ_FITTYPE)],
-            $statEdger                         => ['filled', 'array'],
-            $statEdger . '.main_method'        => ['filled', Rule::in(self::VALID_EDGER_MAIN_METHOD)],
-            $statEdger . '.rowsum_filter'      => ['filled', 'numeric'],
-            $statEdger . '.trend'              => ['filled', Rule::in(self::VALID_EDGER_TREND)],
-            $statEdger . '.tag_method'         => ['filled', Rule::in(self::VALID_EDGER_TAG_METHOD)],
-            $statEdger . '.glm_method'         => ['filled', Rule::in(self::VALID_EDGER_GLM_METHOD)],
-            $statEdger . '.trend_method'       => ['filled', Rule::in(self::VALID_EDGER_GLM_TREND_METHOD)],
-            $statLimma                         => ['filled', 'array'],
-            $statLimma . '.normalize_method'   => ['filled', Rule::in(self::VALID_LIMMA_NORMALIZE_METHOD)],
-            'filters'                          => ['filled', 'array'],
-            'filters.length'                   => ['filled', 'nullable', 'array'],
-            'filters.length.length'            => ['filled', 'nullable', 'numeric'],
-            'filters.avg_reads'                => ['filled', 'nullable', 'array'],
-            'filters.avg_reads.average_per_bp' => ['filled', 'numeric'],
-            'filters.avg_reads.quantile'       => ['filled', 'numeric', 'min:0', 'max:1'],
-            'filters.expression'               => ['filled', 'nullable', 'array'],
-            'filters.expression.median'        => ['filled', 'boolean'],
-            'filters.expression.mean'          => ['filled', 'boolean'],
-            'filters.expression.quantile'      => ['filled', 'nullable', 'numeric', 'min:0', 'max:1'],
-            'filters.expression.known'         => ['filled', 'nullable', 'array'],
-            'filters.presence'                 => ['filled', 'nullable', 'array'],
-            'filters.presence.frac'            => ['filled', 'numeric', 'min:0', 'max:1'],
-            'filters.presence.min_count'       => ['filled', 'numeric'],
-            'filters.presence.per_condition'   => ['filled', 'boolean'],
-            'adjust_method'                    => ['filled', Rule::in(self::VALID_ADJUST_METHOD)],
-            'meta_p_method'                    => ['filled', Rule::in(self::VALID_METAP_METHOD)],
-            'fig_formats'                      => ['filled', 'array', Rule::in(self::VALID_FIG_FORMATS)],
-            'num_cores'                        => ['filled', 'integer'],
+            'source_sample_group'                         => ['required', Rule::exists('jobs', 'id')],
+            'sample_type'                                 => ['required', Rule::in(self::VALID_SAMPLE_TYPE)],
+            'condition_variables'                         => ['required', 'array'],
+            'contrasts'                                   => ['required', 'array', 'min:1'],
+            'contrasts.*.control'                         => ['required', 'string'],
+            'contrasts.*.case'                            => ['required', 'string'],
+            'parameters'                                  => ['filled', 'array'],
+            'parameters.pcut'                             => ['filled', 'numeric', 'min:0', 'max:1'],
+            'parameters.log_offset'                       => ['filled', 'numeric'],
+            'parameters.when_apply_filter'                => ['filled', Rule::in(self::VALID_WHEN_APPLY_FILTERS)],
+            'parameters.norm'                             => ['filled', Rule::in(self::VALID_NORM_METHODS)],
+            'parameters.norm_args'                        => ['filled', 'array'],
+            'parameters.norm_args.method'                 => ['filled', Rule::in(self::VALID_NORM_ARGS_METHOD)],
+            'parameters.norm_args.locfunc'                => ['filled', Rule::in(self::VALID_NORM_ARGS_LOCFUNC)],
+            'parameters.stats'                            => ['filled', 'array', Rule::in(self::VALID_DEGS_METHODS)],
+            'parameters.stats_args'                       => ['filled', 'array'],
+            $statDeseq                                    => ['filled', 'array'],
+            $statDeseq . '.fitType'                       => ['filled', Rule::in(self::VALID_DESEQ_FITTYPE)],
+            $statEdger                                    => ['filled', 'array'],
+            $statEdger . '.main_method'                   => ['filled', Rule::in(self::VALID_EDGER_MAIN_METHOD)],
+            $statEdger . '.rowsum_filter'                 => ['filled', 'numeric'],
+            $statEdger . '.trend'                         => ['filled', Rule::in(self::VALID_EDGER_TREND)],
+            $statEdger . '.tag_method'                    => ['filled', Rule::in(self::VALID_EDGER_TAG_METHOD)],
+            $statEdger . '.glm_method'                    => ['filled', Rule::in(self::VALID_EDGER_GLM_METHOD)],
+            $statEdger . '.trend_method'                  => ['filled', Rule::in(self::VALID_EDGER_GLM_TREND_METHOD)],
+            $statLimma                                    => ['filled', 'array'],
+            $statLimma . '.normalize_method'              => ['filled', Rule::in(self::VALID_LIMMA_NORMALIZE_METHOD)],
+            'parameters.filters'                          => ['filled', 'array'],
+            'parameters.filters.length'                   => ['filled', 'nullable', 'array'],
+            'parameters.filters.length.length'            => ['filled', 'nullable', 'numeric'],
+            'parameters.filters.avg_reads'                => ['filled', 'nullable', 'array'],
+            'parameters.filters.avg_reads.average_per_bp' => ['filled', 'numeric'],
+            'parameters.filters.avg_reads.quantile'       => ['filled', 'numeric', 'min:0', 'max:1'],
+            'parameters.filters.expression'               => ['filled', 'nullable', 'array'],
+            'parameters.filters.expression.median'        => ['filled', 'boolean'],
+            'parameters.filters.expression.mean'          => ['filled', 'boolean'],
+            'parameters.filters.expression.quantile'      => ['filled', 'nullable', 'numeric', 'min:0', 'max:1'],
+            'parameters.filters.expression.known'         => ['filled', 'nullable', 'array'],
+            'parameters.filters.presence'                 => ['filled', 'nullable', 'array'],
+            'parameters.filters.presence.frac'            => ['filled', 'numeric', 'min:0', 'max:1'],
+            'parameters.filters.presence.min_count'       => ['filled', 'numeric'],
+            'parameters.filters.presence.per_condition'   => ['filled', 'boolean'],
+            'parameters.adjust_method'                    => ['filled', Rule::in(self::VALID_ADJUST_METHOD)],
+            'parameters.meta_p_method'                    => ['filled', Rule::in(self::VALID_METAP_METHOD)],
+            'parameters.fig_formats'                      => ['filled', 'array', Rule::in(self::VALID_FIG_FORMATS)],
+            'parameters.num_cores'                        => ['filled', 'integer'],
         ];
     }
 
     /**
-     * @param \App\Models\Job $sourceSampleGroup
+     * @param  \App\Models\Job  $sourceSampleGroup
      *
      * @return array
      */
@@ -310,8 +318,8 @@ class DiffExprAnalysisJobType extends AbstractJob
     }
 
     /**
-     * @param array $conditionVariables
-     * @param array $meta
+     * @param  array  $conditionVariables
+     * @param  array  $meta
      *
      * @return void
      * @throws \App\Exceptions\ProcessingJobException
@@ -330,10 +338,10 @@ class DiffExprAnalysisJobType extends AbstractJob
     }
 
     /**
-     * @param array  $variables
-     * @param array  $meta
-     * @param array  $result
-     * @param string $prefix
+     * @param  array  $variables
+     * @param  array  $meta
+     * @param  array  $result
+     * @param  string  $prefix
      */
     private function recursiveConditionBuilder(array $variables, array $meta, array &$result, string $prefix = ''): void
     {
@@ -349,8 +357,8 @@ class DiffExprAnalysisJobType extends AbstractJob
     }
 
     /**
-     * @param array $conditionVariables
-     * @param array $meta
+     * @param  array  $conditionVariables
+     * @param  array  $meta
      *
      * @return array
      */
@@ -363,8 +371,8 @@ class DiffExprAnalysisJobType extends AbstractJob
     }
 
     /**
-     * @param array $contrasts
-     * @param array $conditions
+     * @param  array  $contrasts
+     * @param  array  $conditions
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
@@ -402,7 +410,7 @@ class DiffExprAnalysisJobType extends AbstractJob
     }
 
     /**
-     * @param array $arr
+     * @param  array  $arr
      *
      * @return array
      */
@@ -421,7 +429,7 @@ class DiffExprAnalysisJobType extends AbstractJob
     }
 
     /**
-     * @param array $parameters
+     * @param  array  $parameters
      *
      * @return array
      */
@@ -466,12 +474,12 @@ class DiffExprAnalysisJobType extends AbstractJob
     }
 
     /**
-     * @param \App\Models\Job $sourceSampleGroup
-     * @param array           $groupOutput
-     * @param string          $sampleType
-     * @param array           $conditionVariables
-     * @param array           $validContrasts
-     * @param array           $parameters
+     * @param  \App\Models\Job  $sourceSampleGroup
+     * @param  array  $groupOutput
+     * @param  string  $sampleType
+     * @param  array  $conditionVariables
+     * @param  array  $validContrasts
+     * @param  array  $parameters
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException

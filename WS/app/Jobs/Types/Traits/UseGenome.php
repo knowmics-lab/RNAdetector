@@ -22,7 +22,7 @@ trait UseGenome
     /**
      * Checks if a valid genome has been provided
      *
-     * @param \App\Models\Reference|null $genome
+     * @param  \App\Models\Reference|null  $genome
      *
      * @throws \App\Exceptions\ProcessingJobException
      */
@@ -36,16 +36,16 @@ trait UseGenome
     /**
      * Get the current genome
      *
-     * @param string $defaults
-     * @param bool   $checks
+     * @param  string  $defaults
+     * @param  bool  $checks
      *
      * @return \App\Models\Reference
      * @throws \App\Exceptions\ProcessingJobException
      */
-    private function getGenome(string $defaults = 'HUMAN_GENOME_NAME', bool $checks = true): Reference
+    private function getGenome(string $defaults = 'human_genome_name', bool $checks = true): Reference
     {
         if ($this->genome === null) {
-            $genomeName = $this->getParameter('genome', env($defaults, $defaults));
+            $genomeName = $this->getParameter('genome', config('rnadetector.' . $defaults));
             $this->genome = Reference::whereName($genomeName)->first();
         }
         if ($checks) {

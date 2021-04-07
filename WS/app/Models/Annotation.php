@@ -86,7 +86,7 @@ class Annotation extends Model
      */
     public function getGFF3Uri(): string
     {
-        return '/annotations/' . str_ireplace(env('ANNOTATIONS_PATH'), '', $this->getGFF3Path());
+        return '/annotations/' . str_ireplace(config('rnadetector.annotations_path'), '', $this->getGFF3Path());
     }
 
     /**

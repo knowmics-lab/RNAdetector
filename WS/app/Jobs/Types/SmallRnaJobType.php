@@ -50,7 +50,6 @@ class SmallRnaJobType extends AbstractJob
                 'threads'           => 'Number of threads for this analysis (Default 1)',
             ]
         );
-
     }
 
     /**
@@ -70,7 +69,7 @@ class SmallRnaJobType extends AbstractJob
     /**
      * Returns an array containing rules for input validation.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param  \Illuminate\Http\Request  $request
      *
      * @return array
      */
@@ -154,6 +153,7 @@ class SmallRnaJobType extends AbstractJob
         $countingInputFile = '';
         $bamOutput = null;
         $count = true;
+        $makeJBrowse = true;
         if ($inputType === self::FASTQ) {
             $this->log('Checking if input is compressed...');
             $firstInputFile = self::checksForCompression($this->model, $firstInputFile);
@@ -189,7 +189,7 @@ class SmallRnaJobType extends AbstractJob
                         $firstTrimmedFastq,
                         $secondTrimmedFastq,
                         $this->getGenome(),
-                        $this->getGenomeAnnotation('HUMAN_SNCRNA_ANNOTATION_NAME'),
+                        $this->getGenomeAnnotation('human_sncrna_annotation_name'),
                         $threads
                     );
                     break;
@@ -207,10 +207,10 @@ class SmallRnaJobType extends AbstractJob
                         $firstTrimmedFastq,
                         $secondTrimmedFastq,
                         $inputType,
-                        $this->getTranscriptome('HUMAN_TRANSCRIPTOME_SNCRNA_NAME'),
+                        $this->getTranscriptome('human_transcriptome_sncrna_name'),
                         $threads
                     );
-                    $count = false;
+                    $makeJBrowse = $count = false;
                     break;
             }
             if ($countingInputFile) {
@@ -226,7 +226,7 @@ class SmallRnaJobType extends AbstractJob
                     [$outputFile, $outputUrl, $harmonizedGeneFile, $harmonizedGeneUrl] = $this->runHTSEQ(
                         $this->model,
                         $countingInputFile,
-                        $this->getGenomeAnnotation('HUMAN_SNCRNA_ANNOTATION_NAME'),
+                        $this->getGenomeAnnotation('human_sncrna_annotation_name'),
                         $threads
                     );
                     break;
@@ -234,7 +234,7 @@ class SmallRnaJobType extends AbstractJob
                     [$outputFile, $outputUrl, $harmonizedGeneFile, $harmonizedGeneUrl] = $this->runFeatureCount(
                         $this->model,
                         $countingInputFile,
-                        $this->getGenomeAnnotation('HUMAN_SNCRNA_ANNOTATION_NAME'),
+                        $this->getGenomeAnnotation('human_sncrna_annotation_name'),
                         $threads
                     );
                     break;
@@ -250,33 +250,37 @@ class SmallRnaJobType extends AbstractJob
                         $this->model,
                         $paired,
                         $countingInputFile,
-                        $this->getTranscriptome('HUMAN_TRANSCRIPTOME_SNCRNA_NAME'),
+                        $this->getTranscriptome('human_transcriptome_sncrna_name'),
                         $threads
                     );
+                    $makeJBrowse = false;
                     break;
                 default:
                     throw new ProcessingJobException('Invalid counting algorithm');
             }
         }
-        $jbrowseConfig = $this->makeJBrowseConfig(
-            $this->model,
-            $bamOutput,
-            $this->getGenome(),
-            $this->getGenomeAnnotation('HUMAN_SNCRNA_ANNOTATION_NAME')
-        );
         $output = [
-            'type'              => self::OUT_TYPE_ANALYSIS_HARMONIZED,
-            'outputFile'        => [
+            'type'           => self::OUT_TYPE_ANALYSIS_HARMONIZED,
+            'outputFile'     => [
                 'path' => $outputFile,
                 'url'  => $outputUrl,
             ],
-            'outputBamFile'     => $this->getFilePathsForOutput($bamOutput),
-            'outputJBrowseFile' => $this->getFilePathsForOutput($jbrowseConfig),
-            'harmonizedFile'    => [
+            'outputBamFile'  => $this->getFilePathsForOutput($bamOutput),
+            'harmonizedFile' => [
                 'path' => $harmonizedGeneFile,
                 'url'  => $harmonizedGeneUrl,
             ],
         ];
+        if ($makeJBrowse) {
+            $output['outputJBrowseFile'] = $this->getFilePathsForOutput(
+                $this->makeJBrowseConfig(
+                    $this->model,
+                    $bamOutput,
+                    $this->getGenome(),
+                    $this->getGenomeAnnotation('human_sncrna_annotation_name')
+                )
+            );
+        }
         if ($harmonizedTxFile !== null) {
             $output['type'] = self::OUT_TYPE_ANALYSIS_HARMONIZED_TRANSCRIPTS;
             $output['harmonizedTranscriptsFile'] = [
@@ -329,8 +333,8 @@ class SmallRnaJobType extends AbstractJob
             static function (Job $job) {
                 $algorithm = $job->getParameter('algorithm', self::SALMON);
                 $countingAlgorithm = $job->getParameter('countingAlgorithm', self::FEATURECOUNTS_COUNTS);
-                $transcriptome = $job->getParameter('transcriptome', env('HUMAN_TRANSCRIPTOME_NAME'));
-                $annotation = $job->getParameter('annotation', env('HUMAN_RNA_ANNOTATION_NAME'));
+                $transcriptome = $job->getParameter('transcriptome', config('rnadetector.human_transcriptome_name'));
+                $annotation = $job->getParameter('annotation', config('rnadetector.human_rna_annotation_name'));
 
                 return ($algorithm === self::SALMON || $countingAlgorithm === self::SALMON) ?
                     Reference::whereName($transcriptome)->firstOrFail()->map_path :

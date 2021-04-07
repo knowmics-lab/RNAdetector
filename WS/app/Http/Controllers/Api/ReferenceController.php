@@ -11,9 +11,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Reference as ReferenceResource;
 use App\Http\Resources\ReferenceCollection;
 use App\Models\Reference;
+use App\Packages;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Throwable;
 
 class ReferenceController extends Controller
 {
@@ -26,11 +28,10 @@ class ReferenceController extends Controller
         $this->authorizeResource(Reference::class, 'reference');
     }
 
-
     /**
      * Display a listing of the resource.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param  \Illuminate\Http\Request  $request
      *
      * @return \App\Http\Resources\ReferenceCollection
      */
@@ -57,7 +58,7 @@ class ReferenceController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param \App\Models\Reference $reference
+     * @param  \App\Models\Reference  $reference
      *
      * @return \App\Http\Resources\Reference
      */
@@ -69,7 +70,7 @@ class ReferenceController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param \App\Models\Reference $reference
+     * @param  \App\Models\Reference  $reference
      *
      * @return \Illuminate\Http\JsonResponse
      * @throws \Exception
@@ -84,6 +85,25 @@ class ReferenceController extends Controller
                 'errors'  => false,
             ]
         );
+    }
+
+    /**
+     * Lists all available packages
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function listPackages(): JsonResponse
+    {
+        $data = null;
+        try {
+            $packages = new Packages();
+
+            $data = $packages->fetchNotInstalled();
+        } catch (Throwable $e) {
+            abort(500, $e->getMessage());
+        }
+
+        return response()->json($data);
     }
 
 }

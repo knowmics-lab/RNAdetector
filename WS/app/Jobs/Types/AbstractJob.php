@@ -56,6 +56,11 @@ abstract class AbstractJob
     public const OUT_TYPE_ANALYSIS_REPORT                             = 'analysis-report';
 
     /**
+     * @var int
+     */
+    protected $defaultNumberOfThreads = 1;
+
+    /**
      * @var \App\Models\Job
      */
     protected $model;
@@ -68,7 +73,7 @@ abstract class AbstractJob
     /**
      * AbstractJob constructor.
      *
-     * @param \App\Models\Job $model
+     * @param  \App\Models\Job  $model
      */
     public function __construct(JobModel $model)
     {
@@ -90,7 +95,7 @@ abstract class AbstractJob
     /**
      * Set the model containing all the data for this job
      *
-     * @param \App\Models\Job $model
+     * @param  \App\Models\Job  $model
      *
      * @return $this
      */
@@ -132,7 +137,7 @@ abstract class AbstractJob
     /**
      * Returns an array containing rules for input validation.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param  \Illuminate\Http\Request  $request
      *
      * @return array
      */
@@ -169,6 +174,16 @@ abstract class AbstractJob
     abstract public function handle(): void;
 
     /**
+     * Returns the number of threads used by this job
+     *
+     * @return int
+     */
+    public function threads(): int
+    {
+        return (int)$this->getParameter('threads', $this->defaultNumberOfThreads);
+    }
+
+    /**
      * Get the output of this job and modifies it so that it can be returned as an output to an API call
      * The default implementation does not mutate the output array
      *
@@ -190,9 +205,9 @@ abstract class AbstractJob
     /**
      * Append text to the log of this job
      *
-     * @param string $text
-     * @param bool   $appendNewLine
-     * @param bool   $commit
+     * @param  string  $text
+     * @param  bool  $appendNewLine
+     * @param  bool  $commit
      */
     public function log(string $text, bool $appendNewLine = true, bool $commit = true): void
     {
@@ -202,8 +217,8 @@ abstract class AbstractJob
     /**
      * Move a file from a job directory to any destination
      *
-     * @param string|null $source
-     * @param string      $destination
+     * @param  string|null  $source
+     * @param  string  $destination
      */
     public function moveFile(?string $source, string $destination): void
     {
@@ -221,8 +236,8 @@ abstract class AbstractJob
     /**
      * Add the map path of a reference
      *
-     * @param array                                        $command
-     * @param \App\Models\Annotation|\App\Models\Reference $annotation
+     * @param  array  $command
+     * @param  \App\Models\Annotation|\App\Models\Reference  $annotation
      *
      * @return bool
      */
@@ -241,7 +256,7 @@ abstract class AbstractJob
     /**
      * Checks if a file is exists in the current job directory
      *
-     * @param string $file
+     * @param  string  $file
      *
      * @return bool
      */
@@ -253,7 +268,7 @@ abstract class AbstractJob
     /**
      * Checks if a file is exists in the current job directory
      *
-     * @param string|null $file
+     * @param  string|null  $file
      *
      * @return bool
      */
@@ -270,7 +285,7 @@ abstract class AbstractJob
      * Checks if a parameter contains the name of a valid file.
      * A file is considered valid only if it exists in the current job directory
      *
-     * @param string $parameter
+     * @param  string  $parameter
      *
      * @return bool
      */
@@ -284,19 +299,19 @@ abstract class AbstractJob
     /**
      * Returns the real path of a script
      *
-     * @param string $script
+     * @param  string  $script
      *
      * @return string
      */
     public static function scriptPath(string $script): string
     {
-        return realpath(env('BASH_SCRIPT_PATH') . '/' . $script);
+        return realpath(config('rnadetector.scripts_path') . '/' . $script);
     }
 
     /**
      * Helper function used to generate absolute path and url of a relative path
      *
-     * @param string $pathRelative
+     * @param  string  $pathRelative
      *
      * @return array
      */
@@ -312,8 +327,8 @@ abstract class AbstractJob
      * Returns the paths and url of a new file in the job directory
      * The result is an array with 3 elements: [0] relative path; [1] absolute path; [2] url.
      *
-     * @param string $prefix
-     * @param string $suffix
+     * @param  string  $prefix
+     * @param  string  $suffix
      *
      * @return array
      */
@@ -326,7 +341,7 @@ abstract class AbstractJob
      * This function returns the relative path, absolute path, and url of a file.
      * The result is an array with 3 elements: [0] relative path; [1] absolute path; [2] url.
      *
-     * @param string $filename
+     * @param  string  $filename
      *
      * @return array
      */
@@ -340,7 +355,7 @@ abstract class AbstractJob
     /**
      * Returns the filename without any extension
      *
-     * @param string $filename
+     * @param  string  $filename
      *
      * @return string
      */
@@ -354,7 +369,7 @@ abstract class AbstractJob
     /**
      * This function returns the relative path and url of a file to be saved as output of a job.
      *
-     * @param string|array|null $filename
+     * @param  string|array|null  $filename
      *
      * @return array|null
      */
@@ -381,11 +396,11 @@ abstract class AbstractJob
     /**
      * Runs a shell command and checks for successful completion of execution
      *
-     * @param array         $command
-     * @param string|null   $cwd
-     * @param int|null      $timeout
-     * @param callable|null $callback
-     * @param array         $errorCodeMap
+     * @param  array  $command
+     * @param  string|null  $cwd
+     * @param  int|null  $timeout
+     * @param  callable|null  $callback
+     * @param  array  $errorCodeMap
      *
      * @return string
      * @throws \App\Exceptions\ProcessingJobException
@@ -405,8 +420,8 @@ abstract class AbstractJob
     }
 
     /**
-     * @param string $name
-     * @param array  $arguments
+     * @param  string  $name
+     * @param  array  $arguments
      *
      * @return mixed
      */

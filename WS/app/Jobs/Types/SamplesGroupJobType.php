@@ -37,6 +37,14 @@ class SamplesGroupJobType extends AbstractJob
             'de_novo'     => 'An optional boolean to ignore all pre-built samples descriptions',
         ];
     }
+    
+    /**
+     * @inheritDoc
+     */
+    public function threads(): int
+    {
+        return 1;
+    }
 
     /**
      * Returns an array containing for each output value an help detailing its use.
@@ -59,7 +67,7 @@ class SamplesGroupJobType extends AbstractJob
     /**
      * Returns an array containing rules for input validation.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param  \Illuminate\Http\Request  $request
      *
      * @return array
      */
@@ -85,7 +93,7 @@ class SamplesGroupJobType extends AbstractJob
     }
 
     /**
-     * @param \App\Models\Job[] $jobs
+     * @param  \App\Models\Job[]  $jobs
      *
      * @return array
      */
@@ -124,7 +132,7 @@ class SamplesGroupJobType extends AbstractJob
     /**
      * Find all valid jobs
      *
-     * @param array $jobs
+     * @param  array  $jobs
      *
      * @return \App\Models\Job[]
      * @throws \App\Exceptions\ProcessingJobException
@@ -150,7 +158,7 @@ class SamplesGroupJobType extends AbstractJob
     /**
      * Checks if all job types are the same
      *
-     * @param \App\Models\Job[] $models
+     * @param  \App\Models\Job[]  $models
      *
      * @return string
      * @throws \App\Exceptions\ProcessingJobException
@@ -170,8 +178,8 @@ class SamplesGroupJobType extends AbstractJob
     /**
      * Pull a property from an array of models
      *
-     * @param \App\Models\Job[] $models
-     * @param string            $property
+     * @param  \App\Models\Job[]  $models
+     * @param  string  $property
      *
      * @return array
      */
@@ -188,7 +196,7 @@ class SamplesGroupJobType extends AbstractJob
     /**
      * Prepare the meta array using the output of the make_descriptions.R script
      *
-     * @param string $descriptor
+     * @param  string  $descriptor
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
@@ -215,8 +223,8 @@ class SamplesGroupJobType extends AbstractJob
     /**
      * Make the description file using the make_descriptions.R script
      *
-     * @param string[] $validCodes
-     * @param array    $preBuiltDescriptions
+     * @param  string[]  $validCodes
+     * @param  array  $preBuiltDescriptions
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
@@ -281,7 +289,7 @@ class SamplesGroupJobType extends AbstractJob
     /**
      * Checks if all jobs have completed (COMPLETED or FAILED state)
      *
-     * @param \App\Models\Job[] $jobs
+     * @param  \App\Models\Job[]  $jobs
      *
      * @return bool
      */
@@ -299,7 +307,7 @@ class SamplesGroupJobType extends AbstractJob
      * Checks if all jobs have completed (COMPLETED or FAILED state)
      * and returns only completed jobs.
      *
-     * @param \App\Models\Job[] $jobs
+     * @param  \App\Models\Job[]  $jobs
      *
      * @return \App\Models\Job[]
      */
@@ -327,13 +335,12 @@ class SamplesGroupJobType extends AbstractJob
     /**
      * Make sample compose file
      *
-     * @param \App\Models\Job[] $jobs
+     * @param  \App\Models\Job[]  $jobs
      *
      * @return array
      */
     private function makeSampleComposeFile(array $jobs): array
     {
-
         $sampleComposeData = array_filter(
             array_map(
                 static function (Job $job) {
@@ -378,7 +385,7 @@ class SamplesGroupJobType extends AbstractJob
     /**
      * Make raw output zip file
      *
-     * @param array $sampleComposeContent
+     * @param  array  $sampleComposeContent
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
@@ -405,9 +412,9 @@ class SamplesGroupJobType extends AbstractJob
     }
 
     /**
-     * @param string $sampleComposeFile
-     * @param bool   $ciri
-     * @param bool   $transcripts
+     * @param  string  $sampleComposeFile
+     * @param  bool  $ciri
+     * @param  bool  $transcripts
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException

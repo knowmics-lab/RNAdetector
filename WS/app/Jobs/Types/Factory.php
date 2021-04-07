@@ -22,6 +22,7 @@ use Symfony\Component\Finder\Finder;
  * @method static array outputSpec(\App\Models\Job|\App\Jobs\Types\AbstractJob|string $where)
  * @method static array validationSpec(\App\Models\Job|\App\Jobs\Types\AbstractJob|string $where, \Illuminate\Http\Request $request)
  * @method static array|null sampleGroupFunctions(\App\Models\Job|\App\Jobs\Types\AbstractJob|string $where)
+ * @method static int threads(\App\Models\Job|\App\Jobs\Types\AbstractJob|string $where)
  */
 class Factory
 {
@@ -33,7 +34,7 @@ class Factory
     /**
      * Given a Job Model, this method builds an object that will be able to process this job
      *
-     * @param \App\Models\Job $jobModel
+     * @param  \App\Models\Job  $jobModel
      *
      * @return \App\Jobs\Types\AbstractJob
      * @throws \App\Exceptions\ProcessingJobException
@@ -61,7 +62,7 @@ class Factory
     /**
      * Checks if a job type exists
      *
-     * @param string $type
+     * @param  string  $type
      *
      * @return bool
      */
@@ -85,14 +86,14 @@ class Factory
     /**
      * Implementation of virtual static methods
      *
-     * @param string $name
-     * @param array  $arguments
+     * @param  string  $name
+     * @param  array  $arguments
      *
      * @return mixed
      * @throws \App\Exceptions\ProcessingJobException
      * @throws \ReflectionException
      */
-    public static function __callStatic($name, $arguments)
+    public static function __callStatic(string $name, array $arguments)
     {
         if (in_array(
             $name,
@@ -103,6 +104,7 @@ class Factory
                 'outputSpec',
                 'validationSpec',
                 'sampleGroupFunctions',
+                'threads',
             ]
         )) {
             if (count($arguments) >= 1) {

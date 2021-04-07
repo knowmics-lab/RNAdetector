@@ -37,6 +37,14 @@ class ReferenceUploadJobType extends AbstractJob
     }
 
     /**
+     * @inheritDoc
+     */
+    public function threads(): int
+    {
+        return 1;
+    }
+
+    /**
      * Returns an array containing for each output value an help detailing its use.
      *
      * @return array
@@ -51,7 +59,7 @@ class ReferenceUploadJobType extends AbstractJob
     /**
      * Returns an array containing rules for input validation.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param  \Illuminate\Http\Request  $request
      *
      * @return array
      */
@@ -92,8 +100,8 @@ class ReferenceUploadJobType extends AbstractJob
     }
 
     /**
-     * @param string $referenceFilename
-     * @param string $referenceDirname
+     * @param  string  $referenceFilename
+     * @param  string  $referenceDirname
      *
      * @throws \App\Exceptions\ProcessingJobException
      */
@@ -125,8 +133,8 @@ class ReferenceUploadJobType extends AbstractJob
     }
 
     /**
-     * @param string $referenceFilename
-     * @param string $referenceDirname
+     * @param  string  $referenceFilename
+     * @param  string  $referenceDirname
      *
      * @throws \App\Exceptions\ProcessingJobException
      */
@@ -157,8 +165,8 @@ class ReferenceUploadJobType extends AbstractJob
     }
 
     /**
-     * @param string $referenceFilename
-     * @param string $referenceDirname
+     * @param  string  $referenceFilename
+     * @param  string  $referenceDirname
      *
      * @throws \App\Exceptions\ProcessingJobException
      */
@@ -191,8 +199,8 @@ class ReferenceUploadJobType extends AbstractJob
     }
 
     /**
-     * @param string $referenceFilename
-     * @param string $referenceDirname
+     * @param  string  $referenceFilename
+     * @param  string  $referenceDirname
      *
      * @throws \App\Exceptions\ProcessingJobException
      */
@@ -240,7 +248,7 @@ class ReferenceUploadJobType extends AbstractJob
         $index = (array)$this->model->getParameter('index', []);
         $mapFile = $this->model->getParameter('map_file');
         $absoluteSourceFilename = $this->model->getAbsoluteJobDirectory() . '/' . $file;
-        $referenceDirname = env('REFERENCES_PATH') . '/' . $name;
+        $referenceDirname = config('rnadetector.reference_path') . '/' . $name;
         $referenceFilename = $referenceDirname . '/reference.fa';
         if (!mkdir($referenceDirname, 0777, true) && !is_dir($referenceDirname)) {
             throw new ProcessingJobException(sprintf('Directory "%s" was not created', $referenceDirname));

@@ -22,7 +22,7 @@ trait UseTranscriptome
     /**
      * Checks if a valid transcriptome has been provided
      *
-     * @param \App\Models\Reference|null $transcriptome
+     * @param  \App\Models\Reference|null  $transcriptome
      *
      * @throws \App\Exceptions\ProcessingJobException
      */
@@ -36,16 +36,16 @@ trait UseTranscriptome
     /**
      * Get the current transcriptome
      *
-     * @param string $defaults
-     * @param bool   $checks
+     * @param  string  $defaults
+     * @param  bool  $checks
      *
      * @return \App\Models\Reference
      * @throws \App\Exceptions\ProcessingJobException
      */
-    private function getTranscriptome(string $defaults = 'HUMAN_TRANSCRIPTOME_NAME', bool $checks = true): Reference
+    private function getTranscriptome(string $defaults = 'human_transcriptome_name', bool $checks = true): Reference
     {
         if ($this->transcriptome === null) {
-            $transcriptomeName = $this->getParameter('transcriptome', env($defaults, $defaults));
+            $transcriptomeName = $this->getParameter('transcriptome', config('rnadetector.' . $defaults));
             $this->transcriptome = Reference::whereName($transcriptomeName)->first();
         }
         if ($checks) {

@@ -30,7 +30,7 @@ final class Packages
 
     private static function doesNeedUpdate(string $name, string $version): ?bool
     {
-        $referenceDir = env('REFERENCES_PATH') . '/' . $name;
+        $referenceDir = config('rnadetector.reference_path') . '/' . $name;
         $versionFile = $referenceDir . '/.version';
         if ($version === '' || !self::isPackageInstalled($name)) {
             return false;
@@ -45,7 +45,7 @@ final class Packages
 
     public static function isPackageInstalled(string $name): bool
     {
-        $referenceDir = env('REFERENCES_PATH') . '/' . $name;
+        $referenceDir = config('rnadetector.reference_path') . '/' . $name;
 
         return file_exists($referenceDir) && is_dir($referenceDir) && file_exists($referenceDir . '/.installed');
     }

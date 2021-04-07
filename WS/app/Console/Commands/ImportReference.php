@@ -64,7 +64,7 @@ class ImportReference extends Command
 
             return 12;
         }
-        $genomePath = env('REFERENCES_PATH') . '/' . $name . '/';
+        $genomePath = config('rnadetector.reference_path') . '/' . $name . '/';
         $configFile = $genomePath . 'spec.json';
         if (!file_exists($genomePath) && !is_dir($genomePath)) {
             $this->error('Reference sequence directory not found!');
@@ -135,7 +135,7 @@ class ImportReference extends Command
                 $this->warn('Source path of annotation ' . $annotation . ' not found.');
                 continue;
             }
-            $annotationDestinationFile = env('ANNOTATIONS_PATH') . '/' . $annotation . '.' . $type;
+            $annotationDestinationFile = config('rnadetector.annotations_path') . '/' . $annotation . '.' . $type;
             @rename($annotationSourceFile, $annotationDestinationFile);
             if (!file_exists($annotationDestinationFile)) {
                 $this->warn('Unable to write annotation file for ' . $annotation . '.');
@@ -148,7 +148,7 @@ class ImportReference extends Command
                 if (!file_exists($annotationMapPathSourceFile)) {
                     $this->warn('Source path of map file for ' . $annotation . ' not found.');
                 } else {
-                    $annotationMapPathDestinationFile = env('ANNOTATIONS_PATH') . '/' . $annotation . '_map.tsv';
+                    $annotationMapPathDestinationFile = config('rnadetector.annotations_path') . '/' . $annotation . '_map.tsv';
                     @rename($annotationMapPathSourceFile, $annotationMapPathDestinationFile);
                     if (!file_exists($annotationMapPathDestinationFile)) {
                         $this->warn('Unable to write map file for ' . $annotation . '.');
@@ -208,7 +208,7 @@ class ImportReference extends Command
                 '-jxvf',
                 $filename,
             ],
-            env('REFERENCES_PATH'),
+            config('rnadetector.reference_path'),
             null,
             function ($type, $buffer) {
                 if ($type === Process::OUT) {
@@ -266,7 +266,7 @@ class ImportReference extends Command
     public function handle(): int
     {
         $name = $this->argument('name');
-        $referenceDir = env('REFERENCES_PATH') . '/' . $name;
+        $referenceDir = config('rnadetector.reference_path') . '/' . $name;
         $filename = $referenceDir . '.tar.bz2';
         if (!file_exists($filename)) {
             $this->error('Unable to find the reference archive.');

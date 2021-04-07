@@ -133,7 +133,7 @@ class Reference extends Model
      */
     public function getReferenceUri(): string
     {
-        return '/references/' . str_ireplace(env('REFERENCES_PATH'), '', $this->path);
+        return '/references/' . str_ireplace(config('rnadetector.reference_path'), '', $this->path);
     }
 
     /**

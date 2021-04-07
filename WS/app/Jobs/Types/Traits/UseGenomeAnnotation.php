@@ -22,7 +22,7 @@ trait UseGenomeAnnotation
     /**
      * Checks if a valid Genome Annotation has been provided
      *
-     * @param \App\Models\Annotation|null $genomeAnnotation
+     * @param  \App\Models\Annotation|null  $genomeAnnotation
      *
      * @throws \App\Exceptions\ProcessingJobException
      */
@@ -36,16 +36,16 @@ trait UseGenomeAnnotation
     /**
      * Get the current Genome Annotation
      *
-     * @param string $defaults
-     * @param bool   $checks
+     * @param  string  $defaults
+     * @param  bool  $checks
      *
      * @return \App\Models\Annotation
      * @throws \App\Exceptions\ProcessingJobException
      */
-    private function getGenomeAnnotation(string $defaults = 'HUMAN_RNA_ANNOTATION_NAME', bool $checks = true): Annotation
+    private function getGenomeAnnotation(string $defaults = 'human_rna_annotation_name', bool $checks = true): Annotation
     {
         if ($this->genomeAnnotation === null) {
-            $annotationName = $this->getParameter('annotation', env($defaults, $defaults));
+            $annotationName = $this->getParameter('annotation', config('rnadetector.' . $defaults));
             $this->genomeAnnotation = Annotation::whereName($annotationName)->first();
         }
         if ($checks) {

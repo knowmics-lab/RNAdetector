@@ -43,8 +43,16 @@ class PathwayAnalysisJobType extends AbstractJob
                 'p_use_fdr' => 'boolean indicating whether p-value cutoff is applied to FDR p-values (default: TRUE)',
             ],
         ];
-
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function threads(): int
+    {
+        return 1;
+    }
+
 
     /**
      * Returns an array containing for each output value an help detailing its use.
@@ -62,7 +70,7 @@ class PathwayAnalysisJobType extends AbstractJob
     /**
      * Returns an array containing rules for input validation.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param  \Illuminate\Http\Request  $request
      *
      * @return array
      */

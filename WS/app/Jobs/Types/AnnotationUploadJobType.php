@@ -98,14 +98,14 @@ class AnnotationUploadJobType extends AbstractJob
         $type = $this->model->getParameter('type', 'gtf');
         $file = $this->model->getParameter('file');
         $mapFile = $this->model->getParameter('map_file');
-        $annotationFileName = env('ANNOTATIONS_PATH') . '/' . $name . '.' . $type;
+        $annotationFileName = config('rnadetector.annotations_path') . '/' . $name . '.' . $type;
         $this->moveFile($file, $annotationFileName);
         if (!file_exists($annotationFileName)) {
             throw new ProcessingJobException('Unable to create annotation file.');
         }
         $mapFileName = null;
         if ($mapFile) {
-            $mapFileName = env('ANNOTATIONS_PATH') . '/' . $name . '_map.tsv';
+            $mapFileName = config('rnadetector.annotations_path') . '/' . $name . '_map.tsv';
             $this->moveFile($mapFile, $mapFileName);
             if (!file_exists($mapFileName)) {
                 throw new ProcessingJobException('Unable to create map file.');

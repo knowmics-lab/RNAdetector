@@ -69,7 +69,7 @@ class LongRnaJobType extends AbstractJob
     /**
      * Returns an array containing rules for input validation.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param  \Illuminate\Http\Request  $request
      *
      * @return array
      */
@@ -121,8 +121,8 @@ class LongRnaJobType extends AbstractJob
     /**
      * Checks if any valid genome and annotation has been provided for the analysis
      *
-     * @param \App\Models\Reference|null  $genome
-     * @param \App\Models\Annotation|null $annotation
+     * @param  \App\Models\Reference|null  $genome
+     * @param  \App\Models\Annotation|null  $annotation
      *
      * @throws \App\Exceptions\ProcessingJobException
      */
@@ -154,7 +154,7 @@ class LongRnaJobType extends AbstractJob
         $trimGaloreEnable = (bool)$this->model->getParameter('trimGalore.enable', $inputType === self::FASTQ);
         $trimGaloreQuality = (int)$this->model->getParameter('trimGalore.quality', 20);
         $trimGaloreLength = (int)$this->model->getParameter('trimGalore.length', 14);
-        $threads = (int)$this->getParameter('threads', 1);
+        $threads = $this->threads();
         $algorithm = $this->getParameter('algorithm', self::STAR);
         $countingAlgorithm = $this->getParameter('countingAlgorithm', self::FEATURECOUNTS_COUNTS);
         if ($inputType === self::SAM) {
@@ -174,6 +174,7 @@ class LongRnaJobType extends AbstractJob
         $countingInputFile = '';
         $bamOutput = null;
         $count = true;
+        $makeJBrowse = true;
         if ($inputType === self::FASTQ) {
             $this->log('Checking if input is compressed...');
             $firstInputFile = self::checksForCompression($this->model, $firstInputFile);
@@ -230,7 +231,7 @@ class LongRnaJobType extends AbstractJob
                         $this->getTranscriptome(),
                         $threads
                     );
-                    $count = false;
+                    $makeJBrowse = $count = false;
                     break;
             }
             if ($countingInputFile) {
@@ -273,25 +274,29 @@ class LongRnaJobType extends AbstractJob
                         $this->getTranscriptome(),
                         $threads
                     );
+                    $makeJBrowse = false;
                     break;
                 default:
                     throw new ProcessingJobException('Invalid counting algorithm');
             }
         }
-        $jbrowseConfig = $this->makeJBrowseConfig($this->model, $bamOutput, $this->getGenome(), $this->getGenomeAnnotation());
         $output = [
-            'type'              => self::OUT_TYPE_ANALYSIS_HARMONIZED,
-            'outputFile'        => [
+            'type'           => self::OUT_TYPE_ANALYSIS_HARMONIZED,
+            'outputFile'     => [
                 'path' => $outputFile,
                 'url'  => $outputUrl,
             ],
-            'outputBamFile'     => $this->getFilePathsForOutput($bamOutput),
-            'outputJBrowseFile' => $this->getFilePathsForOutput($jbrowseConfig),
-            'harmonizedFile'    => [
+            'outputBamFile'  => $this->getFilePathsForOutput($bamOutput),
+            'harmonizedFile' => [
                 'path' => $harmonizedGeneFile,
                 'url'  => $harmonizedGeneUrl,
             ],
         ];
+        if ($makeJBrowse) {
+            $output['outputJBrowseFile'] = $this->getFilePathsForOutput(
+                $this->makeJBrowseConfig($this->model, $bamOutput, $this->getGenome(), $this->getGenomeAnnotation())
+            );
+        }
         if ($harmonizedTxFile !== null) {
             $output['type'] = self::OUT_TYPE_ANALYSIS_HARMONIZED_TRANSCRIPTS;
             $output['harmonizedTranscriptsFile'] = [
@@ -345,8 +350,8 @@ class LongRnaJobType extends AbstractJob
             static function (Job $job) {
                 $algorithm = $job->getParameter('algorithm', self::SALMON);
                 $countingAlgorithm = $job->getParameter('countingAlgorithm', self::FEATURECOUNTS_COUNTS);
-                $transcriptome = $job->getParameter('transcriptome', env('HUMAN_TRANSCRIPTOME_NAME'));
-                $annotation = $job->getParameter('annotation', env('HUMAN_RNA_ANNOTATION_NAME'));
+                $transcriptome = $job->getParameter('transcriptome', config('rnadetector.human_transcriptome_name'));
+                $annotation = $job->getParameter('annotation', config('rnadetector.human_rna_annotation_name'));
 
                 return ($algorithm === self::SALMON || $countingAlgorithm === self::SALMON) ?
                     Reference::whereName($transcriptome)->firstOrFail()->map_path :

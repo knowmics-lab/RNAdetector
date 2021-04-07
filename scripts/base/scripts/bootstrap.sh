@@ -55,23 +55,40 @@ initialize_mysql_database() {
   fi
 }
 
-[ ! -f "/rnadetector/ws/storage/app/version_number" ] && [ -d "$MYSQL_DATA_DIR" ] && (rm -f $MYSQL_DATA_DIR/ib_logfile* || echo "Nothing to remove")
-
 [ ! -d "/rnadetector/ws/storage/app/public/" ] && mkdir -p "/rnadetector/ws/storage/app/public/"
 [ ! -d "/rnadetector/ws/storage/app/annotations/" ] && mkdir -p "/rnadetector/ws/storage/app/annotations/"
 [ ! -d "/rnadetector/ws/storage/app/references/" ] && mkdir -p "/rnadetector/ws/storage/app/references/"
 [ ! -d "/rnadetector/ws/storage/app/tus_cache/" ] && mkdir -p "/rnadetector/ws/storage/app/tus_cache/"
 [ ! -d "/rnadetector/ws/storage/app/logs/" ] && mkdir -p "/rnadetector/ws/storage/app/logs/"
 
-create_data_dir
-create_run_dir
-create_log_dir
-initialize_mysql_database
+if [[ "$CLOUD_ENV" == "true" ]]; then
+  echo "Starting RnaDetector Webservice in Cloud Mode"
+  ## Disable mysql server startup
+  [ ! -f /etc/supervisor/supervisord.conf.disabled ] && mv /etc/supervisor/supervisord.conf /etc/supervisor/supervisord.conf.disabled
+  [ -f /etc/supervisor/supervisord-cloud.conf.disabled ] && mv /etc/supervisor/supervisord-cloud.conf.disabled /etc/supervisor/supervisord.conf
+  [ -f /rnadetector/ws/.env ] && mv /rnadetector/ws/.env /rnadetector/ws/.env.disabled
+  [ -f /rnadetector/ws/.env.cloud ] && mv /rnadetector/ws/.env.cloud /rnadetector/ws/.env
+
+  if [ ! -f "/rnadetector/ws/storage/app/.migrated" ] && [[ "$DEBUG" != "true" ]]; then
+    touch "/rnadetector/ws/storage/app/.migrated" &&
+      php /rnadetector/ws/artisan migrate --seed --force &&
+      php /rnadetector/ws/artisan first:boot
+  fi
+
+else
+  [ ! -f "/rnadetector/ws/storage/app/version_number" ] && [ -d "$MYSQL_DATA_DIR" ] && (rm -f $MYSQL_DATA_DIR/ib_logfile* || echo "Nothing to remove")
+  create_data_dir
+  create_run_dir
+  create_log_dir
+  initialize_mysql_database
+fi
 
 chown -R www-data:staff "/rnadetector/ws" &
 chmod -R 777 "/rnadetector/ws/storage/" &
 
-[ "$DB_CREATED" = "true" ] && touch "${MYSQL_DATA_DIR}/ready"
+if [[ "$CLOUD_ENV" != "true" ]]; then
+  [ "$DB_CREATED" = "true" ] && touch "${MYSQL_DATA_DIR}/ready"
+fi
 
 [ -f /var/run/apache2/apache2.pid ] && rm -f /var/run/apache2/apache2.pid
 
