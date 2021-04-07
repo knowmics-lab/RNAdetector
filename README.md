@@ -41,14 +41,14 @@ The genomic annotations of all these above-mentioned classes of ncRNAs are alrea
 - When prompted, ensure the Enable Hyper-V Windows Features option is selected on the Configuration page.
 - Follow the instructions on the installation wizard to authorize the installer and proceed with the install.
 - When the installation is successful, click *Close* to complete **Docker** installation process.
-- Now that **Docker Desktop** is installed, it is possible to proceed with **RNAdetector** installation by downloading its installer [RNAdetector installer]() and following the instructions on the installation wizard to authorize the installer and proceed with the installation.
+- Now that **Docker Desktop** is installed, it is possible to proceed with **RNAdetector** installation by downloading its installer [RNAdetector installer](https://rnadetector.atlas.dmi.unict.it/download.html) and following the instructions on the installation wizard to authorize the installer and proceed with the installation.
 - **RNAdetector** is installed! Now, you can find **RNAdetector** in your application list.
 
 ## Installation on macOS
 - Before proceed with **Docker Desktop** installation, check the system requirements at this [link](https://docs.docker.com/docker-for-mac/install/#system-requirements)
 - Install **Docker Desktop** in your computer by downloading the installer at this link [Docker Desktop](https://hub.docker.com/editions/community/docker-ce-desktop-mac/)
 - Once the installer is downloaded, then double-click **Docker.dmg** to open the installer, and drag the Docker icon to the Applications folder.
-- Now that **Docker Desktop** is installed, it is possible to proceed with **RNAdetector** installation by downloading its installer [RNAdetector installer]() and following the instructions on the installation wizard to authorize the installer and proceed with the installation.
+- Now that **Docker Desktop** is installed, it is possible to proceed with **RNAdetector** installation by downloading its installer [RNAdetector installer](https://rnadetector.atlas.dmi.unict.it/download.html) and following the instructions on the installation wizard to authorize the installer and proceed with the installation.
 - Drag the **RNAdetector icon** to the Applications folder to complete the installation.
 - **RNAdetector** is installed! Now, you can find **RNAdetector** in your application list.
 
@@ -70,7 +70,7 @@ sudo usermod -aG docker YOUR_USER_NAME
 
 - Log out and log in from Ubuntu.
 
-- Download the *RNAdetector.deb* file from [RNAdetector web site]().
+- Download the *RNAdetector.deb* file from [RNAdetector web site](https://rnadetector.atlas.dmi.unict.it/download.html).
 
 - Open again the terminal and install **RNAdetector** by writing the following command.
 ```
