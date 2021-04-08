@@ -128,7 +128,7 @@ class ReferencesList extends React.Component<Props, State> {
       {
         align: 'right',
         shown:
-          Api.Settings.isLocal() && Api.Settings.isConfigured() && isOnline,
+          !Api.Settings.isLocal() || (Api.Settings.isConfigured() && isOnline),
         icon: 'fas fa-download',
         tooltip: 'Install from repository',
         onClick: () =>

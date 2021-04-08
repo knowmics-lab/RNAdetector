@@ -30,7 +30,7 @@ import UploadProgress from '../UI/UploadProgress';
 import SwitchField from '../Form/SwitchField';
 import ValidationError from '../../errors/ValidationError';
 import type { SmallRNAAnalysisConfig } from '../../types/analysis';
-import type { SimpleMapType } from '../../types/common';
+import type { Capabilities, SimpleMapType } from '../../types/common';
 import type { Job } from '../../types/jobs';
 
 type Props = {
@@ -88,6 +88,7 @@ type State = {
   isLoading: boolean,
   fetched: boolean,
   isSaving: boolean,
+  capabilities: ?Capabilities,
   files: (?File)[][],
   descriptionFile: ?File,
   genomes: SimpleMapType<SimpleMapType<string>>,
@@ -110,6 +111,7 @@ class SmallRNA extends React.Component<Props, State> {
       isLoading: false,
       fetched: false,
       isSaving: false,
+      capabilities: undefined,
       ...Api.Upload.ui.initUploadState(),
       files: [[null, null]],
       descriptionFile: null,
@@ -141,11 +143,13 @@ class SmallRNA extends React.Component<Props, State> {
         )
       );
       const annotations = await Api.Annotations.fetchAllByType('gtf');
+      const capabilities = await Api.Utils.refreshCapabilities();
       this.setState({
         isLoading: false,
         fetched: true,
         genomes: Object.fromEntries(algoKeys.map((a, i) => [a, algoValues[i]])),
-        annotations
+        annotations,
+        capabilities
       });
     } catch (e) {
       pushNotification(`An error occurred: ${e.message}!`, 'error');
@@ -153,8 +157,10 @@ class SmallRNA extends React.Component<Props, State> {
     }
   }
 
-  getValidationSchema = () =>
-    Yup.object().shape({
+  getValidationSchema = () => {
+    const { capabilities } = this.state;
+    const cores = capabilities ? capabilities.availableCores : 1;
+    return Yup.object().shape({
       code: Yup.string()
         .required()
         .matches(/^[A-Za-z0-9\-_]+$/, {
@@ -189,8 +195,9 @@ class SmallRNA extends React.Component<Props, State> {
       threads: Yup.number()
         .required()
         .min(1)
-        .max(Api.Utils.cpuCount())
+        .max(cores)
     });
+  };
 
   getSteps = () => [
     'Choose type',
@@ -199,7 +206,23 @@ class SmallRNA extends React.Component<Props, State> {
     'Upload files'
   ];
 
-  getStep0 = () => {
+  threadsText = values => {
+    const { capabilities } = this.state;
+    const allCores = capabilities ? capabilities.numCores : 1;
+    const { threads } = values;
+    const maxMultiple = Math.floor(allCores / 3);
+    const standardMessage = `Do not select more than ${maxMultiple} cores to allow for multiple concurrent analysis.`;
+    if (threads <= maxMultiple) {
+      return standardMessage;
+    }
+    return (
+      <Typography color="error" component="span">
+        {standardMessage}
+      </Typography>
+    );
+  };
+
+  getStep0 = values => {
     const { classes } = this.props;
     return (
       <>
@@ -223,13 +246,42 @@ class SmallRNA extends React.Component<Props, State> {
           label="Number of threads"
           name="threads"
           type="number"
-          helperText={`Do not select more than ${Math.floor(
-            Api.Utils.cpuCount() / 3
-          )} cores if you wish to submit multiple analysis.`}
+          helperText={this.threadsText(values)}
           required
         />
       </>
     );
+  };
+
+  algorithmMessage = values => {
+    const { algorithm } = values;
+    const { capabilities } = this.state;
+    const availableMemory = capabilities ? capabilities.availableMemory : null;
+    if (!availableMemory || algorithm !== 'star') return null;
+    if (availableMemory < 31457280) {
+      return (
+        <Typography color="error" component="span">
+          We do not recommend using STAR with less than 30GB of RAM.
+        </Typography>
+      );
+    }
+    if (availableMemory < 62914560) {
+      return (
+        <Typography color="error" component="span">
+          We do not recommend running more than <strong>1</strong> STAR analysis
+          with less than 60GB of RAM.
+        </Typography>
+      );
+    }
+    if (availableMemory < 94371840) {
+      return (
+        <Typography color="error" component="span">
+          We do not recommend running more than <strong>2</strong> STAR analysis
+          with less than 90GB of RAM.
+        </Typography>
+      );
+    }
+    return null;
   };
 
   getStep1 = values => {
@@ -284,6 +336,7 @@ class SmallRNA extends React.Component<Props, State> {
           label="Aligment/Quantification Algorithm"
           name="algorithm"
           options={ALGORITHMS}
+          helperText={this.algorithmMessage(values)}
         />
         {(algorithm === 'hisat2' || algorithm === 'star') && (
           <SelectField
@@ -768,7 +821,7 @@ class SmallRNA extends React.Component<Props, State> {
               {({ values }) => (
                 <Form>
                   <Wizard steps={steps} submitButton={this.getSubmitButton}>
-                    <div>{this.getStep0()}</div>
+                    <div>{this.getStep0(values)}</div>
                     <div>{this.getStep1(values)}</div>
                     <div>{this.getStep2(values)}</div>
                     <div>{this.getStep3(values)}</div>

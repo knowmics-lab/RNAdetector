@@ -6,7 +6,7 @@ import Box from '@material-ui/core/Box';
 import { ConnectTable } from './UI/PaginatedRemoteTable';
 import * as AnnotationsActions from '../actions/annotations';
 import type { StateType } from '../reducers/types';
-import { CREATE_ANNOTATION } from '../constants/routes';
+import { CREATE_ANNOTATION } from '../constants/routes.json';
 
 const AnnotationsTable = ConnectTable(
   (state: StateType) => ({

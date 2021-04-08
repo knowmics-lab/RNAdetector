@@ -1,4 +1,13 @@
 // @flow
+export type Capabilities = {
+  containerVersion: string,
+  containerVersionNumber: number,
+  maxMemory: number,
+  availableMemory: number,
+  numCores: number,
+  usedCores: number,
+  availableCores: number
+};
 
 export type FileFilter = {
   name: string,

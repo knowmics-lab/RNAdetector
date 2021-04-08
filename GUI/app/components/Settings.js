@@ -62,7 +62,7 @@ class Settings extends Component<Props> {
       local: values.local,
       apiProtocol: values.apiProtocol,
       apiHostname: values.apiHostname,
-      apiPort: values.apiPort,
+      apiPort: parseInt(values.apiPort, 10),
       apiPath: values.apiPath,
       publicPath: values.publicPath,
       dataPath: values.dataPath,

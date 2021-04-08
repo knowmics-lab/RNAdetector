@@ -8,8 +8,33 @@ import type {
 } from '../types/references';
 import type { SortingSpec, ResponseType, SimpleMapType } from '../types/common';
 import type { Job } from '../types/jobs';
+import type { Package } from '../types/local';
 
 export default {
+  async listPackages(): Promise<Package[]> {
+    const result = await Connector.callGet(`references/packages`);
+    return result.data.packages;
+  },
+  async install(names: string[]): Promise<ResponseType<Job>> {
+    const result = await Connector.callPost('jobs', {
+      name:
+        names.length === 1 ? `Install package ${names[0]}` : 'Install packages',
+      type: 'install_packages_job_type',
+      parameters: {
+        names
+      }
+    });
+    if (result.validationErrors) {
+      return result;
+    }
+    const { data, links } = result.data;
+    return {
+      data: {
+        ...data,
+        links
+      }
+    };
+  },
   async create(
     name: string,
     fastaFile: string,

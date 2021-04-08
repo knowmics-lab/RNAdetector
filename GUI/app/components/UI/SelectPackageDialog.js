@@ -12,136 +12,51 @@ import { Formik } from 'formik';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { Tooltip } from '@material-ui/core';
+import { push as redirectAction } from 'connected-react-router';
 import * as Api from '../../api';
 import TableField from '../Form/TableField';
 import { pushNotificationSimple } from '../../actions/notifications';
 import type { PushNotificationFunction } from '../../types/notifications';
-import { refreshPage as refreshAnnotationsAction } from '../../actions/annotations';
-import * as ReferencesActions from '../../actions/references';
-
-type InstallingProps = {
-  open: boolean,
-  content: string,
-  closeButton: boolean,
-  requestClose: () => void
-};
-
-function InstallingDialog({
-  open,
-  content,
-  closeButton,
-  requestClose
-}: InstallingProps) {
-  const logRef = React.createRef();
-  React.useEffect(() => {
-    if (logRef.current) {
-      logRef.current.scrollTop = logRef.current.scrollHeight;
-    }
-  });
-
-  return (
-    <Dialog fullScreen open={open}>
-      <DialogTitle>Installing package</DialogTitle>
-      <DialogContent>
-        <textarea
-          value={content}
-          ref={logRef}
-          readOnly
-          style={{
-            border: 0,
-            resize: 'none',
-            width: '100%',
-            height: '100%'
-          }}
-        />
-      </DialogContent>
-      {closeButton && (
-        <DialogActions>
-          <Button onClick={requestClose} color="primary" autoFocus>
-            Close
-          </Button>
-        </DialogActions>
-      )}
-    </Dialog>
-  );
-}
+import { refreshPage as refreshJobsAction } from '../../actions/jobs';
+import { JOBS } from '../../constants/routes.json';
 
 type Props = {
   open: boolean,
   onClose: () => void,
   pushNotification: PushNotificationFunction,
-  refreshAnnotations: () => void,
-  refreshPage: number => void
-};
-
-type LogState = {
-  open: boolean,
-  content: string,
-  closeButton: boolean
+  refreshJobs: () => void,
+  redirect: mixed => void
 };
 
 function SelectPackageDialog({
   open,
   onClose,
   pushNotification,
-  refreshAnnotations,
-  refreshPage
+  refreshJobs,
+  redirect
 }: Props) {
-  if (!Api.Settings.isLocal() || !Api.Settings.isConfigured()) return null;
+  if (!Api.Settings.isConfigured()) return null;
   const theme = useTheme();
-  const [selectedPackage, setSelectedPackage] = React.useState<?string>(null);
-  const [logState, setLogState] = React.useState<LogState>({
-    open: false,
-    content: '',
-    closeButton: false
-  });
-  const onCloseRequest = () =>
-    setLogState(prev => ({
-      ...prev,
-      open: false
-    }));
+  const [isInstalling, setIsInstalling] = React.useState<boolean>(false);
+  const [selectedPackage, setSelectedPackage] = React.useState<?(string[])>(
+    null
+  );
 
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
-  const clickInstallPackage = () => {
-    if (selectedPackage) {
-      setLogState({
-        open: true,
-        content: '',
-        closeButton: false
-      });
-      Api.Docker.installPackage(
-        selectedPackage,
-        m =>
-          setLogState(prev => ({
-            ...prev,
-            content: `${prev.content}${m}`
-          })),
-        e =>
-          setLogState(prev => ({
-            ...prev,
-            content: `${prev.content.trimEnd()}\nAn error occurred: ${
-              e.message
-            }\n`,
-            closeButton: true
-          })),
-        c => {
-          const newContent =
-            c === 0 ? 'Package installed!' : 'An unknown error occurred!';
-          refreshPage(1);
-          refreshAnnotations();
-          setTimeout(
-            () =>
-              setLogState(prev => ({
-                ...prev,
-                content: `${prev.content.trimEnd()}\n${newContent}\n`,
-                closeButton: true
-              })),
-            3000
-          );
-        }
-      );
+  const clickInstallPackage = async () => {
+    if (selectedPackage && selectedPackage.length > 0) {
+      setIsInstalling(true);
+      const data = await Api.References.install(selectedPackage);
+      const { data: job } = data;
+      await Api.Jobs.submitJob(job.id);
+      refreshJobs();
+      pushNotification('An installation request has been created', 'success');
+      redirect(JOBS);
     } else {
-      pushNotification('You must select one package to install', 'error');
+      pushNotification(
+        'You must select at least one package to install',
+        'error'
+      );
     }
   };
   return (
@@ -158,14 +73,13 @@ function SelectPackageDialog({
             <TableField
               name="package"
               required
-              single
-              getData={() => Api.Docker.listPackages()}
+              getData={() => Api.References.listPackages()}
               onError={e =>
                 pushNotification(`An error occurred: ${e.message}!`, 'error')
               }
               onChange={v => setSelectedPackage(v)}
               keyField="name"
-              label="Select one package"
+              label="Select packages"
               columns={[
                 {
                   dataField: 'title',
@@ -193,20 +107,19 @@ function SelectPackageDialog({
           </Formik>
         </DialogContent>
         <DialogActions>
-          <Button onClick={clickInstallPackage} color="secondary" autoFocus>
-            Install
+          <Button
+            color="secondary"
+            onClick={clickInstallPackage}
+            disabled={isInstalling}
+            autoFocus
+          >
+            {isInstalling ? 'Please wait...' : 'Install'}
           </Button>
           <Button onClick={onClose} color="primary" autoFocus>
             Close
           </Button>
         </DialogActions>
       </Dialog>
-      <InstallingDialog
-        open={logState.open}
-        content={logState.content}
-        closeButton={logState.closeButton}
-        requestClose={onCloseRequest}
-      />
     </>
   );
 }
@@ -215,8 +128,8 @@ function mapDispatchToProps(dispatch) {
   return bindActionCreators(
     {
       pushNotification: pushNotificationSimple,
-      refreshAnnotations: refreshAnnotationsAction,
-      refreshPage: ReferencesActions.refreshPage
+      refreshJobs: refreshJobsAction,
+      redirect: redirectAction
     },
     dispatch
   );

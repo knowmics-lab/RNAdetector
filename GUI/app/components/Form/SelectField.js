@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import { useField } from 'formik';
 import { makeStyles } from '@material-ui/core/styles';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -31,7 +31,7 @@ type SelectFieldProp = {
   label: string,
   name: string,
   options: SimpleMapType<string>,
-  helperText?: ?string,
+  helperText?: ?React.Node,
   emptyText?: string,
   addEmpty?: boolean,
   required?: boolean,

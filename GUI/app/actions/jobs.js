@@ -175,7 +175,7 @@ export function deleteJob(jobId: number) {
   return async (dispatch: Dispatch) => {
     try {
       await Api.Jobs.deleteJob(jobId);
-      dispatch(pushNotificationSimple('Job cancellation request sent.'));
+      dispatch(pushNotificationSimple('Job deletion request sent.'));
       dispatch(jobDeleting(jobId));
       dispatch(waitForDelete());
     } catch (e) {

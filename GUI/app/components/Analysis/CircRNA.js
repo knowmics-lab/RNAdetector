@@ -25,9 +25,9 @@ import type { File } from '../UI/FileSelector';
 import UploadProgress from '../UI/UploadProgress';
 import SwitchField from '../Form/SwitchField';
 import type { CircRNAAnalysisConfig } from '../../types/analysis';
-import type { SimpleMapType } from '../../types/common';
+import type { Capabilities, SimpleMapType } from '../../types/common';
 import type { Job } from '../../types/jobs';
-import ValidationError from "../../errors/ValidationError";
+import ValidationError from '../../errors/ValidationError';
 
 type Props = {
   refreshJobs: () => void,
@@ -85,6 +85,7 @@ type State = {
   fetched: boolean,
   isSaving: boolean,
   files: (?File)[][],
+  capabilities: ?Capabilities,
   descriptionFile: ?File,
   genomes: SimpleMapType<string>,
   annotations: SimpleMapType<string>,
@@ -107,6 +108,7 @@ class CircRNA extends React.Component<Props, State> {
       isLoading: false,
       fetched: false,
       isSaving: false,
+      capabilities: undefined,
       ...Api.Upload.ui.initUploadState(),
       files: [[null, null]],
       descriptionFile: null,
@@ -135,9 +137,11 @@ class CircRNA extends React.Component<Props, State> {
       const genomes = await Api.References.fetchAllByAlgorithm('bwa');
       const annotations = await Api.Annotations.fetchAllByType('gtf');
       const bedAnnotations = await Api.Annotations.fetchAllByType('bed');
+      const capabilities = await Api.Utils.refreshCapabilities();
       this.setState({
         isLoading: false,
         fetched: true,
+        capabilities,
         genomes,
         annotations,
         bedAnnotations
@@ -148,8 +152,10 @@ class CircRNA extends React.Component<Props, State> {
     }
   }
 
-  getValidationSchema = () =>
-    Yup.object().shape({
+  getValidationSchema = () => {
+    const { capabilities } = this.state;
+    const cores = capabilities ? capabilities.availableCores : 1;
+    return Yup.object().shape({
       code: Yup.string()
         .required()
         .matches(/^[A-Za-z0-9\-_]+$/, {
@@ -182,8 +188,9 @@ class CircRNA extends React.Component<Props, State> {
       threads: Yup.number()
         .required()
         .min(1)
-        .max(Api.Utils.cpuCount())
+        .max(cores)
     });
+  };
 
   getSteps = () => [
     'Choose type',
@@ -213,6 +220,22 @@ class CircRNA extends React.Component<Props, State> {
         />
         <SwitchField label="Are reads paired-end?" name="paired" />
       </>
+    );
+  };
+
+  threadsText = values => {
+    const { capabilities } = this.state;
+    const allCores = capabilities ? capabilities.numCores : 1;
+    const { threads } = values;
+    const maxMultiple = Math.floor(allCores / 3);
+    const standardMessage = `Do not select more than ${maxMultiple} cores to allow for multiple concurrent analysis.`;
+    if (threads <= maxMultiple) {
+      return standardMessage;
+    }
+    return (
+      <Typography color="error" component="span">
+        {standardMessage}
+      </Typography>
     );
   };
 
@@ -284,9 +307,7 @@ class CircRNA extends React.Component<Props, State> {
           label="Number of threads"
           name="threads"
           type="number"
-          helperText={`Do not select more than ${Math.floor(
-            Api.Utils.cpuCount() / 3
-          )} cores if you wish to submit multiple analysis.`}
+          helperText={this.threadsText(values)}
           required
         />
       </>

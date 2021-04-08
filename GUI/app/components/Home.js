@@ -4,13 +4,20 @@ import TextInfoContent from '@mui-treasury/components/content/textInfo';
 import styled from 'styled-components';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
+import { ipcRenderer } from 'electron';
 import UNICT_LOGO from '../resources/unict.png';
 import NERVIANO_LOGO from '../resources/nerviano.png';
 import OHIO_LOGO from '../resources/ohio-logo.png';
 import IOR_LOGO from '../resources/ior-logo.png';
 import { DOCKER_IMAGE_VERSION, GUI_VERSION } from '../constants/system.json';
+import { Utils } from '../api';
+import type { Capabilities } from '../types/common';
 
 type Props = {};
+
+type State = {
+  capabilities: ?Capabilities
+};
 
 const FooterContainer = styled.div`
   text-align: center;
@@ -20,10 +27,40 @@ const FooterContainer = styled.div`
   width: 100% !important;
 `;
 
-export default class Home extends Component<Props> {
+export default class Home extends Component<Props, State> {
   props: Props;
 
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      capabilities: undefined
+    };
+  }
+
+  componentDidMount() {
+    if (!Utils.capabilitiesLoaded()) {
+      ipcRenderer.send('display-blocking-message', {
+        message: 'Loading...',
+        error: false
+      });
+      Utils.refreshCapabilities()
+        .then(capabilities => {
+          ipcRenderer.send('hide-blocking-message');
+          return this.setState({
+            capabilities
+          });
+        })
+        .catch(error => {
+          ipcRenderer.send('display-blocking-message', {
+            message: error.message,
+            error: true
+          });
+        });
+    }
+  }
+
   render() {
+    const { capabilities } = this.state;
     return (
       <div>
         <TextInfoContent
@@ -33,7 +70,7 @@ export default class Home extends Component<Props> {
         />
         <TextInfoContent
           body={`You are currently using version ${GUI_VERSION} which uses the RNAdetector Docker
-          Container v. ${DOCKER_IMAGE_VERSION}`}
+          Container v. ${capabilities ? capabilities.containerVersion : ''}`}
         />
         <FooterContainer>
           <GridList cellHeight={55} cols={3}>

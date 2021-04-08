@@ -1,17 +1,52 @@
 // @flow
 import fs from 'fs';
 import path from 'path';
-import os from 'os';
 import checkInternetConnection from 'check-internet-connected';
-import type { FileFilter } from '../types/common';
+import Connector from './connector';
+import type { Capabilities, FileFilter } from '../types/common';
 import type { AnalysisFileTypes } from '../types/analysis';
 import TimeoutError from '../errors/TimeoutError';
 
 let watcher = null;
 
+let containerCapabilities: ?Capabilities = null;
+
 export default {
-  cpuCount() {
-    return os.cpus().length;
+  capabilitiesLoaded() {
+    return containerCapabilities !== null;
+  },
+  async refreshCapabilities() {
+    const response = await Connector.callGet<Capabilities>('sys-info');
+    const tmp = response.data.data;
+    containerCapabilities = {
+      ...tmp,
+      availableCores: tmp.numCores - tmp.usedCores
+    };
+    return containerCapabilities;
+  },
+  async containerVersion() {
+    if (!containerCapabilities) {
+      return (await this.refreshCapabilities()).containerVersion;
+    }
+    return containerCapabilities.containerVersion;
+  },
+  async maxMemory() {
+    if (!containerCapabilities) {
+      return (await this.refreshCapabilities()).maxMemory;
+    }
+    return containerCapabilities.maxMemory;
+  },
+  async availableCores(refresh: boolean = false) {
+    if (refresh || !containerCapabilities) {
+      return (await this.refreshCapabilities()).availableCores;
+    }
+    return containerCapabilities.availableCores;
+  },
+  async cpuCount(refresh: boolean = false) {
+    if (refresh || !containerCapabilities) {
+      return (await this.refreshCapabilities()).numCores;
+    }
+    return containerCapabilities.numCores;
   },
   supportedAnalysisFileTypes() {
     return {

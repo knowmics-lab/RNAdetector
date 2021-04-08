@@ -21,7 +21,7 @@ export default function StartHandler() {
       }
       setFirst(true);
     }
-  });
+  }, [first]);
 
   return <></>;
 }

@@ -29,6 +29,7 @@ import { SubmitButton } from '../UI/Button';
 import { OUT_TYPE_AHD, OUT_TYPE_AHT, OUT_TYPE_AHTD } from '../../api/jobs';
 import CustomField from '../Form/FieldError';
 import ValidationError from '../../errors/ValidationError';
+import type { Capabilities } from '../../types/common';
 
 type Props = {
   refreshJobs: () => void,
@@ -75,6 +76,7 @@ type State = {
   isLoading: boolean,
   isSaving: boolean,
   hasValidationErrors: boolean,
+  capabilities: ?Capabilities,
   validationErrors: *,
   selectedJob: ?Job,
   variables: { [string]: string },
@@ -96,11 +98,29 @@ class DiffExpr extends React.Component<Props, State> {
       isLoading: false,
       isSaving: false,
       hasValidationErrors: false,
+      capabilities: undefined,
       validationErrors: {},
       selectedJob: null,
       variables: {},
       variablesMeta: {}
     };
+  }
+
+  componentDidMount(): void {
+    const { pushNotification } = this.props;
+    this.setState({
+      isLoading: true
+    });
+    Api.Utils.refreshCapabilities()
+      .then(capabilities => {
+        return this.setState({
+          isLoading: false,
+          capabilities
+        });
+      })
+      .catch(e => {
+        pushNotification(`An error occurred: ${e.message}!`, 'error');
+      });
   }
 
   loadJob = id => {
@@ -229,8 +249,10 @@ class DiffExpr extends React.Component<Props, State> {
     return contrasts;
   }
 
-  getValidationSchema = () =>
-    Yup.object().shape({
+  getValidationSchema = () => {
+    const { capabilities } = this.state;
+    const cores = capabilities ? capabilities.availableCores : 1;
+    return Yup.object().shape({
       code: Yup.string()
         .required()
         .matches(/^[A-Za-z0-9\-_]+$/, {
@@ -339,9 +361,13 @@ class DiffExpr extends React.Component<Props, State> {
         fig_formats: Yup.array()
           .of(Yup.string().oneOf(Object.keys(DiffExpConsts.fig_formats)))
           .min(1),
-        num_cores: Yup.number().integer()
+        num_cores: Yup.number()
+          .required()
+          .min(1)
+          .max(cores)
       })
     });
+  };
 
   getSteps = () => [
     'Choose name and type',
@@ -496,7 +522,25 @@ class DiffExpr extends React.Component<Props, State> {
     );
   };
 
-  getStep2 = () => {
+  threadsText = values => {
+    const { capabilities } = this.state;
+    const allCores = capabilities ? capabilities.numCores : 1;
+    const {
+      parameters: { num_cores: threads }
+    } = values;
+    const maxMultiple = Math.floor(allCores / 3);
+    const standardMessage = `Do not select more than ${maxMultiple} cores to allow for multiple concurrent analysis.`;
+    if (threads <= maxMultiple) {
+      return standardMessage;
+    }
+    return (
+      <Typography color="error" component="span">
+        {standardMessage}
+      </Typography>
+    );
+  };
+
+  getStep2 = values => {
     const { classes } = this.props;
     const hasTranscripts = this.hasTranscripts();
     return (
@@ -554,9 +598,7 @@ class DiffExpr extends React.Component<Props, State> {
           label="Number of threads"
           name="parameters.num_cores"
           type="number"
-          helperText={`Do not select more than ${Math.floor(
-            Api.Utils.cpuCount() / 3
-          )} cores if you wish to submit multiple analysis.`}
+          helperText={this.threadsText(values)}
           required
         />
       </>
@@ -981,7 +1023,7 @@ class DiffExpr extends React.Component<Props, State> {
                   <Wizard steps={steps} submitButton={this.getSubmitButton}>
                     <div>{this.getStep0()}</div>
                     <div>{this.getStep1(values)}</div>
-                    <div>{this.getStep2()}</div>
+                    <div>{this.getStep2(values)}</div>
                     <div>{this.getStep3(values)}</div>
                     <div>{this.getStep4(values)}</div>
                     <div>{this.getStep5(values)}</div>
