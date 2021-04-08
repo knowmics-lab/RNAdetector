@@ -43,6 +43,34 @@ final class SystemInfo
     }
 
     /**
+     * Find how much memory is still available on the machine
+     *
+     * @return int
+     */
+    public function availableMemory(): int
+    {
+        if (Cache::has('availableMemory')) {
+            return Cache::get('availableMemory');
+        }
+        $fh = @fopen('/proc/meminfo', 'rb');
+        if (!$fh) {
+            return -1;
+        }
+        $mem = -1;
+        while ($line = fgets($fh)) {
+            $pieces = [];
+            if (preg_match('/^MemAvailable:\s+(\d+)\skB$/', $line, $pieces)) {
+                $mem = (int)$pieces[1];
+                break;
+            }
+        }
+        @fclose($fh);
+        Cache::put('availableMemory', $mem, now()->addMinute());
+
+        return $mem;
+    }
+
+    /**
      * Count the number of cores available for this machine
      *
      * @return int
@@ -91,6 +119,7 @@ final class SystemInfo
                 'containerVersion'       => Utils::VERSION,
                 'containerVersionNumber' => Utils::VERSION_NUMBER,
                 'maxMemory'              => $this->maxMemory(),
+                'availableMemory'        => $this->availableMemory(),
                 'numCores'               => $this->numCores(),
                 'usedCores'              => $this->usedCores(),
             ],
