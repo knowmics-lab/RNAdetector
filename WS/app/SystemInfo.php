@@ -10,6 +10,7 @@ namespace App;
 use App\Jobs\Types\Factory;
 use App\Models\Job;
 use Cache;
+use Throwable;
 
 final class SystemInfo
 {
@@ -98,13 +99,21 @@ final class SystemInfo
      */
     public function usedCores(): int
     {
-        $jobs = Job::whereIn('status', [Job::QUEUED, Job::PROCESSING])->latest()->take(10)->get();
+        try {
+            $jobs = Job::whereIn('status', [Job::QUEUED, Job::PROCESSING])->latest()->take(10)->get();
 
-        return (2 * $jobs->map(
-                static function (Job $job) {
-                    return Factory::threads($job);
-                }
-            )->max());
+            if ($jobs->count() === 1) {
+                return Factory::get($jobs->first())->threads();
+            }
+
+            return (2 * $jobs->map(
+                    static function (Job $job) {
+                        return Factory::get($job)->threads();
+                    }
+                )->max());
+        } catch (Throwable $ignore) {
+        }
+        return 1;
     }
 
     /**

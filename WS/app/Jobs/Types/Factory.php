@@ -22,7 +22,6 @@ use Symfony\Component\Finder\Finder;
  * @method static array outputSpec(\App\Models\Job|\App\Jobs\Types\AbstractJob|string $where)
  * @method static array validationSpec(\App\Models\Job|\App\Jobs\Types\AbstractJob|string $where, \Illuminate\Http\Request $request)
  * @method static array|null sampleGroupFunctions(\App\Models\Job|\App\Jobs\Types\AbstractJob|string $where)
- * @method static int threads(\App\Models\Job|\App\Jobs\Types\AbstractJob|string $where)
  */
 class Factory
 {
@@ -104,7 +103,6 @@ class Factory
                 'outputSpec',
                 'validationSpec',
                 'sampleGroupFunctions',
-                'threads',
             ]
         )) {
             if (count($arguments) >= 1) {

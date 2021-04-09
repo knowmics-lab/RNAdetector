@@ -126,12 +126,14 @@ class JobsList extends React.Component<Props, State> {
       outputVariable,
       () => {
         const { downloading } = this.state;
+        pushNotification('Download started', 'info');
         this.setState({
           downloading: [...downloading, jobId]
         });
       },
       () => {
         const { downloading } = this.state;
+        pushNotification('Download completed', 'success');
         this.setState({
           downloading: downloading.filter(i => i !== jobId)
         });
@@ -169,6 +171,7 @@ class JobsList extends React.Component<Props, State> {
   getSaveResultsMenu = (data: ReadOnlyData, size: string) => {
     const { id, status } = data;
     const type = data.output ? data.output.type : null;
+    const hasBam = data.output && data.output.outputBamFile;
     const { deletingJobs } = this.props;
     const { downloading } = this.state;
     if (
@@ -194,6 +197,9 @@ class JobsList extends React.Component<Props, State> {
     const items = [['outputFile', 'Save raw output', 'Raw output']];
     if (type === OUT_TYPE_AR)
       items[0] = ['outputFile', 'Save report', 'Report'];
+    if (hasBam) {
+      items.push(['outputBamFile', 'Save BAM file', 'BAM output']);
+    }
     if (OUT_TYPE_HARMONIZED.includes(type))
       items.push([
         'harmonizedFile',

@@ -89,7 +89,7 @@ class SetupWizard extends React.Component<Props, State> {
       local: values.local,
       apiProtocol: values.apiProtocol,
       apiHostname: values.apiHostname,
-      apiPort: values.apiPort,
+      apiPort: +values.apiPort,
       apiPath: values.apiPath,
       publicPath: values.publicPath,
       dataPath: values.dataPath,
