@@ -8,6 +8,8 @@
 namespace App\Jobs;
 
 use App\Exceptions\ProcessingJobException;
+use App\Exceptions\ResubmitException;
+use App\Jobs\Types\Factory;
 use Auth;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -38,7 +40,7 @@ class Request implements ShouldQueue
     /**
      * Create a new job instance.
      *
-     * @param \App\Models\Job $model
+     * @param  \App\Models\Job  $model
      */
     public function __construct(JobModel $model)
     {
@@ -70,13 +72,23 @@ class Request implements ShouldQueue
             $jobProcessor->handle();
             Auth::logout();
             $this->model->setStatus(JobModel::COMPLETED);
-        } catch (Throwable $e) {
-            $this->model->appendLog('Error: ' . $e);
-            $this->model->setStatus(JobModel::FAILED);
-            if ($jobProcessor !== null && ($jobProcessor instanceof Types\AbstractJob)) {
-                $jobProcessor->cleanupOnFail();
+        } catch (ResubmitException $r) {
+            $time = $r->getAfter();
+            $this->model->setStatus(JobModel::QUEUED);
+            $this->model->appendLog(sprintf('Waiting for %d minutes.', $time));
+            self::dispatch($this->model)->delay(now()->addMinutes($time));
+            if (Auth::check()) {
+                Auth::logout();
             }
-            $this->fail($e);
+        } catch (Throwable $e) {
+            if (!($e instanceof ResubmitException)) {
+                $this->model->appendLog('Error: ' . $e);
+                $this->model->setStatus(JobModel::FAILED);
+                if ($jobProcessor !== null && method_exists($jobProcessor, 'cleanupOnFail')) {
+                    $jobProcessor->cleanupOnFail();
+                }
+                $this->fail($e);
+            }
         }
     }
 }

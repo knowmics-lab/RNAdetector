@@ -16,6 +16,23 @@ final class SystemInfo
 {
 
     /**
+     * Checks if the update script should be executed
+     *
+     * @return bool
+     */
+    public function isUpdateNeeded(): bool
+    {
+        $versionNumberFile = storage_path('app/version_number');
+        if (!file_exists($versionNumberFile)) {
+            return false;
+        }
+        $content = json_decode(file_get_contents($versionNumberFile), true);
+        $version = $content['version'] ?? Utils::DEFAULT_VERSION_NUMBER;
+
+        return Utils::VERSION_NUMBER > $version;
+    }
+
+    /**
      * Find how much memory this machine has
      *
      * @return int
@@ -113,6 +130,7 @@ final class SystemInfo
                 )->max());
         } catch (Throwable $ignore) {
         }
+
         return 1;
     }
 

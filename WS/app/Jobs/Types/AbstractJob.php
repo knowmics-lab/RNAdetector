@@ -8,6 +8,7 @@
 namespace App\Jobs\Types;
 
 
+use App\Exceptions\ResubmitException;
 use App\Models\Job;
 use App\Models\Job as JobModel;
 use App\Utils;
@@ -417,6 +418,18 @@ abstract class AbstractJob
         } catch (ProcessFailedException $e) {
             throw Utils::mapCommandException($e, $errorCodeMap);
         }
+    }
+
+    /**
+     * Stop this job and resubmit after the specified amount of minutes
+     *
+     * @param  int  $minutes
+     *
+     * @return void
+     */
+    protected function resubmit($minutes = 5): void
+    {
+        throw (new ResubmitException())->setAfter($minutes);
     }
 
     /**

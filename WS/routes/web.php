@@ -27,11 +27,11 @@ Auth::routes(
 );
 
 Route::get('/home', 'HomeController@index')->name('home');
+Route::get('/check-update', 'HomeController@doUpdate')->name('run-update')->middleware('can:view-any,App\\Models\\User');
 
 Route::get('/user/reset-token', 'HomeController@resetToken')->name('reset-token');
 Route::get('/user/change-password', 'HomeController@changePasswordForm')->name('change-password');
 Route::post('/user/change-password', 'HomeController@doChangePassword')->name('do-change-password');
-
 Route::get('/admin/users', 'UserController@index')->name('users-list')->middleware('can:view-any,App\\Models\\User');
 Route::get('/admin/users/new', 'UserController@create')->name('users-create')->middleware(
     'can:create,App\\Models\\User'

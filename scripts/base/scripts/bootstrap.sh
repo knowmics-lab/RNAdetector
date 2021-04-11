@@ -68,6 +68,7 @@ if [[ "$CLOUD_ENV" == "true" ]]; then
   [ -f /etc/supervisor/supervisord-cloud.conf.disabled ] && mv /etc/supervisor/supervisord-cloud.conf.disabled /etc/supervisor/supervisord.conf
   [ -f /rnadetector/ws/.env ] && mv /rnadetector/ws/.env /rnadetector/ws/.env.disabled
   [ -f /rnadetector/ws/.env.cloud ] && mv /rnadetector/ws/.env.cloud /rnadetector/ws/.env
+  [ -f /genkey.sh ] && rm /genkey.sh
 
   if [ ! -f "/rnadetector/ws/storage/app/.migrated" ] && [[ "$DEBUG" != "true" ]]; then
     touch "/rnadetector/ws/storage/app/.migrated" &&

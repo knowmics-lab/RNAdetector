@@ -37,7 +37,7 @@ class SamplesGroupJobType extends AbstractJob
             'de_novo'     => 'An optional boolean to ignore all pre-built samples descriptions',
         ];
     }
-    
+
     /**
      * @inheritDoc
      */
@@ -297,6 +297,7 @@ class SamplesGroupJobType extends AbstractJob
     {
         $completed = true;
         foreach ($jobs as $job) {
+            $job->refresh();
             $completed = $completed && $job->hasCompleted();
         }
 
@@ -313,16 +314,12 @@ class SamplesGroupJobType extends AbstractJob
      */
     private function waitForCompletion(array $jobs): array
     {
-        $this->log('Waiting for grouped jobs to complete.', false);
-        while (!$this->checksForCompletion($jobs)) {
-            sleep(600); // Wait for 10 minutes
-            $this->log('.', false);
-            // Refresh all jobs
-            foreach ($jobs as $job) {
-                $job->refresh();
-            }
+        $this->log('Checking whether all attached jobs have been completed.');
+        if (!$this->checksForCompletion($jobs)) {
+            $this->log('Some jobs are still pending.');
+            $this->resubmit(10);
         }
-        $this->log('');
+        $this->log('All jobs have been completed.');
 
         return array_filter(
             $jobs,
@@ -479,7 +476,6 @@ class SamplesGroupJobType extends AbstractJob
         $jobs = $this->getParameter('jobs', []);
         $models = $this->processValidJobs($jobs);
         $models = $this->waitForCompletion($models);
-        $this->log('All jobs have been completed.');
         [$models, $preBuiltDescriptions] = $this->processSamplesGroups($models);
         $type = $this->checkJobsTypes($models);
         /** @var int[] $validJobs */

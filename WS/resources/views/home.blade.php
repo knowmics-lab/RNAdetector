@@ -22,6 +22,7 @@
                             <div class="btn-group mr-2" role="group" aria-label="Available actions">
                                 @if (Auth::user()->admin)
                                     <a href="{{ route('users-list') }}" class="btn btn-secondary">Manage users</a>
+                                    <a href="{{ route('run-update') }}" class="btn btn-secondary">Check for database updates</a>
                                 @endif
                                 <a href="{{ route('change-password') }}" class="btn btn-secondary">Change Password</a>
                                 <a href="{{ route('reset-token') }}" class="btn btn-secondary">Reset access token</a>
@@ -63,12 +64,12 @@
                         </li>
                         <li class="list-group-item">
                             <i class="fa fa-check-circle"></i>
-                            Completed: <span class="badge badge-danger badge-pill">{{ $stats['jobs']['failed'] }}</span>
+                            Completed: <span class="badge badge-danger badge-pill">{{ $stats['jobs']['completed'] }}</span>
                         </li>
                         <li class="list-group-item">
                             <i class="fa fa-exclamation-circle"></i>
                             Failed: <span
-                                class="badge badge-success badge-pill">{{ $stats['jobs']['completed'] }}</span>
+                                class="badge badge-success badge-pill">{{ $stats['jobs']['failed'] }}</span>
                         </li>
                     </ul>
                 </div>

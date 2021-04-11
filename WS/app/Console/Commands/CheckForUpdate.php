@@ -7,6 +7,7 @@
 
 namespace App\Console\Commands;
 
+use App\SystemInfo;
 use App\Utils;
 use Illuminate\Console\Command;
 use Throwable;
@@ -36,20 +37,13 @@ class CheckForUpdate extends Command
     public function handle(): int
     {
         $error = false;
-        $message = '';
         $updateNeeded = false;
-        $versionNumberFile = storage_path('app/version_number');
-        if (file_exists($versionNumberFile)) {
-            try {
-                $content = json_decode(file_get_contents($versionNumberFile), true);
-                $version = $content['version'] ?? Utils::DEFAULT_VERSION_NUMBER;
-                $updateNeeded = Utils::VERSION_NUMBER > $version;
-            } catch (Throwable $ex) {
-                $error = true;
-                $message = $ex->getMessage();
-            }
-        } else {
-            $updateNeeded = true;
+        $message = '';
+        try {
+            $updateNeeded = (new SystemInfo())->isUpdateNeeded();
+        } catch (Throwable $ex) {
+            $error = true;
+            $message = $ex->getMessage();
         }
         try {
             $this->line(

@@ -2,6 +2,8 @@
 
 return [
 
+    'is_cloud'                        => env('CLOUD_ENV', false),
+
     /*
      * Definition of default paths
      */

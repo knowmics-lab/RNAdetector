@@ -7,10 +7,12 @@
 
 namespace App\Http\Controllers;
 
+use App\SystemInfo;
 use Auth;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Str;
 
 class HomeController extends Controller
@@ -32,15 +34,28 @@ class HomeController extends Controller
      */
     public function index(): Renderable
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
         return view(
             'home',
             [
-                'stats' => $user->statistics(),
+                'stats' => auth()->user()->statistics(),
             ]
         );
+    }
+
+    /**
+     * Run the update script
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function doUpdate(): RedirectResponse
+    {
+        abort_unless(auth()->user()->admin, 403, 'You are not allowed to perform an update');
+        if (!(new SystemInfo())->isUpdateNeeded()) {
+            return redirect()->route('home')->with('status', 'No update needed.');
+        }
+        Artisan::call('update:run');
+
+        return redirect()->route('home')->with('status', 'Update has been performed!');
     }
 
     /**
@@ -56,7 +71,7 @@ class HomeController extends Controller
     /**
      * Changes the password
      *
-     * @param \Illuminate\Http\Request $request
+     * @param  \Illuminate\Http\Request  $request
      *
      * @return \Illuminate\Http\RedirectResponse
      * @throws \Illuminate\Validation\ValidationException

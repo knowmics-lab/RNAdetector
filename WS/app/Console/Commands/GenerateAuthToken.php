@@ -28,44 +28,49 @@ class GenerateAuthToken extends Command
     protected $description = 'Generate a new authentication token for an user';
 
     /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
-    /**
      * Execute the console command.
      *
      * @return mixed
      */
-    public function handle()
+    public function handle(): int
     {
-        $user       = $this->argument('user');
-        $json       = $this->option('json');
+        if (config('rnadetector.is_cloud')) {
+            $this->error('This command is not allowed in a cloud environment.');
+
+            return 99;
+        }
+        $user = $this->argument('user');
+        $json = $this->option('json');
         $userObject = User::whereEmail($user)->first();
         if ($userObject === null) {
             if ($json) {
-                $this->line(json_encode([
-                    'error' => 101,
-                    'data'  => null,
-                ]));
+                $this->line(
+                    json_encode(
+                        [
+                            'error' => 101,
+                            'data'  => null,
+                        ]
+                    )
+                );
             } else {
                 $this->error('User not found. Please specify a valid user.');
             }
         } else {
             $token = Str::random(80);
-            $userObject->forceFill([
-                'api_token' => hash('sha256', $token),
-            ])->save();
+            $userObject->forceFill(
+                [
+                    'api_token' => hash('sha256', $token),
+                ]
+            )->save();
             if ($json) {
-                $this->line(json_encode([
-                    'error' => 0,
-                    'data'  => $token,
-                ]));
+                $this->line(
+                    json_encode(
+                        [
+                            'error' => 0,
+                            'data'  => $token,
+                        ]
+                    )
+                );
             } else {
                 $this->info('Token generated. The new token is: ' . $token);
             }
