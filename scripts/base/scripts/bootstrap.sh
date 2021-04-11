@@ -71,11 +71,9 @@ if [[ "$CLOUD_ENV" == "true" ]]; then
   [ -f /genkey.sh ] && rm /genkey.sh
 
   if [ ! -f "/rnadetector/ws/storage/app/.migrated" ] && [[ "$DEBUG" != "true" ]]; then
-    if ! touch "/rnadetector/ws/storage/app/.migrated" &&
+    touch "/rnadetector/ws/storage/app/.migrated" &&
       php /rnadetector/ws/artisan migrate --seed --force &&
-      php /rnadetector/ws/artisan first:boot; then
-      rm "/rnadetector/ws/storage/app/.migrated"
-    fi
+      php /rnadetector/ws/artisan first:boot
   fi
 
 else
