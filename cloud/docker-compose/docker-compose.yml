@@ -1,0 +1,44 @@
+version: '3'
+services:
+  mysql:
+    image: 'mysql:8.0'
+    environment:
+      MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+      MYSQL_DATABASE: 'rnadetector'
+      MYSQL_USER: 'rnadetector'
+      MYSQL_PASSWORD: '${DB_PASSWORD}'
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'no'
+    volumes:
+      - 'rnadetector-db:/var/lib/mysql'
+    networks:
+      - rnadetector
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-u", "root", '-p$$MYSQL_ROOT_PASSWORD' ]
+  rnadetector:
+    image: 'alaimos/rnadetector:v0.0.3'
+    ports:
+      - '${APP_PORT:-80}:80'
+    environment:
+      CLOUD_ENV: 'true'
+      DB_HOST: 'mysql'
+      DB_POST: '3306'
+      DB_DATABASE: 'rnadetector'
+      DB_USERNAME: 'rnadetector'
+      DB_PASSWORD: '${DB_PASSWORD}'
+      APP_KEY: '${APP_KEY}'
+      APP_URL: '${APP_URL}'
+    volumes:
+      - 'rnadetector-data:/rnadetector/ws/storage/app/'
+    networks:
+      - rnadetector
+    depends_on:
+      - mysql
+    links:
+      - mysql
+networks:
+  rnadetector:
+    driver: bridge
+volumes:
+  rnadetector-data:
+
+  rnadetector-db:

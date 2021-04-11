@@ -1,0 +1,54 @@
+apiVersion: "apps/v1"
+kind: "Deployment"
+metadata:
+  name: "rnadetector"
+  namespace: "default"
+  labels:
+    app: "rnadetector"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "rnadetector"
+  template:
+    metadata:
+      labels:
+        app: "rnadetector"
+    spec:
+      containers:
+      - name: "rnadetector"
+        image: "alaimos/rnadetector:v0.0.3"
+        env:
+          - name: CLOUD_ENV
+            value: "true"
+          - name: DB_HOST
+            value: "mysql"
+          - name: DB_PORT
+            value: "3306"
+          - name: DB_DATABASE
+            value: "rnadetector"
+          - name: DB_USERNAME
+            value: "rnadetector"
+          - name: APP_URL
+            value: "http://rnadetector"
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: rnadetector
+                key: mysql_password
+          - name: APP_KEY
+            valueFrom:
+              secretKeyRef:
+                name: rnadetector
+                key: rnadetector_key
+        ports:
+          - containerPort: 80
+            name: rnadetector-ws
+        volumeMounts:
+          - name: rnadetector-persistent-storage
+            mountPath: /rnadetector/ws/storage/app/
+      volumes:
+        - name: rnadetector-persistent-storage
+          persistentVolumeClaim:
+            claimName: rnadetector-volumeclaim
+

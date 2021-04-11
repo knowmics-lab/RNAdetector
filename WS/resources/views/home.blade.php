@@ -22,7 +22,7 @@
                             <div class="btn-group mr-2" role="group" aria-label="Available actions">
                                 @if (Auth::user()->admin)
                                     <a href="{{ route('users-list') }}" class="btn btn-secondary">Manage users</a>
-                                    <a href="{{ route('run-update') }}" class="btn btn-secondary">Check for database updates</a>
+                                    <a href="{{ route('run-update') }}" class="btn btn-secondary">Check db updates</a>
                                 @endif
                                 <a href="{{ route('change-password') }}" class="btn btn-secondary">Change Password</a>
                                 <a href="{{ route('reset-token') }}" class="btn btn-secondary">Reset access token</a>
