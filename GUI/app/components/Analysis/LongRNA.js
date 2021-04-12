@@ -24,8 +24,8 @@ import {
 import SelectField from '../Form/SelectField';
 import TextField from '../Form/TextField';
 import Wizard from '../UI/Wizard';
-import FileSelector from '../UI/FileSelector';
-import type { File } from '../UI/FileSelector';
+import FileSelector from '../UI/FileSelector2';
+import type { File } from '../UI/FileSelector2';
 import UploadProgress from '../UI/UploadProgress';
 import SwitchField from '../Form/SwitchField';
 import type { LongRNAAnalysisConfig } from '../../types/analysis';
@@ -388,32 +388,6 @@ class LongRNA extends React.Component<Props, State> {
     );
   };
 
-  updateFile = (state: State, i: number, j: number, f: ?File) => {
-    const files = [...state.files];
-    const fileI = [...files[i]];
-    fileI[j] = f;
-    files[i] = fileI;
-    return {
-      files
-    };
-  };
-
-  makeHandleFileAdd = (j: number, i: number) => f =>
-    this.setState(oldState => this.updateFile(oldState, i, j, f[0]));
-
-  makeHandleFileRemove = (j: number, i: number) => () =>
-    this.setState(oldState => this.updateFile(oldState, i, j, null));
-
-  handleDescriptionFileAdd = (descriptionFile: File[]) =>
-    this.setState({
-      descriptionFile: descriptionFile[0]
-    });
-
-  handleDescriptionFileRemove = () =>
-    this.setState({
-      descriptionFile: null
-    });
-
   addHandle = helpers => e => {
     e.preventDefault();
     helpers.push({ code: '' });
@@ -452,8 +426,7 @@ class LongRNA extends React.Component<Props, State> {
           )}
           <Grid item xs>
             <FileSelector
-              onFileRemove={this.makeHandleFileRemove(0, i)}
-              onFileAdd={this.makeHandleFileAdd(0, i)}
+              name={`files.${i}.0`}
               filters={Api.Utils.analysisFileExtensions(inputType)}
               disabled={isUploading}
             />
@@ -461,8 +434,7 @@ class LongRNA extends React.Component<Props, State> {
           {paired && (
             <Grid item xs>
               <FileSelector
-                onFileRemove={this.makeHandleFileRemove(1, i)}
-                onFileAdd={this.makeHandleFileAdd(1, i)}
+                name={`files.${i}.1`}
                 filters={Api.Utils.analysisFileExtensions(inputType)}
                 disabled={isUploading}
               />
@@ -538,8 +510,7 @@ class LongRNA extends React.Component<Props, State> {
               </Grid>
               <Grid item xs>
                 <FileSelector
-                  onFileRemove={this.handleDescriptionFileRemove}
-                  onFileAdd={this.handleDescriptionFileAdd}
+                  name="descriptionFile"
                   filters={[
                     {
                       name: 'TSV files',
@@ -683,9 +654,15 @@ class LongRNA extends React.Component<Props, State> {
 
   formSubmit = async values => {
     const { paired } = values;
-    const { code, name, samples, ...params } = values;
+    const {
+      code,
+      name,
+      samples,
+      files: allFiles,
+      descriptionFile: description,
+      ...params
+    } = values;
     const { pushNotification, redirect, refreshJobs } = this.props;
-    const { files, descriptionFile } = this.state;
     let filteredParams = params;
     if (params.algorithm === 'salmon') {
       filteredParams = Api.Utils.filterByKey(
@@ -701,11 +678,13 @@ class LongRNA extends React.Component<Props, State> {
         k => k !== 'transcriptome'
       );
     }
-    const validLength = files.filter(
-      f => f[0] !== null && (!paired || (paired && f[1] !== null))
-    ).length;
-    const firstLength = files.map(f => f[0]).filter(f => f !== null).length;
-    const secondLength = files.map(f => f[1]).filter(f => f !== null).length;
+    const descriptionFile =
+      description && description[0] ? description[0] : null;
+    const files = allFiles.map(s => s.map(f => (f && f[0] ? f[0] : null)));
+    const validLength = files.filter(f => f[0] && (!paired || (paired && f[1])))
+      .length;
+    const firstLength = files.map(f => f[0]).filter(f => !!f).length;
+    const secondLength = files.map(f => f[1]).filter(f => !!f).length;
     if (validLength < 1) {
       return pushNotification(
         'You should select at least one input file.',
@@ -745,12 +724,9 @@ class LongRNA extends React.Component<Props, State> {
               sampleName,
               {
                 ...filteredParams,
-                // $FlowFixMe: firstFile is not null here
                 firstInputFile: firstFile.name,
-                // $FlowFixMe: secondFile is not null if paired is true
                 secondInputFile: paired ? secondFile.name : null
               },
-              // $FlowFixMe: firstFile is not null here
               firstFile,
               paired ? secondFile : null
             )
@@ -810,7 +786,9 @@ class LongRNA extends React.Component<Props, State> {
                   {
                     code: ''
                   }
-                ]
+                ],
+                files: [],
+                descriptionFile: undefined
               }}
               initialErrors={validationErrors}
               validationSchema={this.getValidationSchema()}
