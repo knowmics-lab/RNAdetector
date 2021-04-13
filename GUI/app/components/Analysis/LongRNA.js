@@ -32,6 +32,8 @@ import type { LongRNAAnalysisConfig } from '../../types/analysis';
 import type { Capabilities, SimpleMapType } from '../../types/common';
 import type { Job } from '../../types/jobs';
 import ValidationError from '../../errors/ValidationError';
+import MultiDropZone from '../UI/MultiDropZone';
+import SamplesField from '../UI/SamplesField';
 
 type Props = {
   refreshJobs: () => void,
@@ -47,6 +49,9 @@ type Props = {
     buttonProgress: *,
     backButton: *,
     instructions: *,
+    dropZoneContainer: *,
+    gridContent: *,
+    dropZone: *,
     backdrop: *
   }
 };
@@ -81,6 +86,25 @@ const style = theme => ({
   backdrop: {
     zIndex: theme.zIndex.drawer + 1,
     color: '#fff'
+  },
+  dropZoneContainer: {
+    margin: theme.spacing(2)
+  },
+  gridContent: {
+    padding: theme.spacing(2),
+    textAlign: 'center'
+  },
+  dropZone: {
+    textAlign: 'center',
+    width: '100%',
+    border: 'dashed',
+    cursor: 'pointer',
+    overflow: 'hidden',
+    position: 'relative',
+    boxSizing: 'border-box',
+    minHeight: '50px',
+    borderColor: 'rgba(0, 0, 0, 0.12)',
+    borderRadius: '4px'
   }
 });
 
@@ -89,8 +113,6 @@ type State = {
   fetched: boolean,
   isSaving: boolean,
   capabilities: ?Capabilities,
-  files: (?File)[][],
-  descriptionFile: ?File,
   genomes: SimpleMapType<SimpleMapType<string>>,
   annotations: SimpleMapType<string>,
   hasValidationErrors: boolean,
@@ -113,8 +135,6 @@ class LongRNA extends React.Component<Props, State> {
       isSaving: false,
       capabilities: undefined,
       ...Api.Upload.ui.initUploadState(),
-      files: [[null, null]],
-      descriptionFile: null,
       hasValidationErrors: false,
       validationErrors: {},
       genomes: {},
@@ -388,73 +408,9 @@ class LongRNA extends React.Component<Props, State> {
     );
   };
 
-  addHandle = helpers => e => {
-    e.preventDefault();
-    helpers.push({ code: '' });
-    this.setState(oldState => ({
-      files: [...oldState.files, [null, null]]
-    }));
-  };
-
-  removeHandle = (helpers, i) => e => {
-    e.preventDefault();
-    helpers.remove(i);
-    this.setState(oldState => {
-      const files = [...oldState.files];
-      files.splice(i, 1);
-      return {
-        files
-      };
-    });
-  };
-
-  makeSampleForm = (i, single, values, helpers) => {
-    const { classes } = this.props;
-    const { code, inputType, paired } = values;
-    const { isUploading } = this.state;
-    return (
-      <FormGroup row className={classes.formControl} key={`sample-${i}`}>
-        <Grid container justify="space-around" alignItems="center" spacing={3}>
-          {!single && (
-            <Grid item xs>
-              <TextField
-                label="Sample Code"
-                name={`samples.${i}.code`}
-                placeholder={`${code}_${i + 1}`}
-              />
-            </Grid>
-          )}
-          <Grid item xs>
-            <FileSelector
-              name={`files.${i}.0`}
-              filters={Api.Utils.analysisFileExtensions(inputType)}
-              disabled={isUploading}
-            />
-          </Grid>
-          {paired && (
-            <Grid item xs>
-              <FileSelector
-                name={`files.${i}.1`}
-                filters={Api.Utils.analysisFileExtensions(inputType)}
-                disabled={isUploading}
-              />
-            </Grid>
-          )}
-          {!single && (
-            <Grid item xs={1}>
-              <IconButton onClick={this.removeHandle(helpers, i)}>
-                <Icon className="fas fa-trash" />
-              </IconButton>
-            </Grid>
-          )}
-        </Grid>
-      </FormGroup>
-    );
-  };
-
   getStep3 = values => {
     const { classes } = this.props;
-    const { samples } = values;
+    const { samples, code, inputType, paired } = values;
     const {
       hasValidationErrors,
       validationErrors,
@@ -475,32 +431,12 @@ class LongRNA extends React.Component<Props, State> {
           differential expression analysis. To start the upload process and the
           analysis, click on the &quot;Start Analysis&quot; button.
         </Typography>
-        <FieldArray
+        <SamplesField
           name="samples"
-          render={helpers => (
-            <>
-              {samples.map((s, i) =>
-                this.makeSampleForm(i, single, values, helpers)
-              )}
-              <FormGroup row className={classes.formControl}>
-                <Grid
-                  container
-                  direction="row-reverse"
-                  alignItems="center"
-                  spacing={3}
-                >
-                  <Grid item xs="auto">
-                    <Button
-                      variant="outlined"
-                      onClick={this.addHandle(helpers)}
-                    >
-                      <Icon className="fas fa-plus" /> Add another sample
-                    </Button>
-                  </Grid>
-                </Grid>
-              </FormGroup>
-            </>
-          )}
+          code={code}
+          inputType={inputType}
+          paired={paired && inputType === 'fastq'}
+          disabled={isUploading}
         />
         {!single && (
           <FormGroup row className={classes.formControl}>
@@ -787,7 +723,7 @@ class LongRNA extends React.Component<Props, State> {
                     code: ''
                   }
                 ],
-                files: [],
+                files: [[undefined, undefined]],
                 descriptionFile: undefined
               }}
               initialErrors={validationErrors}
@@ -796,7 +732,7 @@ class LongRNA extends React.Component<Props, State> {
                 this.formSubmit(v).catch(() => false);
               }}
             >
-              {({ values }) => (
+              {({ values, setFieldValue }) => (
                 <Form>
                   <Wizard steps={steps} submitButton={this.getSubmitButton}>
                     <div>{this.getStep0(values)}</div>
