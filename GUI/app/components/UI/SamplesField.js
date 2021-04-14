@@ -143,8 +143,12 @@ export default function SamplesField({
               </Grid>
             )}
             {single && (
-              <Grid item md={3} style={{ textAlign: 'right' }}>
-                <Typography variant="h6">
+              <Grid item md={3}>
+                <Typography
+                  variant="h6"
+                  align="right"
+                  style={{ fontSize: '1rem' }}
+                >
                   {`Choose ${inputType.toUpperCase()} file:`}
                 </Typography>
               </Grid>
@@ -243,6 +247,7 @@ export default function SamplesField({
             <MultiDropZone
               onFileAdd={bulkAddFileHandler()}
               onSampleAdd={addHandler(helpers)}
+              filters={Api.Utils.analysisFileExtensions(inputType)}
             />
           </FormGroup>
         </>

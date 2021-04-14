@@ -9,25 +9,32 @@ import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { green } from '@material-ui/core/colors';
-import { Formik, Form, FieldArray } from 'formik';
+import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import Backdrop from '@material-ui/core/Backdrop';
 import { InputLabel } from '@material-ui/core';
-import IconButton from '@material-ui/core/IconButton';
-import Icon from '@material-ui/core/Icon';
+import Common from './Common';
 import * as Api from '../../api';
 import { JOBS } from '../../constants/routes.json';
 import SelectField from '../Form/SelectField';
 import TextField from '../Form/TextField';
 import Wizard from '../UI/Wizard';
-import FileSelector from '../UI/FileSelector';
-import type { File } from '../UI/FileSelector';
+import FileSelector from '../UI/FileSelector2';
+import type { File } from '../UI/FileSelector2';
 import UploadProgress from '../UI/UploadProgress';
 import SwitchField from '../Form/SwitchField';
 import type { CircRNAAnalysisConfig } from '../../types/analysis';
-import type { Capabilities, SimpleMapType } from '../../types/common';
+import type {
+  Capabilities,
+  ResponseType,
+  SimpleMapType
+} from '../../types/common';
 import type { Job } from '../../types/jobs';
 import ValidationError from '../../errors/ValidationError';
+import SamplesField, {
+  prepareFileArray,
+  prepareSamplesArray
+} from '../UI/SamplesField';
 
 type Props = {
   refreshJobs: () => void,
@@ -84,9 +91,7 @@ type State = {
   isLoading: boolean,
   fetched: boolean,
   isSaving: boolean,
-  files: (?File)[][],
   capabilities: ?Capabilities,
-  descriptionFile: ?File,
   genomes: SimpleMapType<string>,
   annotations: SimpleMapType<string>,
   bedAnnotations: SimpleMapType<string>,
@@ -110,8 +115,6 @@ class CircRNA extends React.Component<Props, State> {
       isSaving: false,
       capabilities: undefined,
       ...Api.Upload.ui.initUploadState(),
-      files: [[null, null]],
-      descriptionFile: null,
       hasValidationErrors: false,
       validationErrors: {},
       genomes: {},
@@ -344,101 +347,9 @@ class CircRNA extends React.Component<Props, State> {
     );
   };
 
-  updateFile = (state: State, i: number, j: number, f: ?File) => {
-    const files = [...state.files];
-    const fileI = [...files[i]];
-    fileI[j] = f;
-    files[i] = fileI;
-    return {
-      files
-    };
-  };
-
-  makeHandleFileAdd = (j: number, i: number) => f =>
-    this.setState(oldState => this.updateFile(oldState, i, j, f[0]));
-
-  makeHandleFileRemove = (j: number, i: number) => () =>
-    this.setState(oldState => this.updateFile(oldState, i, j, null));
-
-  handleDescriptionFileAdd = (descriptionFile: File[]) =>
-    this.setState({
-      descriptionFile: descriptionFile[0]
-    });
-
-  handleDescriptionFileRemove = () =>
-    this.setState({
-      descriptionFile: null
-    });
-
-  addHandle = helpers => e => {
-    e.preventDefault();
-    helpers.push({ code: '' });
-    this.setState(oldState => ({
-      files: [...oldState.files, [null, null]]
-    }));
-  };
-
-  removeHandle = (helpers, i) => e => {
-    e.preventDefault();
-    helpers.remove(i);
-    this.setState(oldState => {
-      const files = [...oldState.files];
-      files.splice(i, 1);
-      return {
-        files
-      };
-    });
-  };
-
-  makeSampleForm = (i, single, values, helpers) => {
-    const { classes } = this.props;
-    const { code, inputType, paired } = values;
-    const { isUploading } = this.state;
-    return (
-      <FormGroup row className={classes.formControl} key={`sample-${i}`}>
-        <Grid container justify="space-around" alignItems="center" spacing={3}>
-          {!single && (
-            <Grid item xs>
-              <TextField
-                label="Sample Code"
-                name={`samples.${i}.code`}
-                placeholder={`${code}_${i + 1}`}
-              />
-            </Grid>
-          )}
-          <Grid item xs>
-            <FileSelector
-              onFileRemove={this.makeHandleFileRemove(0, i)}
-              onFileAdd={this.makeHandleFileAdd(0, i)}
-              filters={Api.Utils.analysisFileExtensions(inputType)}
-              disabled={isUploading}
-            />
-          </Grid>
-          {paired && (
-            <Grid item xs>
-              <FileSelector
-                onFileRemove={this.makeHandleFileRemove(1, i)}
-                onFileAdd={this.makeHandleFileAdd(1, i)}
-                filters={Api.Utils.analysisFileExtensions(inputType)}
-                disabled={isUploading}
-              />
-            </Grid>
-          )}
-          {!single && (
-            <Grid item xs={1}>
-              <IconButton onClick={this.removeHandle(helpers, i)}>
-                <Icon className="fas fa-trash" />
-              </IconButton>
-            </Grid>
-          )}
-        </Grid>
-      </FormGroup>
-    );
-  };
-
   getStep3 = values => {
     const { classes } = this.props;
-    const { samples } = values;
+    const { samples, code, inputType, paired } = values;
     const {
       hasValidationErrors,
       validationErrors,
@@ -459,32 +370,12 @@ class CircRNA extends React.Component<Props, State> {
           differential expression analysis. To start the upload process and the
           analysis, click on the &quot;Start Analysis&quot; button.
         </Typography>
-        <FieldArray
+        <SamplesField
           name="samples"
-          render={helpers => (
-            <>
-              {samples.map((s, i) =>
-                this.makeSampleForm(i, single, values, helpers)
-              )}
-              <FormGroup row className={classes.formControl}>
-                <Grid
-                  container
-                  direction="row-reverse"
-                  alignItems="center"
-                  spacing={3}
-                >
-                  <Grid item xs="auto">
-                    <Button
-                      variant="outlined"
-                      onClick={this.addHandle(helpers)}
-                    >
-                      <Icon className="fas fa-plus" /> Add another sample
-                    </Button>
-                  </Grid>
-                </Grid>
-              </FormGroup>
-            </>
-          )}
+          code={code}
+          inputType={inputType}
+          paired={paired && inputType === 'fastq'}
+          disabled={isUploading}
         />
         {!single && (
           <FormGroup row className={classes.formControl}>
@@ -494,8 +385,7 @@ class CircRNA extends React.Component<Props, State> {
               </Grid>
               <Grid item xs>
                 <FileSelector
-                  onFileRemove={this.handleDescriptionFileRemove}
-                  onFileAdd={this.handleDescriptionFileAdd}
+                  name="descriptionFile"
                   filters={[
                     {
                       name: 'TSV files',
@@ -563,18 +453,6 @@ class CircRNA extends React.Component<Props, State> {
     });
   };
 
-  uploadFile = async (job: Job, file: File) => {
-    Api.Upload.ui.uploadStart(this.setState.bind(this), file.name);
-    await Api.Upload.upload(
-      job,
-      file.path,
-      file.name,
-      file.type,
-      Api.Upload.ui.makeOnProgress(this.setState.bind(this))
-    );
-    Api.Upload.ui.uploadEnd(this.setState.bind(this));
-  };
-
   checkParameters = (
     parameters: CircRNAAnalysisConfig
   ): CircRNAAnalysisConfig => {
@@ -602,7 +480,7 @@ class CircRNA extends React.Component<Props, State> {
     firstFile: File,
     secondFile: ?File
   ): Promise<Job> => {
-    const data = await Api.Analysis.createCircRNA(
+    const data: ResponseType<Job> = await Api.Analysis.createCircRNA(
       code,
       name,
       this.checkParameters(parameters)
@@ -611,9 +489,12 @@ class CircRNA extends React.Component<Props, State> {
       this.setSaving(false, data.validationErrors);
       throw new ValidationError('Validation of input parameters failed');
     }
+    if (!data.data) {
+      throw new Error('Unknown error!');
+    }
     const { data: job } = data;
-    await this.uploadFile(job, firstFile);
-    if (secondFile) await this.uploadFile(job, secondFile);
+    await Common.uploadFile(job, firstFile, this.setState.bind(this));
+    await Common.uploadFile(job, secondFile, this.setState.bind(this));
     return job;
   };
 
@@ -630,73 +511,39 @@ class CircRNA extends React.Component<Props, State> {
     pushNotification('Analysis jobs queued!');
   };
 
-  createGroup = async (
-    single: boolean,
-    code: string,
-    name: string,
-    jobs: Job[],
-    descriptionFile: ?File
-  ): Promise<?Job> => {
-    if (single) return null;
-    const { pushNotification } = this.props;
-    const data = await Api.Analysis.createSampleGroup(
+  formSubmit = async values => {
+    const { paired, inputType } = values;
+    const {
       code,
       name,
-      jobs,
-      descriptionFile ? descriptionFile.name : undefined
-    );
-    if (data.validationErrors) {
-      pushNotification(
-        'Errors occurred during validation of input parameters. Please review the form!',
-        'warning'
-      );
-      this.setSaving(false, data.validationErrors);
-      return null;
-    }
-    const { data: job } = data;
-    if (descriptionFile) {
-      await this.uploadFile(job, descriptionFile);
-    }
-    pushNotification('Sample group created!');
-    return job;
-  };
-
-  formSubmit = async values => {
-    const { paired } = values;
-    const { code, name, samples, ...params } = values;
+      samples: samplesData,
+      descriptionFile: description,
+      ...params
+    } = values;
+    const isPairedFiles = paired && inputType === 'fastq';
     const { pushNotification, redirect, refreshJobs } = this.props;
-    const { files, descriptionFile } = this.state;
-    const validLength = files.filter(
-      f => f[0] !== null && (!paired || (paired && f[1] !== null))
-    ).length;
-    const firstLength = files.map(f => f[0]).filter(f => f !== null).length;
-    const secondLength = files.map(f => f[1]).filter(f => f !== null).length;
-    if (validLength < 1) {
-      return pushNotification(
-        'You should select at least one input file.',
-        'error'
-      );
-    }
-    if (
-      paired &&
-      (firstLength !== validLength || secondLength !== validLength)
-    ) {
-      return pushNotification(
-        'You must select the same number of mate input files.',
-        'error'
-      );
-    }
-    this.setSaving(true);
+
+    const files = prepareFileArray(samplesData);
+    const validLength = Common.checkLength(
+      files,
+      isPairedFiles,
+      pushNotification
+    );
+    if (validLength < 0) return;
     const single = validLength === 1;
+
+    const samples = prepareSamplesArray(samplesData);
+
+    const descriptionFile =
+      description && description[0] ? description[0] : null;
+
+    this.setSaving(true);
     try {
       const jobs = [];
       for (let i = 0; i < samples.length; i += 1) {
         const sample = samples[i];
         const [firstFile, secondFile] = files[i];
-        if (
-          firstFile !== null &&
-          (!paired || (paired && secondFile !== null))
-        ) {
+        if (firstFile && (!isPairedFiles || (isPairedFiles && secondFile))) {
           const idx = i + 1;
           const sampleCode = sample.code
             ? sample.code
@@ -710,30 +557,33 @@ class CircRNA extends React.Component<Props, State> {
               sampleName,
               {
                 ...params,
-                // $FlowFixMe: firstFile is not null here
                 firstInputFile: firstFile.name,
-                // $FlowFixMe: secondFile is not null if paired is true
-                secondInputFile: paired ? secondFile.name : null
+                secondInputFile:
+                  isPairedFiles && secondFile ? secondFile.name : null
               },
-              // $FlowFixMe: firstFile is not null here
               firstFile,
-              paired ? secondFile : null
+              isPairedFiles ? secondFile : null
             )
           );
           pushNotification(`Job ${sampleName} created!`, 'success');
         }
       }
       if (!single) pushNotification('Analysis jobs created!');
-      const groupJob = await this.createGroup(
+      const groupJob = await Common.createGroup(
         single,
         code,
         name,
         jobs,
-        descriptionFile
+        descriptionFile,
+        pushNotification,
+        this.setSaving,
+        this.setState.bind(this)
       );
-      await this.submitAnalysis(jobs, groupJob);
-      refreshJobs();
-      redirect(JOBS);
+      if (groupJob !== undefined) {
+        await this.submitAnalysis(jobs, groupJob);
+        refreshJobs();
+        redirect(JOBS);
+      }
     } catch (e) {
       pushNotification(`An error occurred: ${e.message}`, 'error');
       if (!(e instanceof ValidationError)) {
@@ -775,9 +625,12 @@ class CircRNA extends React.Component<Props, State> {
                 ciriUseVersion1: false,
                 samples: [
                   {
-                    code: ''
+                    code: '',
+                    first: undefined,
+                    second: undefined
                   }
-                ]
+                ],
+                descriptionFile: undefined
               }}
               initialErrors={validationErrors}
               validationSchema={this.getValidationSchema()}

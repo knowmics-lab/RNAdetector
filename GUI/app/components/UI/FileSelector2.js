@@ -17,14 +17,13 @@ import mimetype2fa from 'mimetype-to-fontawesome';
 import FileType from 'file-type';
 import Box from '@material-ui/core/Box';
 import Divider from '@material-ui/core/Divider';
-import { useField, useFormikContext } from 'formik';
+import { useField } from 'formik';
 import type { FileFilter } from '../../types/common';
 import * as Api from '../../api';
 
 const useStyles = makeStyles(theme => ({
   root: {
     width: '100%',
-    maxWidth: 250,
     backgroundColor: theme.palette.background.paper
   },
   title: {

@@ -9,12 +9,11 @@ import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { green } from '@material-ui/core/colors';
-import { Formik, Form, FieldArray } from 'formik';
+import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import Backdrop from '@material-ui/core/Backdrop';
 import { InputLabel } from '@material-ui/core';
-import IconButton from '@material-ui/core/IconButton';
-import Icon from '@material-ui/core/Icon';
+import Common from './Common';
 import * as Api from '../../api';
 import { JOBS } from '../../constants/routes.json';
 import {
@@ -29,11 +28,17 @@ import type { File } from '../UI/FileSelector2';
 import UploadProgress from '../UI/UploadProgress';
 import SwitchField from '../Form/SwitchField';
 import type { LongRNAAnalysisConfig } from '../../types/analysis';
-import type { Capabilities, SimpleMapType } from '../../types/common';
+import type {
+  Capabilities,
+  ResponseType,
+  SimpleMapType
+} from '../../types/common';
 import type { Job } from '../../types/jobs';
 import ValidationError from '../../errors/ValidationError';
-import MultiDropZone from '../UI/MultiDropZone';
-import SamplesField from '../UI/SamplesField';
+import SamplesField, {
+  prepareFileArray,
+  prepareSamplesArray
+} from '../UI/SamplesField';
 
 type Props = {
   refreshJobs: () => void,
@@ -49,9 +54,6 @@ type Props = {
     buttonProgress: *,
     backButton: *,
     instructions: *,
-    dropZoneContainer: *,
-    gridContent: *,
-    dropZone: *,
     backdrop: *
   }
 };
@@ -86,25 +88,6 @@ const style = theme => ({
   backdrop: {
     zIndex: theme.zIndex.drawer + 1,
     color: '#fff'
-  },
-  dropZoneContainer: {
-    margin: theme.spacing(2)
-  },
-  gridContent: {
-    padding: theme.spacing(2),
-    textAlign: 'center'
-  },
-  dropZone: {
-    textAlign: 'center',
-    width: '100%',
-    border: 'dashed',
-    cursor: 'pointer',
-    overflow: 'hidden',
-    position: 'relative',
-    boxSizing: 'border-box',
-    minHeight: '50px',
-    borderColor: 'rgba(0, 0, 0, 0.12)',
-    borderRadius: '4px'
   }
 });
 
@@ -514,18 +497,6 @@ class LongRNA extends React.Component<Props, State> {
     });
   };
 
-  uploadFile = async (job: Job, file: File) => {
-    Api.Upload.ui.uploadStart(this.setState.bind(this), file.name);
-    await Api.Upload.upload(
-      job,
-      file.path,
-      file.name,
-      file.type,
-      Api.Upload.ui.makeOnProgress(this.setState.bind(this))
-    );
-    Api.Upload.ui.uploadEnd(this.setState.bind(this));
-  };
-
   createAnalysis = async (
     code: string,
     name: string,
@@ -533,14 +504,21 @@ class LongRNA extends React.Component<Props, State> {
     firstFile: File,
     secondFile: ?File
   ): Promise<Job> => {
-    const data = await Api.Analysis.createLongRNA(code, name, parameters);
+    const data: ResponseType<Job> = await Api.Analysis.createLongRNA(
+      code,
+      name,
+      parameters
+    );
     if (data.validationErrors) {
       this.setSaving(false, data.validationErrors);
       throw new ValidationError('Validation of input parameters failed');
     }
+    if (!data.data) {
+      throw new Error('Unknown error!');
+    }
     const { data: job } = data;
-    await this.uploadFile(job, firstFile);
-    if (secondFile) await this.uploadFile(job, secondFile);
+    await Common.uploadFile(job, firstFile, this.setState.bind(this));
+    await Common.uploadFile(job, secondFile, this.setState.bind(this));
     return job;
   };
 
@@ -552,101 +530,45 @@ class LongRNA extends React.Component<Props, State> {
       await Api.Jobs.submitJob(analysisJob[i].id);
     }
     if (groupJob) {
-      // await Api.Jobs.submitJob(groupJob.id);
+      await Api.Jobs.submitJob(groupJob.id);
     }
     pushNotification('Analysis jobs queued!');
   };
 
-  createGroup = async (
-    single: boolean,
-    code: string,
-    name: string,
-    jobs: Job[],
-    descriptionFile: ?File
-  ): Promise<?Job> => {
-    if (single) return null;
-    const { pushNotification } = this.props;
-    const data = await Api.Analysis.createSampleGroup(
-      code,
-      name,
-      jobs,
-      descriptionFile ? descriptionFile.name : undefined
-    );
-    if (data.validationErrors) {
-      pushNotification(
-        'Errors occurred during validation of input parameters. Please review the form!',
-        'warning'
-      );
-      this.setSaving(false, data.validationErrors);
-      return null;
-    }
-    const { data: job } = data;
-    if (descriptionFile) {
-      await this.uploadFile(job, descriptionFile);
-    }
-    pushNotification('Sample group created!');
-    return job;
-  };
-
   formSubmit = async values => {
-    const { paired } = values;
+    const { paired, inputType } = values;
     const {
       code,
       name,
-      samples,
-      files: allFiles,
+      samples: samplesData,
       descriptionFile: description,
       ...params
     } = values;
+    const isPairedFiles = paired && inputType === 'fastq';
     const { pushNotification, redirect, refreshJobs } = this.props;
-    let filteredParams = params;
-    if (params.algorithm === 'salmon') {
-      filteredParams = Api.Utils.filterByKey(
-        params,
-        k => k !== 'annotation' && k !== 'genome'
-      );
-    } else if (
-      params.annotation !== 'salmon' &&
-      params.countingAlgorithm !== 'salmon'
-    ) {
-      filteredParams = Api.Utils.filterByKey(
-        params,
-        k => k !== 'transcriptome'
-      );
-    }
+    const filteredParams = Common.filterParamsByAlgorithm(params);
+
+    const files = prepareFileArray(samplesData);
+    const validLength = Common.checkLength(
+      files,
+      isPairedFiles,
+      pushNotification
+    );
+    if (validLength < 0) return;
+    const single = validLength === 1;
+
+    const samples = prepareSamplesArray(samplesData);
+
     const descriptionFile =
       description && description[0] ? description[0] : null;
-    const files = allFiles.map(s => s.map(f => (f && f[0] ? f[0] : null)));
-    const validLength = files.filter(f => f[0] && (!paired || (paired && f[1])))
-      .length;
-    const firstLength = files.map(f => f[0]).filter(f => !!f).length;
-    const secondLength = files.map(f => f[1]).filter(f => !!f).length;
-    if (validLength < 1) {
-      return pushNotification(
-        'You should select at least one input file.',
-        'error'
-      );
-    }
-    if (
-      paired &&
-      (firstLength !== validLength || secondLength !== validLength)
-    ) {
-      return pushNotification(
-        'You must select the same number of mate input files.',
-        'error'
-      );
-    }
+
     this.setSaving(true);
-    const single = validLength === 1;
     try {
       const jobs = [];
       for (let i = 0; i < samples.length; i += 1) {
         const sample = samples[i];
         const [firstFile, secondFile] = files[i];
-        if (
-          firstFile !== null &&
-          (!paired || (paired && secondFile !== null))
-        ) {
+        if (firstFile && (!isPairedFiles || (isPairedFiles && secondFile))) {
           const idx = i + 1;
           const sampleCode = sample.code
             ? sample.code
@@ -661,26 +583,32 @@ class LongRNA extends React.Component<Props, State> {
               {
                 ...filteredParams,
                 firstInputFile: firstFile.name,
-                secondInputFile: paired ? secondFile.name : null
+                secondInputFile:
+                  isPairedFiles && secondFile ? secondFile.name : null
               },
               firstFile,
-              paired ? secondFile : null
+              isPairedFiles ? secondFile : null
             )
           );
           pushNotification(`Job ${sampleName} created!`, 'success');
         }
       }
       if (!single) pushNotification('Analysis jobs created!');
-      const groupJob = await this.createGroup(
+      const groupJob = await Common.createGroup(
         single,
         code,
         name,
         jobs,
-        descriptionFile
+        descriptionFile,
+        pushNotification,
+        this.setSaving,
+        this.setState.bind(this)
       );
-      await this.submitAnalysis(jobs, groupJob);
-      refreshJobs();
-      redirect(JOBS);
+      if (groupJob !== undefined) {
+        await this.submitAnalysis(jobs, groupJob);
+        refreshJobs();
+        redirect(JOBS);
+      }
     } catch (e) {
       pushNotification(`An error occurred: ${e.message}`, 'error');
       if (!(e instanceof ValidationError)) {
@@ -720,10 +648,11 @@ class LongRNA extends React.Component<Props, State> {
                 threads: 1,
                 samples: [
                   {
-                    code: ''
+                    code: '',
+                    first: undefined,
+                    second: undefined
                   }
                 ],
-                files: [[undefined, undefined]],
                 descriptionFile: undefined
               }}
               initialErrors={validationErrors}
@@ -732,7 +661,7 @@ class LongRNA extends React.Component<Props, State> {
                 this.formSubmit(v).catch(() => false);
               }}
             >
-              {({ values, setFieldValue }) => (
+              {({ values }) => (
                 <Form>
                   <Wizard steps={steps} submitButton={this.getSubmitButton}>
                     <div>{this.getStep0(values)}</div>
