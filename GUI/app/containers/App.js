@@ -14,8 +14,6 @@ import NotificationsList from '../components/Layout/Notifications';
 import BlockingMessageHandler from '../components/Layout/BlockingMessageHandler';
 import StartHandler from '../components/Layout/StartHandler';
 import RNADETECTOR_LOGO from '../resources/logoRNAdetector.png';
-import NERVIANO_LOGO from "../resources/nerviano.png";
-import GridListTile from "@material-ui/core/GridListTile";
 
 const drawerWidth = 260;
 const fixDriverMinSize = 1100;

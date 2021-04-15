@@ -9,7 +9,7 @@ import UNICT_LOGO from '../resources/unict.png';
 import NERVIANO_LOGO from '../resources/nerviano.png';
 import OHIO_LOGO from '../resources/ohio-logo.png';
 import IOR_LOGO from '../resources/ior-logo.png';
-import { DOCKER_IMAGE_VERSION, GUI_VERSION } from '../constants/system.json';
+import { GUI_VERSION } from '../constants/system.json';
 import { Utils } from '../api';
 import type { Capabilities } from '../types/common';
 
@@ -43,19 +43,25 @@ export default class Home extends Component<Props, State> {
         message: 'Loading...',
         error: false
       });
-      Utils.refreshCapabilities()
-        .then(capabilities => {
-          ipcRenderer.send('hide-blocking-message');
-          return this.setState({
-            capabilities
-          });
-        })
-        .catch(error => {
-          ipcRenderer.send('display-blocking-message', {
-            message: error.message,
-            error: true
-          });
-        });
+      let timer;
+      const doRefresh = async () => {
+        if ((await this.refreshCapabilities()) && timer) {
+          clearInterval(timer);
+        }
+      };
+      timer = setInterval(doRefresh, 2000);
+    }
+  }
+
+  async refreshCapabilities() {
+    try {
+      const capabilities = await Utils.refreshCapabilities();
+      this.setState({
+        capabilities
+      });
+      return true;
+    } catch (e) {
+      return false;
     }
   }
 
@@ -70,7 +76,11 @@ export default class Home extends Component<Props, State> {
         />
         <TextInfoContent
           body={`You are currently using version ${GUI_VERSION} which uses the RNAdetector Docker
-          Container v. ${capabilities ? capabilities.containerVersion : ''}`}
+          Container v. ${
+            capabilities
+              ? capabilities.containerVersion
+              : '(Loading...Please Wait...)'
+          }`}
         />
         <FooterContainer>
           <GridList cellHeight={55} cols={3}>

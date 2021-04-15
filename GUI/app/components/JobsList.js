@@ -394,6 +394,17 @@ class JobsList extends React.Component<Props, State> {
                 },
                 'actions'
               ]}
+              autoRefresh
+              autoRefreshCondition={data => {
+                const filtered = data
+                  .map(d => d.status)
+                  .filter(s => s === 'queued' || s === 'processing');
+                return filtered.length > 0;
+              }}
+              autoRefreshAction={p => {
+                const { refreshPage } = this.props;
+                refreshPage(p);
+              }}
             />
           </div>
         </Box>

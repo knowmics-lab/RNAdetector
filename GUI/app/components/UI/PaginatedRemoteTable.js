@@ -13,6 +13,7 @@ import type { ComponentType } from 'react';
 import type { SortingSpec, StatePaginationType } from '../../types/common';
 import type { StateType } from '../../reducers/types';
 import type {
+  ReadOnlyData,
   RowActionType,
   TableColumn,
   ToolbarActionType
@@ -40,7 +41,11 @@ export type ConnectedTableProps = {
   actions?: RowActionType[],
   keyField?: string,
   sortable?: boolean,
-  onPageChange: number => void
+  onPageChange: number => void,
+  autoRefresh?: boolean,
+  autoRefreshCondition?: ?(ReadOnlyData[]) => boolean,
+  autoRefreshAction?: ?(number) => void,
+  autoRefreshTime?: number
 };
 
 export type TableProps = {
@@ -54,6 +59,10 @@ export type TableProps = {
   onPageChange: number => void,
   requestPage: number => void,
   changeRowsPerPage: number => void,
+  autoRefresh?: boolean,
+  autoRefreshCondition?: ?(ReadOnlyData[]) => boolean,
+  autoRefreshAction?: ?(number) => void,
+  autoRefreshTime?: number,
   changeSorting: SortingSpec => void,
   paginationState: StatePaginationType,
   pagesCollection: { +[number]: { +[string]: * }[] },
@@ -63,6 +72,10 @@ export type TableProps = {
     stickyStyle: *,
     loading: *
   }
+};
+
+type TableState = {
+  timer: *
 };
 
 const styles = theme => ({
@@ -83,24 +96,38 @@ const styles = theme => ({
   }
 });
 
-class PaginatedRemoteTable extends React.Component<TableProps> {
-  props: TableProps;
-
+class PaginatedRemoteTable extends React.Component<TableProps, TableState> {
   static defaultProps = {
     title: null,
     keyField: 'id',
     size: 'small',
     sortable: true,
     toolbar: [],
-    actions: []
+    actions: [],
+    autoRefresh: false,
+    autoRefreshCondition: undefined,
+    autoRefreshAction: undefined,
+    autoRefreshTime: 30000
   };
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      timer: undefined
+    };
+  }
 
   componentDidMount(): void {
     const {
       paginationState: { current_page: currentPage },
-      onPageChange
+      onPageChange,
+      autoRefresh
     } = this.props;
+    const { timer } = this.state;
     if (currentPage) onPageChange(currentPage);
+    if (!timer && autoRefresh) {
+      this.checkForRefresh();
+    }
   }
 
   // noinspection JSCheckFunctionSignatures
@@ -110,9 +137,71 @@ class PaginatedRemoteTable extends React.Component<TableProps> {
     } = prevProps;
     const {
       paginationState: { current_page: currentPage },
-      onPageChange
+      onPageChange,
+      autoRefresh
     } = this.props;
+    const { timer } = this.state;
     if (currentPage && currentPage !== prevPage) onPageChange(currentPage);
+    if (!timer && autoRefresh) {
+      this.checkForRefresh();
+    }
+  }
+
+  isRefreshNeeded(): boolean {
+    const { autoRefresh, autoRefreshCondition, autoRefreshAction } = this.props;
+    if (autoRefresh && autoRefreshCondition && autoRefreshAction) {
+      const { paginationState, pagesCollection } = this.props;
+
+      const {
+        current_page: currentPage,
+        total: totalRows,
+        fetching
+      } = paginationState;
+
+      const isLoading = fetching || totalRows === null;
+      const data =
+        !isLoading && has(pagesCollection, currentPage)
+          ? pagesCollection[currentPage]
+          : [];
+
+      return autoRefreshCondition(data);
+    }
+    return false;
+  }
+
+  checkForRefresh(): void {
+    const {
+      autoRefresh,
+      autoRefreshCondition,
+      autoRefreshAction,
+      autoRefreshTime
+    } = this.props;
+    const { timer } = this.state;
+    if (timer) {
+      clearInterval(timer);
+    }
+    if (autoRefresh && autoRefreshCondition && autoRefreshAction) {
+      let newTimer;
+      const doRefresh = () => {
+        const {
+          paginationState: { current_page: currPage }
+        } = this.props;
+
+        if (this.isRefreshNeeded()) {
+          autoRefreshAction(currPage || 1);
+        } else if (newTimer) {
+          console.log('refresh not needed');
+          clearInterval(newTimer);
+          this.setState({
+            timer: undefined
+          });
+        }
+      };
+      newTimer = setInterval(doRefresh, autoRefreshTime);
+      this.setState({
+        timer: newTimer
+      });
+    }
   }
 
   handleChangePage = (event, newPage) => {

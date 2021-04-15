@@ -10,8 +10,9 @@
 # 	-o OUTPUT SAM FILE
 # FLAGS: -p to use fastq_pair instead of bbmap re-pair utility (for paired reads only)
 #########################################################################################
+OTHER_ARGS=""
 REPAIR=true
-while getopts "pa:g:t:f:s:o:" opt; do
+while getopts "pa:g:t:f:s:o:A:" opt; do
   case $opt in
   a) GTF_FILE=$OPTARG ;;
   g) REF_GENOME=$OPTARG ;;
@@ -20,6 +21,7 @@ while getopts "pa:g:t:f:s:o:" opt; do
   s) INPUT_2=$OPTARG ;;
   o) OUTPUT=$OPTARG ;;
   p) REPAIR=false ;;
+  A) OTHER_ARGS=$OPTARG ;;
   \?)
     echo "Invalid option: -$OPTARG"
     exit 1
@@ -99,12 +101,14 @@ if [ $PAIRED = "true" ]; then
     echo "Unable to find paired reads of second input file!"
     exit 11
   fi
-  if ! bwa mem -T 19 -t "$THREADS" "$REF_GENOME" "$INPUT_1.paired.fq" "$INPUT_2.paired.fq" >"$OUTPUT" 2>"$OUTPUT.log"; then
+  # shellcheck disable=SC2086
+  if ! bwa mem -T 19 -t "$THREADS" $OTHER_ARGS "$REF_GENOME" "$INPUT_1.paired.fq" "$INPUT_2.paired.fq" >"$OUTPUT" 2>"$OUTPUT.log"; then
     echo "An error occurred during bwa mem execution!"
     exit 12
   fi
 else
-  if ! bwa mem -T 19 -t "$THREADS" "$REF_GENOME" "$INPUT_1" >"$OUTPUT" 2>"$OUTPUT.log"; then
+  # shellcheck disable=SC2086
+  if ! bwa mem -T 19 -t "$THREADS" $OTHER_ARGS "$REF_GENOME" "$INPUT_1" >"$OUTPUT" 2>"$OUTPUT.log"; then
     echo "An error occurred during bwa mem execution!"
     exit 12
   fi

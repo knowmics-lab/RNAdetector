@@ -8,13 +8,15 @@
 # 	-s OPTIONAL SECOND INPUT FASTQ (FOR PAIRED) (trimmed FASTQ file)
 # 	-o OUTPUT BAM FILE
 ##############################################################################
-while getopts ":g:t:f:s:o:" opt; do
+OTHER_ARGS=""
+while getopts ":g:t:f:s:o:A:" opt; do
   case $opt in
   g) REF_GENOME=$OPTARG ;;
   t) THREADS=$OPTARG ;;
   f) INPUT_1=$OPTARG ;;
   s) INPUT_2=$OPTARG ;;
   o) OUTPUT=$OPTARG ;;
+  A) OTHER_ARGS=$OPTARG ;;
   \?)
     echo "Invalid option: -$OPTARG"
     exit 1
@@ -63,12 +65,14 @@ fi
 #### Alignment ####
 TMP_OUTPUT="$(dirname "$OUTPUT")/temp.bam"
 if [ $PAIRED = "true" ]; then
-  if ! hisat2 -p "$THREADS" -x "$REF_GENOME" -1 "$INPUT_1" -2 "$INPUT_2" | samtools view -Sbh >"$TMP_OUTPUT"; then
+  # shellcheck disable=SC2086
+  if ! hisat2 $OTHER_ARGS -p "$THREADS" -x "$REF_GENOME" -1 "$INPUT_1" -2 "$INPUT_2" | samtools view -Sbh >"$TMP_OUTPUT"; then
     echo "An error occurred during HISAT 2 execution!"
     exit 7
   fi
 else
-  if ! hisat2 -p "$THREADS" -x "$REF_GENOME" -U "$INPUT_1" | samtools view -Sbh >"$TMP_OUTPUT"; then
+  # shellcheck disable=SC2086
+  if ! hisat2 $OTHER_ARGS -p "$THREADS" -x "$REF_GENOME" -U "$INPUT_1" | samtools view -Sbh >"$TMP_OUTPUT"; then
     echo "An error occurred during HISAT 2 execution!"
     exit 7
   fi

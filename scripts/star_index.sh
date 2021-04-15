@@ -6,11 +6,13 @@
 #   -p STR	The directory containing the index
 # 	-t NUMBER OF THREADS
 ##############################################################################
-while getopts ":f:p:t:" opt; do
+OTHER_ARGS=""
+while getopts ":f:p:t:A:" opt; do
   case $opt in
   f) FASTA_FILE=$OPTARG ;;
   p) PREFIX_OUTPUT=$OPTARG ;;
   t) THREADS=$OPTARG ;;
+  A) OTHER_ARGS=$OPTARG ;;
   \?)
     echo "Invalid option: -$OPTARG"
     exit 1
@@ -56,7 +58,7 @@ REFERENCE_DIR="${PREFIX_OUTPUT}_star"
 STAR --runThreadN "$THREADS" \
   --runMode genomeGenerate \
   --genomeDir "$REFERENCE_DIR" \
-  --genomeFastaFiles "$FASTA_FILE" || (
+  --genomeFastaFiles "$FASTA_FILE" $OTHER_ARGS || (
   echo "An error occurred during indexing!" && exit 6
 )
 

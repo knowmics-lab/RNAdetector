@@ -16,7 +16,8 @@ exit_abnormal() {
   exit $2
 }
 
-while getopts ":a:g:t:f:s:o:" opt; do
+OTHER_ARGS=""
+while getopts ":a:g:t:f:s:o:A:" opt; do
   case $opt in
   a) GTF_FILE=$OPTARG ;;
   g) REF_GENOME=$OPTARG ;;
@@ -24,6 +25,7 @@ while getopts ":a:g:t:f:s:o:" opt; do
   f) INPUT_1=$OPTARG ;;
   s) INPUT_2=$OPTARG ;;
   o) OUTPUT=$OPTARG ;;
+  A) OTHER_ARGS=$OPTARG ;;
   \?)
     exit_abnormal "Invalid option: -$OPTARG" 1
     ;;
@@ -71,13 +73,13 @@ if [ $PAIRED = "true" ]; then
     --genomeDir "$REFERENCE_DIR" --sjdbGTFfile "$GTF_FILE" \
     --sjdbOverhang "$MAX_SIZE" --outSAMtype BAM SortedByCoordinate --outSAMunmapped Within \
     --readFilesIn "$INPUT_1" "$INPUT_2" \
-    --outFileNamePrefix "$TEMP_DIR" || exit_abnormal "An error occurred during STAR execution!" 9
+    --outFileNamePrefix "$TEMP_DIR" $OTHER_ARGS || exit_abnormal "An error occurred during STAR execution!" 9
 else
   STAR --runThreadN "$THREADS" --runMode alignReads \
     --genomeDir "$REFERENCE_DIR" --sjdbGTFfile "$GTF_FILE" \
     --sjdbOverhang "$MAX_SIZE" --outSAMtype BAM SortedByCoordinate --outSAMunmapped Within \
     --readFilesIn "$INPUT_1" \
-    --outFileNamePrefix "$TEMP_DIR" || exit_abnormal "An error occurred during STAR execution!" 9
+    --outFileNamePrefix "$TEMP_DIR" $OTHER_ARGS || exit_abnormal "An error occurred during STAR execution!" 9
 fi
 
 [ ! -f "$TEMP_DIR/Aligned.sortedByCoord.out.bam" ] && exit_abnormal "Unable to find STAR output file!" 10

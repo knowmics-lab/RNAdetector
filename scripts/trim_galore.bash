@@ -11,8 +11,8 @@
 ##############################################################################
 
 HARD_TRIM=false
-
-while getopts ":q:l:f:s:t:o:h" opt; do
+OTHER_ARGS=""
+while getopts ":q:l:f:s:t:o:A:h" opt; do
   case $opt in
   q) QUALITY=$OPTARG ;;
   l) LENGTH=$OPTARG ;;
@@ -21,6 +21,7 @@ while getopts ":q:l:f:s:t:o:h" opt; do
   t) THREADS=$OPTARG ;;
   o) OUTPUT=$OPTARG ;;
   h) HARD_TRIM=true ;;
+  A) OTHER_ARGS=$OPTARG ;;
   \?)
     echo "Invalid option: -$OPTARG"
     exit 1
@@ -83,7 +84,8 @@ INPUT_1_NAME=$(basename -- "$INPUT_1")
 INPUT_1_EXTENSION="${INPUT_1_NAME##*.}"
 INPUT_1_BASENAME=$(basename "$INPUT_1_NAME" ".$INPUT_1_EXTENSION")
 if [ $PAIRED = "true" ]; then
-  if ! trim_galore -j $THREADS -q $QUALITY --paired -o "$OUTPUT" --dont_gzip --phred33 --length $LENGTH --no_report_file "$INPUT_1" "$INPUT_2"; then
+  # shellcheck disable=SC2086
+  if ! trim_galore -j $THREADS -q $QUALITY --paired -o "$OUTPUT" --dont_gzip --phred33 --length $LENGTH --no_report_file $OTHER_ARGS "$INPUT_1" "$INPUT_2"; then
     echo "An error occurred during trim_galore execution!"
     exit 10
   fi
@@ -91,7 +93,8 @@ if [ $PAIRED = "true" ]; then
     INPUT_2_NAME=$(basename -- "$INPUT_2")
     INPUT_2_EXTENSION="${INPUT_2_NAME##*.}"
     INPUT_2_BASENAME=$(basename "$INPUT_2_NAME" ".$INPUT_2_EXTENSION")
-    if ! trim_galore -j $THREADS --paired -o "$OUTPUT" --dont_gzip --hardtrim5 $LENGTH --no_report_file "$OUTPUT/${INPUT_1_BASENAME}_val_1.fq" "$OUTPUT/${INPUT_2_BASENAME}_val_2.fq"; then
+    # shellcheck disable=SC2086
+    if ! trim_galore -j $THREADS --paired -o "$OUTPUT" --dont_gzip --hardtrim5 $LENGTH --no_report_file $OTHER_ARGS "$OUTPUT/${INPUT_1_BASENAME}_val_1.fq" "$OUTPUT/${INPUT_2_BASENAME}_val_2.fq"; then
       echo "Failed to run trim_galore"
       exit 7
     fi
@@ -111,12 +114,14 @@ if [ $PAIRED = "true" ]; then
     mv "$OUT_FILE" "$OUTPUT/${INPUT_2_BASENAME}_val_2.fq"
   fi
 else
-  if ! trim_galore -j $THREADS -q $QUALITY -o "$OUTPUT" --dont_gzip --phred33 --length $LENGTH --no_report_file "$INPUT_1"; then
+  # shellcheck disable=SC2086
+  if ! trim_galore -j $THREADS -q $QUALITY -o "$OUTPUT" --dont_gzip --phred33 --length $LENGTH --no_report_file $OTHER_ARGS "$INPUT_1"; then
     echo "An error occurred during trim_galore execution!"
     exit 10
   fi
   if [ $HARD_TRIM = "true" ]; then
-    if ! trim_galore -j $THREADS -o "$OUTPUT" --dont_gzip --hardtrim5 $LENGTH --no_report_file "$OUTPUT/${INPUT_1_BASENAME}_trimmed.fq"; then
+    # shellcheck disable=SC2086
+    if ! trim_galore -j $THREADS -o "$OUTPUT" --dont_gzip --hardtrim5 $LENGTH --no_report_file $OTHER_ARGS "$OUTPUT/${INPUT_1_BASENAME}_trimmed.fq"; then
       echo "Failed to run trim_galore"
       exit 7
     fi

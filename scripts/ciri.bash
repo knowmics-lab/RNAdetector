@@ -13,9 +13,10 @@
 #   -h HARMONIZED output file
 #   -b BED file for annotation
 ##############################################################################
+OTHER_ARGS=""
 PAIRED=false
 VERSION=v2
-while getopts "p1a:i:t:o:f:m:x:h:b:" opt; do
+while getopts "p1a:i:t:o:f:m:x:h:b:A:" opt; do
   case $opt in
   p) PAIRED=true ;;
   1) VERSION=v1 ;;
@@ -28,6 +29,7 @@ while getopts "p1a:i:t:o:f:m:x:h:b:" opt; do
   x) MAP_FILE=$OPTARG ;;
   h) HARMONIZED=$OPTARG ;;
   b) BED_FILE=$OPTARG ;;
+  A) OTHER_ARGS=$OPTARG ;;
   \?)
     echo "Invalid option: -$OPTARG"
     exit 1
@@ -84,19 +86,22 @@ fi
 
 if [ "$VERSION" = "v1" ]; then
   if [ "$PAIRED" = "true" ]; then
-    if ! perl /usr/local/bin/CIRI1.pl -P -I "$INPUT_SAM_FILE" -A "$GTF_FILE" -F "$FASTA_FILE" -M "$SPANNING" -O "$OUTPUT"; then
+    # shellcheck disable=SC2086
+    if ! perl /usr/local/bin/CIRI1.pl -P -I "$INPUT_SAM_FILE" -A "$GTF_FILE" -F "$FASTA_FILE" -M "$SPANNING" -O "$OUTPUT" $OTHER_ARGS; then
       echo "CIRI returned non zero exit code!"
       exit 5
     fi
   else
-    if ! perl /usr/local/bin/CIRI1.pl -S -I "$INPUT_SAM_FILE" -A "$GTF_FILE" -F "$FASTA_FILE" -M "$SPANNING" -O "$OUTPUT"; then
+    # shellcheck disable=SC2086
+    if ! perl /usr/local/bin/CIRI1.pl -S -I "$INPUT_SAM_FILE" -A "$GTF_FILE" -F "$FASTA_FILE" -M "$SPANNING" -O "$OUTPUT" $OTHER_ARGS; then
       echo "CIRI returned non zero exit code!"
       exit 5
     fi
 
   fi
 else
-  if ! perl /usr/local/bin/CIRI2.pl -I "$INPUT_SAM_FILE" -A "$GTF_FILE" -F "$FASTA_FILE" -S "$SPANNING" -O "$OUTPUT" -T $THREADS; then
+  # shellcheck disable=SC2086
+  if ! perl /usr/local/bin/CIRI2.pl -I "$INPUT_SAM_FILE" -A "$GTF_FILE" -F "$FASTA_FILE" -S "$SPANNING" -O "$OUTPUT" -T "$THREADS" $OTHER_ARGS; then
     echo "CIRI returned non zero exit code!"
     exit 5
   fi
@@ -110,12 +115,12 @@ fi
 
 chmod 777 "$OUTPUT"
 
-if [ ! -z "$HARMONIZED" ]; then
+if [ -n "$HARMONIZED" ]; then
   CURR_DIR=$(pwd)
   SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-  cd $CURR_DIR
-  if [ ! -z "$MAP_FILE" ] && [ -f "$MAP_FILE" ]; then
-    if [ ! -z "$BED_FILE" ] && [ -f "$BED_FILE" ]; then
+  cd "$CURR_DIR" || exit 10
+  if [ -n "$MAP_FILE" ] && [ -f "$MAP_FILE" ]; then
+    if [ -n "$BED_FILE" ] && [ -f "$BED_FILE" ]; then
       if ! Rscript "${SCRIPT_PATH}/harmonize.R" -i "$OUTPUT" -a "ciri" -o "$HARMONIZED" -g "$BED_FILE" -m "$MAP_FILE"; then
         echo "Unable to harmonize output file"
         exit 10
@@ -127,7 +132,7 @@ if [ ! -z "$HARMONIZED" ]; then
       fi
     fi
   else
-    if [ ! -z "$BED_FILE" ] && [ -f "$BED_FILE" ]; then
+    if [ -n "$BED_FILE" ] && [ -f "$BED_FILE" ]; then
       if ! Rscript "${SCRIPT_PATH}/harmonize.R" -i "$OUTPUT" -a "ciri" -o "$HARMONIZED" -g "$BED_FILE"; then
         echo "Unable to harmonize output file"
         exit 10
