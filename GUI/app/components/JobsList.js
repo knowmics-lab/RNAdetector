@@ -394,7 +394,7 @@ class JobsList extends React.Component<Props, State> {
                 },
                 'actions'
               ]}
-              autoRefresh
+              autoRefresh={!logsOpen}
               autoRefreshCondition={data => {
                 const filtered = data
                   .map(d => d.status)

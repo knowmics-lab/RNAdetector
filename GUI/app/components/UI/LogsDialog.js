@@ -34,54 +34,63 @@ function InternalLogsDialog({
   jobs,
   requestJob
 }: InternalLogsDialogProps) {
-  const logRef = React.createRef();
   const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
+  const logRef = React.createRef();
   const fnRequestJob = () => {
     if (jobId) requestJob(jobId, true);
   };
   const [first, setFirst] = React.useState(true);
   const [timeout, setTimeout] = React.useState(30);
   const [timer, setTimer] = React.useState();
-  const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const isOpen = !!jobId && open;
   const hasJob = jobId && has(jobs.items, jobId);
-  const startTimer = (val: ?number = null) => {
-    if (timer) {
-      clearInterval(timer);
-    }
-    setTimer(setInterval(fnRequestJob, (val || timeout) * 1000));
-  };
-  const stopTimer = () => {
+  const startTimer = React.useCallback(
+    (val: ?number = null) => {
+      if (timer) {
+        clearInterval(timer);
+      }
+      setTimer(setInterval(fnRequestJob, (val || timeout) * 1000));
+    },
+    [timer, timeout]
+  );
+  const stopTimer = React.useCallback(() => {
     if (timer) {
       clearInterval(timer);
       setTimer(null);
     }
-  };
-  const handleTimeoutChange = e => {
-    const val = +e.target.value;
-    if (timeout !== val) {
-      setTimeout(val);
-      if (timer) startTimer(val);
-    }
-  };
-  const internalOnClose = () => {
+  }, [timer]);
+  const handleTimeoutChange = React.useCallback(
+    e => {
+      const val = +e.target.value;
+      if (timeout !== val) {
+        setTimeout(val);
+        if (timer) startTimer(val);
+      }
+    },
+    [timeout, timer]
+  );
+  const internalOnClose = React.useCallback(() => {
     stopTimer();
     setFirst(true);
     onClose();
-  };
+  }, []);
   const needsRefresh =
     jobId && hasJob && jobs.items[jobId].status === 'processing';
   const doRequestJob = isOpen && !hasJob && !jobs.fetching;
   const doStartTimer = isOpen && !timer && needsRefresh;
   const doStopTimer =
     (!isOpen && timer && needsRefresh) || (isOpen && timer && !needsRefresh);
-  if (doRequestJob) fnRequestJob();
-  if (doStartTimer) startTimer();
-  if (doStopTimer) stopTimer();
-  if (isOpen && first) {
-    fnRequestJob();
-    setFirst(false);
-  }
+
+  React.useEffect(() => {
+    if (doRequestJob) fnRequestJob();
+    if (doStartTimer) startTimer();
+    if (doStopTimer) stopTimer();
+    if (isOpen && first) {
+      fnRequestJob();
+      setFirst(false);
+    }
+  }, [doRequestJob, doStartTimer, doStopTimer, isOpen, first]);
 
   React.useEffect(() => {
     if (logRef.current) {
