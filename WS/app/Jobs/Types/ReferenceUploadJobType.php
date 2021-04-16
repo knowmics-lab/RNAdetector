@@ -24,15 +24,21 @@ class ReferenceUploadJobType extends AbstractJob
     public static function parametersSpec(): array
     {
         return [
-            'name'      => 'A name for this reference sequence',
-            'fastaFile' => 'The fasta file for this reference sequence',
-            'index'     => [
+            'name'             => 'A name for this reference sequence',
+            'fastaFile'        => 'The fasta file for this reference sequence',
+            'index'            => [
                 'bwa'    => 'A boolean for enabling bwa indexing',
                 'salmon' => 'A boolean for enabling salmon indexing',
                 'hisat'  => 'A boolean for enabling hisat2 indexing',
                 'star'   => 'A boolean for enabling STAR indexing',
             ],
-            'map_file'  => 'An optional map file (tab-separated with two columns) where each line contains the ID of a transcript/gene and its Entrez Gene Id (Mirbase mature name for miRNAs).',
+            'custom_arguments' => [
+                'bwa'    => 'An optional string containing custom arguments for bwa command line call',
+                'salmon' => 'An optional string containing custom arguments for salmon command line call',
+                'hisat'  => 'An optional string containing custom arguments for HISAT2 command line call',
+                'star'   => 'An optional string containing custom arguments for STAR command line call',
+            ],
+            'map_file'         => 'An optional map file (tab-separated with two columns) where each line contains the ID of a transcript/gene and its Entrez Gene Id (Mirbase mature name for miRNAs).',
         ];
     }
 
@@ -66,14 +72,19 @@ class ReferenceUploadJobType extends AbstractJob
     public static function validationSpec(Request $request): array
     {
         return [
-            'name'         => ['required', 'alpha_dash', 'max:255'],
-            'fastaFile'    => ['required', 'string'],
-            'index'        => ['required', 'array'],
-            'index.bwa'    => ['filled', 'boolean'],
-            'index.salmon' => ['filled', 'boolean'],
-            'index.hisat'  => ['filled', 'boolean'],
-            'index.star'   => ['filled', 'boolean'],
-            'map_file'     => ['nullable', 'string'],
+            'name'                    => ['required', 'alpha_dash', 'max:255'],
+            'fastaFile'               => ['required', 'string'],
+            'index'                   => ['required', 'array'],
+            'index.bwa'               => ['filled', 'boolean'],
+            'index.salmon'            => ['filled', 'boolean'],
+            'index.hisat'             => ['filled', 'boolean'],
+            'index.star'              => ['filled', 'boolean'],
+            'custom_arguments'        => ['filled', 'array'],
+            'custom_arguments.bwa'    => ['filled', 'string'],
+            'custom_arguments.salmon' => ['filled', 'string'],
+            'custom_arguments.hisat'  => ['filled', 'string'],
+            'custom_arguments.star'   => ['filled', 'string'],
+            'map_file'                => ['nullable', 'string'],
         ];
     }
 
@@ -108,15 +119,18 @@ class ReferenceUploadJobType extends AbstractJob
     private function indexBWA(string $referenceFilename, string $referenceDirname): void
     {
         $this->log('Indexing reference for bwa.');
-        $output = self::runCommand(
-            [
-                'bash',
-                self::scriptPath('bwa_index.sh'),
-                '-f',
-                $referenceFilename,
-                '-p',
-                $referenceDirname . '/reference',
-            ],
+        self::runCommand(
+            $this->appendCustomArguments(
+                [
+                    'bash',
+                    self::scriptPath('bwa_index.sh'),
+                    '-f',
+                    $referenceFilename,
+                    '-p',
+                    $referenceDirname . '/reference',
+                ],
+                'custom_arguments.bwa'
+            ),
             $this->model->getAbsoluteJobDirectory(),
             null,
             function ($type, $buffer) {
@@ -141,15 +155,18 @@ class ReferenceUploadJobType extends AbstractJob
     private function indexSalmon(string $referenceFilename, string $referenceDirname): void
     {
         $this->log('Indexing reference for Salmon.');
-        $output = self::runCommand(
-            [
-                'bash',
-                self::scriptPath('salmon_index_2.sh'),
-                '-r',
-                $referenceFilename,
-                '-i',
-                $referenceDirname . '/reference',
-            ],
+        self::runCommand(
+            $this->appendCustomArguments(
+                [
+                    'bash',
+                    self::scriptPath('salmon_index_2.sh'),
+                    '-r',
+                    $referenceFilename,
+                    '-i',
+                    $referenceDirname . '/reference',
+                ],
+                'custom_arguments.salmon'
+            ),
             $this->model->getAbsoluteJobDirectory(),
             null,
             function ($type, $buffer) {
@@ -173,15 +190,18 @@ class ReferenceUploadJobType extends AbstractJob
     private function indexHisat(string $referenceFilename, string $referenceDirname): void
     {
         $this->log('Indexing reference for Hisat 2.');
-        $output = self::runCommand(
-            [
-                'bash',
-                self::scriptPath('hisat_index.sh'),
-                '-f',
-                $referenceFilename,
-                '-p',
-                $referenceDirname . '/reference',
-            ],
+        self::runCommand(
+            $this->appendCustomArguments(
+                [
+                    'bash',
+                    self::scriptPath('hisat_index.sh'),
+                    '-f',
+                    $referenceFilename,
+                    '-p',
+                    $referenceDirname . '/reference',
+                ],
+                'custom_arguments.hisat'
+            ),
             $this->model->getAbsoluteJobDirectory(),
             null,
             function ($type, $buffer) {
@@ -208,14 +228,17 @@ class ReferenceUploadJobType extends AbstractJob
     {
         $this->log('Indexing reference for STAR.');
         self::runCommand(
-            [
-                'bash',
-                self::scriptPath('star_index.sh'),
-                '-f',
-                $referenceFilename,
-                '-p',
-                $referenceDirname . '/reference',
-            ],
+            $this->appendCustomArguments(
+                [
+                    'bash',
+                    self::scriptPath('star_index.sh'),
+                    '-f',
+                    $referenceFilename,
+                    '-p',
+                    $referenceDirname . '/reference',
+                ],
+                'custom_arguments.star'
+            ),
             $this->model->getAbsoluteJobDirectory(),
             null,
             function ($type, $buffer) {

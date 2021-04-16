@@ -48,6 +48,10 @@ if [ ! -w "$(dirname "$PREFIX_OUTPUT")" ]; then
   exit 5
 fi
 
+if [ -n "$OTHER_ARGS" ]; then
+  echo "Processing with custom arguments: \"${OTHER_ARGS}\""
+fi
+
 [ ! -f "$FASTA_FILE.fai" ] && samtools faidx "$FASTA_FILE" && chmod 777 "$FASTA_FILE.fai"
 
 REFERENCE_DIR="${PREFIX_OUTPUT}_star"

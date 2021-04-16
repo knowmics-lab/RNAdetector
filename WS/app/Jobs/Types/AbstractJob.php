@@ -395,6 +395,32 @@ abstract class AbstractJob
     }
 
     /**
+     * Append all custom arguments to the end of a command line call.
+     *
+     * @param  array  $commandLine
+     * @param  string  $modelParameter
+     * @param  string  $commandLineParameter
+     *
+     * @return array
+     */
+    protected function appendCustomArguments(
+        array $commandLine,
+        string $modelParameter = 'custom_arguments',
+        string $commandLineParameter = '-A'
+    ): array {
+        $customArgs = $this->model->getParameter($modelParameter);
+        if (is_string($customArgs)) {
+            $customArgs = trim($customArgs);
+        }
+        if (!empty($customArgs)) {
+            $commandLine[] = $commandLineParameter;
+            $commandLine[] = $customArgs;
+        }
+
+        return $commandLine;
+    }
+
+    /**
      * Runs a shell command and checks for successful completion of execution
      *
      * @param  array  $command

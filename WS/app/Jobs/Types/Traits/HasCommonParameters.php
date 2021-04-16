@@ -26,15 +26,16 @@ trait HasCommonParameters
     private static function commonParametersSpec(): array
     {
         return [
-            'paired'          => 'A boolean value to indicate whether sequencing strategy is paired-ended or not (Default false)',
-            'firstInputFile'  => 'Required, input file for the analysis. FASTQ or BAM',
-            'secondInputFile' => 'Required if paired is true and inputType is fastq. The second reads file',
-            'inputType'       => 'Required, type of the input file (fastq, bam)',
-            'convertBam'      => 'If inputType is bam converts input in another format: fastq.',
-            'trimGalore'      => [
-                'enable'  => 'A boolean value to indicate whether trim galore should run (This parameter works only for fastq files)',
-                'quality' => 'Minimal PHREAD quality for trimming (Default 20)',
-                'length'  => 'Minimal reads length (Default 14)',
+            'paired'           => 'A boolean value to indicate whether sequencing strategy is paired-ended or not (Default false)',
+            'firstInputFile'   => 'Required, input file for the analysis. FASTQ or BAM',
+            'secondInputFile'  => 'Required if paired is true and inputType is fastq. The second reads file',
+            'inputType'        => 'Required, type of the input file (fastq, bam)',
+            'convertBam'       => 'If inputType is bam converts input in another format: fastq.',
+            'trimGalore'       => [
+                'enable'           => 'A boolean value to indicate whether trim galore should run (This parameter works only for fastq files)',
+                'quality'          => 'Minimal PHREAD quality for trimming (Default 20)',
+                'length'           => 'Minimal reads length (Default 14)',
+                'custom_arguments' => 'An optional string containing custom arguments for trim-galore',
             ],
         ];
     }
@@ -42,7 +43,7 @@ trait HasCommonParameters
     /**
      * Get the common parameters laravel validation array
      *
-     * @param \Illuminate\Http\Request $request
+     * @param  \Illuminate\Http\Request  $request
      *
      * @return array
      */
@@ -51,9 +52,9 @@ trait HasCommonParameters
         $parameters = (array)$request->get('parameters', []);
 
         return [
-            'paired'             => ['filled', 'boolean'],
-            'firstInputFile'     => ['required', 'string'],
-            'secondInputFile'    => [
+            'paired'                      => ['filled', 'boolean'],
+            'firstInputFile'              => ['required', 'string'],
+            'secondInputFile'             => [
                 'nullable',
                 Rule::requiredIf(
                     static function () use ($parameters) {
@@ -62,21 +63,22 @@ trait HasCommonParameters
                 ),
                 'string',
             ],
-            'inputType'          => ['required', Rule::in(self::VALID_INPUT_TYPES)],
-            'convertBam'         => ['filled', 'boolean'],
-            'trimGalore'         => ['filled', 'array'],
-            'trimGalore.enable'  => ['filled', 'boolean'],
-            'trimGalore.quality' => ['filled', 'integer'],
-            'trimGalore.length'  => ['filled', 'integer'],
+            'inputType'                   => ['required', Rule::in(self::VALID_INPUT_TYPES)],
+            'convertBam'                  => ['filled', 'boolean'],
+            'trimGalore'                  => ['filled', 'array'],
+            'trimGalore.enable'           => ['filled', 'boolean'],
+            'trimGalore.quality'          => ['filled', 'integer'],
+            'trimGalore.length'           => ['filled', 'integer'],
+            'trimGalore.custom_arguments' => ['filled', 'string'],
         ];
     }
 
     /**
      * Validate the common parameters of an input job
      *
-     * @param \App\Models\Job $model
-     * @param array           $validInputTypes
-     * @param string          $fastQType
+     * @param  \App\Models\Job  $model
+     * @param  array  $validInputTypes
+     * @param  string  $fastQType
      *
      * @return bool
      */

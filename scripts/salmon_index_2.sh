@@ -31,6 +31,10 @@ fi
 
 [ ! -f "$FASTA.fai" ] && samtools faidx "$FASTA" && chmod 777 "$FASTA.fai"
 
+if [ -n "$OTHER_ARGS" ]; then
+  echo "Processing with custom arguments: \"${OTHER_ARGS}\""
+fi
+
 #### Indexed transcriptome ####
 # shellcheck disable=SC2086
 if ! salmon index -t "$FASTA" -i "$INDEXED_FASTA" -k 31 $OTHER_ARGS 2>/dev/null; then

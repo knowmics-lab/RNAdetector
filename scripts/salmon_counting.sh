@@ -74,6 +74,10 @@ if [ ! -d "$INDEXED_FASTA" ]; then
   exit 7
 fi
 
+if [ -n "$OTHER_ARGS" ]; then
+  echo "Processing with custom arguments: \"${OTHER_ARGS}\""
+fi
+
 #### Counting ####
 OUTPUT_DIR=$(dirname "$OUTPUT")
 TEMP_DIR="$OUTPUT_DIR/TMP"

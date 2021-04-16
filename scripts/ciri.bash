@@ -82,6 +82,10 @@ if [ -z "$SPANNING" ]; then
   SPANNING=200000
 fi
 
+if [ -n "$OTHER_ARGS" ]; then
+  echo "Processing with custom arguments: \"${OTHER_ARGS}\""
+fi
+
 #### circRNA identification ####
 
 if [ "$VERSION" = "v1" ]; then

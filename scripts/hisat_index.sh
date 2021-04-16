@@ -50,6 +50,10 @@ fi
 
 [ ! -f "$FASTA_FILE.fai" ] && samtools faidx "$FASTA_FILE" && chmod 777 "$FASTA_FILE.fai"
 
+if [ -n "$OTHER_ARGS" ]; then
+  echo "Processing with custom arguments: \"${OTHER_ARGS}\""
+fi
+
 #### Genome indexing ####
 # shellcheck disable=SC2086
 if ! hisat2-build $OTHER_ARGS -p "$THREADS" "$FASTA_FILE" "$PREFIX_OUTPUT"; then

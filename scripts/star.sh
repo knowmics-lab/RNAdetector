@@ -58,6 +58,10 @@ fi
 
 REFERENCE_DIR="${REF_GENOME}_star"
 
+if [ -n "$OTHER_ARGS" ]; then
+  echo "Processing with custom arguments: \"${OTHER_ARGS}\""
+fi
+
 #### Alignment ####
 echo "Detecting maximum read size"
 MAX_SIZE=$(awk 'BEGIN {max=0} NR%4 == 2 {if (length($0)>max) {max=length($0)}} END {print max - 1}' "$INPUT_1")

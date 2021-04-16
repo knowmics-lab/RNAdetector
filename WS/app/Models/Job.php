@@ -16,39 +16,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 use Storage;
 
-/**
- * App\Models\Job
- *
- * @property int                             $id
- * @property string                          $sample_code
- * @property string                          $name
- * @property string                          $job_type
- * @property string                          $sample_group_type
- * @property string                          $status
- * @property array                           $job_parameters
- * @property array                           $job_output
- * @property string                          $log
- * @property int                             $user_id
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\User           $user
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job query()
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereSampleCode($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereName($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereJobOutput($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereJobParameters($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereJobType($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereLog($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereStatus($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job whereUserId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Job deepTypeFilter($type)
- * @mixin \Eloquent
- */
 class Job extends Model
 {
 

@@ -40,20 +40,23 @@ class CircRnaJobType extends AbstractJob
         return array_merge(
             self::commonParametersSpec(),
             [
-                'trimGalore'           => [
-                    'enable'   => 'A boolean value to indicate whether trim galore should run (This parameter works only for fastq files)',
-                    'quality'  => 'Minimal PHREAD quality for trimming (Default 20)',
-                    'length'   => 'Minimal reads length (Default 40)',
-                    'hardTrim' => 'A boolean value to indicate if reads should be trimmed to the same size (Default true)',
+                'trimGalore'                 => [
+                    'enable'           => 'A boolean value to indicate whether trim galore should run (This parameter works only for fastq files)',
+                    'quality'          => 'Minimal PHREAD quality for trimming (Default 20)',
+                    'length'           => 'Minimal reads length (Default 40)',
+                    'hardTrim'         => 'A boolean value to indicate if reads should be trimmed to the same size (Default true)',
+                    'custom_arguments' => 'An optional string containing custom arguments for trim-galore',
                 ],
-                'ciriQuant'            => 'An optional boolean to indicate whether to use ciri-quant instead of ciri (Default false)',
-                'genome'               => 'An optional name for a reference genome (Default human hg19)',
-                'annotation'           => 'An optional name for a GTF genome annotation (Default human hg19)',
-                'bedAnnotation'        => 'An optional annotation in BED format for circRNAs junctions. Required for ciriQuant analysis.',
-                'threads'              => 'Number of threads for this analysis (Default 1)',
-                'useFastqPair'         => 'A boolean value to indicate whether to use fastq_pair or bbmap repair (Default false=bbmap repair)',
-                'ciriSpanningDistance' => 'The maximum spanning distance used in CIRI (Default 200000)',
-                'ciriUseVersion1'      => 'A boolean value to indicate whether to use CIRI 1 or CIRI 2 (Default false)',
+                'ciriQuant'                  => 'An optional boolean to indicate whether to use ciri-quant instead of ciri (Default false)',
+                'genome'                     => 'An optional name for a reference genome (Default human hg19)',
+                'annotation'                 => 'An optional name for a GTF genome annotation (Default human hg19)',
+                'bedAnnotation'              => 'An optional annotation in BED format for circRNAs junctions. Required for ciriQuant analysis.',
+                'threads'                    => 'Number of threads for this analysis (Default 1)',
+                'useFastqPair'               => 'A boolean value to indicate whether to use fastq_pair or bbmap repair (Default false=bbmap repair)',
+                'ciriSpanningDistance'       => 'The maximum spanning distance used in CIRI (Default 200000)',
+                'ciriUseVersion1'            => 'A boolean value to indicate whether to use CIRI 1 or CIRI 2 (Default false)',
+                'alignment_custom_arguments' => 'An optional string containing custom arguments for the alignment software',
+                'ciri_custom_arguments'      => 'An optional string containing custom arguments for CIRI',
             ]
         );
     }
@@ -74,13 +77,12 @@ class CircRnaJobType extends AbstractJob
     /**
      * Returns an array containing rules for input validation.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param  \Illuminate\Http\Request  $request
      *
      * @return array
      */
     public static function validationSpec(Request $request): array
     {
-
         $parameters = (array)$request->get('parameters', []);
         $requiredIfQuant = static function () use ($parameters) {
             return (bool)data_get($parameters, 'ciriQuant', false);
@@ -89,15 +91,15 @@ class CircRnaJobType extends AbstractJob
         return array_merge(
             self::commonParametersValidation($request),
             [
-                'trimGalore.length'    => ['filled', 'integer', 'min:40'],
-                'trimGalore.hardTrim'  => ['filled', 'boolean'],
-                'genome'               => ['filled', 'alpha_dash', Rule::exists('references', 'name')],
-                'annotation'           => ['filled', 'alpha_dash', Rule::exists('annotations', 'name')],
-                'threads'              => ['filled', 'integer'],
-                'ciriSpanningDistance' => ['filled', 'integer'],
-                'ciriQuant'            => ['filled', 'boolean'],
-                'bedAnnotation'        => [Rule::requiredIf($requiredIfQuant), Rule::exists('annotations', 'name')],
-                'paired'               => [
+                'trimGalore.length'          => ['filled', 'integer', 'min:40'],
+                'trimGalore.hardTrim'        => ['filled', 'boolean'],
+                'genome'                     => ['filled', 'alpha_dash', Rule::exists('references', 'name')],
+                'annotation'                 => ['filled', 'alpha_dash', Rule::exists('annotations', 'name')],
+                'threads'                    => ['filled', 'integer'],
+                'ciriSpanningDistance'       => ['filled', 'integer'],
+                'ciriQuant'                  => ['filled', 'boolean'],
+                'bedAnnotation'              => [Rule::requiredIf($requiredIfQuant), Rule::exists('annotations', 'name')],
+                'paired'                     => [
                     'filled',
                     'boolean',
                     static function ($attribute, $value, $fail) use ($parameters) {
@@ -107,6 +109,8 @@ class CircRnaJobType extends AbstractJob
                         }
                     },
                 ],
+                'alignment_custom_arguments' => ['filled', 'string'],
+                'ciri_custom_arguments'      => ['filled', 'string'],
             ]
         );
     }
@@ -136,13 +140,13 @@ class CircRnaJobType extends AbstractJob
     /**
      * Runs BWA analysis
      *
-     * @param bool                   $paired
-     * @param string                 $firstInputFile
-     * @param string|null            $secondInputFile
-     * @param \App\Models\Reference  $genome
-     * @param \App\Models\Annotation $annotation
-     * @param int                    $threads
-     * @param bool                   $useFastqPair
+     * @param  bool  $paired
+     * @param  string  $firstInputFile
+     * @param  string|null  $secondInputFile
+     * @param  \App\Models\Reference  $genome
+     * @param  \App\Models\Annotation  $annotation
+     * @param  int  $threads
+     * @param  bool  $useFastqPair
      *
      * @return string
      * @throws \App\Exceptions\ProcessingJobException
@@ -181,8 +185,8 @@ class CircRnaJobType extends AbstractJob
                 $command[] = '-p';
             }
         }
-        $output = self::runCommand(
-            $command,
+        self::runCommand(
+            $this->appendCustomArguments($command, 'alignment_custom_arguments'),
             $this->model->getAbsoluteJobDirectory(),
             null,
             function ($type, $buffer) {
@@ -201,22 +205,20 @@ class CircRnaJobType extends AbstractJob
             throw new ProcessingJobException('Unable to create BWA output file');
         }
 
-        // $this->log($output);
-
         return $samOutput;
     }
 
     /**
      * Runs CIRI analysis
      *
-     * @param string                      $ciriInputFile
-     * @param \App\Models\Reference       $genome
-     * @param \App\Models\Annotation      $annotation
-     * @param int                         $spanningDistance
-     * @param int                         $threads
-     * @param bool                        $paired
-     * @param bool                        $useCiri1
-     * @param \App\Models\Annotation|null $bedAnnotation
+     * @param  string  $ciriInputFile
+     * @param  \App\Models\Reference  $genome
+     * @param  \App\Models\Annotation  $annotation
+     * @param  int  $spanningDistance
+     * @param  int  $threads
+     * @param  bool  $paired
+     * @param  bool  $useCiri1
+     * @param  \App\Models\Annotation|null  $bedAnnotation
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
@@ -266,7 +268,7 @@ class CircRnaJobType extends AbstractJob
         }
         self::addMap($command, $bedAnnotation);
         AbstractJob::runCommand(
-            $command,
+            $this->appendCustomArguments($command, 'ciri_custom_arguments'),
             $this->model->getAbsoluteJobDirectory(),
             null,
             function ($type, $buffer) {
@@ -293,8 +295,8 @@ class CircRnaJobType extends AbstractJob
     /**
      * Make CIRIquant configuration file and returns its path
      *
-     * @param \App\Models\Reference  $reference
-     * @param \App\Models\Annotation $annotation
+     * @param  \App\Models\Reference  $reference
+     * @param  \App\Models\Annotation  $annotation
      *
      * @return string
      * @throws \App\Exceptions\ProcessingJobException
@@ -335,13 +337,13 @@ class CircRnaJobType extends AbstractJob
     }
 
     /**
-     * Runs CIRI analysis
+     * Runs CIRIQuant analysis
      *
-     * @param string                 $firstInputFile
-     * @param string                 $secondInputFile
-     * @param string                 $configFile
-     * @param \App\Models\Annotation $bedAnnotation
-     * @param int                    $threads
+     * @param  string  $firstInputFile
+     * @param  string  $secondInputFile
+     * @param  string  $configFile
+     * @param  \App\Models\Annotation  $bedAnnotation
+     * @param  int  $threads
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
@@ -449,7 +451,7 @@ class CircRnaJobType extends AbstractJob
             $secondInputFile = self::checksForCompression($this->model, $secondInputFile);
             if ($trimGaloreEnable) {
                 $this->log('Trimming reads using TrimGalore');
-                [$firstInputFile, $secondInputFile] = self::runTrimGalore(
+                [$firstInputFile, $secondInputFile] = $this->runTrimGalore(
                     $this->model,
                     $paired,
                     $firstInputFile,

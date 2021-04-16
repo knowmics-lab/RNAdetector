@@ -79,6 +79,10 @@ if [ ! -w "$(dirname "$OUTPUT")" ]; then
   exit 6
 fi
 
+if [ -n "$OTHER_ARGS" ]; then
+  echo "Processing with custom arguments: \"${OTHER_ARGS}\""
+fi
+
 #### Trimming and adaptors removing ####
 INPUT_1_NAME=$(basename -- "$INPUT_1")
 INPUT_1_EXTENSION="${INPUT_1_NAME##*.}"

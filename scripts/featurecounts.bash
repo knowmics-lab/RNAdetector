@@ -65,6 +65,10 @@ if [ ! -w "$(dirname "$OUTPUT")" ]; then
   exit 6
 fi
 
+if [ -n "$OTHER_ARGS" ]; then
+  echo "Processing with custom arguments: \"${OTHER_ARGS}\""
+fi
+
 #### Counting ####
 # shellcheck disable=SC2086
 if ! featureCounts -T $THREADS $OTHER_ARGS -a "$GTF_FILE" -o "$OUTPUT" "$INPUT_BAM"; then

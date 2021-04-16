@@ -7,29 +7,35 @@
 
 namespace App\Jobs\Types\Traits;
 
-
 use App\Exceptions\ProcessingJobException;
 use App\Jobs\Types\AbstractJob;
 use App\Models\Job;
 
 trait RunTrimGaloreTrait
 {
+
+    abstract protected function appendCustomArguments(
+        array $commandLine,
+        string $modelParameter = 'custom_arguments',
+        string $commandLineParameter = '-A'
+    ): array;
+
     /**
      * Call trimGalore using input parameters
      *
-     * @param \App\Models\Job $model
-     * @param bool            $paired
-     * @param string          $firstInputFile
-     * @param string|null     $secondInputFile
-     * @param int             $quality
-     * @param int             $length
-     * @param bool            $hardTrim
-     * @param int             $threads
+     * @param  \App\Models\Job  $model
+     * @param  bool  $paired
+     * @param  string  $firstInputFile
+     * @param  string|null  $secondInputFile
+     * @param  int  $quality
+     * @param  int  $length
+     * @param  bool  $hardTrim
+     * @param  int  $threads
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
      */
-    private static function runTrimGalore(
+    private function runTrimGalore(
         Job $model,
         bool $paired,
         string $firstInputFile,
@@ -63,7 +69,7 @@ trait RunTrimGaloreTrait
             $command[] = '-h';
         }
         AbstractJob::runCommand(
-            $command,
+            $this->appendCustomArguments($command, 'trimGalore.custom_arguments'),
             $model->getAbsoluteJobDirectory(),
             null,
             static function ($type, $buffer) use ($model) {
@@ -95,7 +101,6 @@ trait RunTrimGaloreTrait
                 throw new ProcessingJobException('Unable to create output files');
             }
         }
-        // $model->appendLog($output);
         $model->appendLog('Trimming completed');
 
         return [$firstOutput, $secondOutput];

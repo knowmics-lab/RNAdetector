@@ -60,6 +60,10 @@ if [ ! -w "$(dirname "$OUTPUT")" ]; then
   exit 6
 fi
 
+if [ -n "$OTHER_ARGS" ]; then
+  echo "Processing with arguments: \"${OTHER_ARGS}\""
+fi
+
 #### Counting ####
 # shellcheck disable=SC2086
 if ! htseq-count -f bam $OTHER_ARGS -s no "$INPUT_BAM" "$GTF_FILE" >"$OUTPUT"; then

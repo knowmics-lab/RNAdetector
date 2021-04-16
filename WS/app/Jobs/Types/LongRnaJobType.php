@@ -42,12 +42,14 @@ class LongRnaJobType extends AbstractJob
         return array_merge(
             self::commonParametersSpec(),
             [
-                'algorithm'         => 'Alignment/quantification algorithm: salmon, hisat2, star (Default: star)',
-                'countingAlgorithm' => 'Counting algorithm in case of alignment: htseq, feature-counts, or salmon (Default feature-counts)',
-                'genome'            => 'An optional genome for star or hisat2 (Default: human hg19)',
-                'annotation'        => 'An optional annotation file for counting (Default: human hg19 mRNAs and lncRNAs)',
-                'transcriptome'     => 'An optional transcriptome for quantification with salmon (Default: human hg19 mRNAs and lncRNAs)',
-                'threads'           => 'Number of threads for this analysis (Default 1)',
+                'algorithm'                  => 'Alignment/quantification algorithm: salmon, hisat2, star (Default: star)',
+                'countingAlgorithm'          => 'Counting algorithm in case of alignment: htseq, feature-counts, or salmon (Default feature-counts)',
+                'genome'                     => 'An optional genome for star or hisat2 (Default: human hg19)',
+                'annotation'                 => 'An optional annotation file for counting (Default: human hg19 mRNAs and lncRNAs)',
+                'transcriptome'              => 'An optional transcriptome for quantification with salmon (Default: human hg19 mRNAs and lncRNAs)',
+                'threads'                    => 'Number of threads for this analysis (Default 1)',
+                'alignment_custom_arguments' => 'An optional string containing custom arguments for the alignment software',
+                'counting_custom_arguments'  => 'An optional string containing custom arguments for the counting software',
             ]
         );
     }
@@ -85,12 +87,14 @@ class LongRnaJobType extends AbstractJob
         return array_merge(
             self::commonParametersValidation($request),
             [
-                'algorithm'         => ['filled', Rule::in(self::VALID_ALIGN_QUANT_METHODS)],
-                'countingAlgorithm' => [Rule::requiredIf($requiredAlignment), Rule::in(self::VALID_COUNTING_METHODS)],
-                'genome'            => ['filled', 'alpha_dash', Rule::exists('references', 'name')],
-                'annotation'        => ['filled', 'alpha_dash', Rule::exists('annotations', 'name')],
-                'transcriptome'     => ['filled', 'alpha_dash', Rule::exists('references', 'name')],
-                'threads'           => ['filled', 'integer'],
+                'algorithm'                  => ['filled', Rule::in(self::VALID_ALIGN_QUANT_METHODS)],
+                'countingAlgorithm'          => [Rule::requiredIf($requiredAlignment), Rule::in(self::VALID_COUNTING_METHODS)],
+                'genome'                     => ['filled', 'alpha_dash', Rule::exists('references', 'name')],
+                'annotation'                 => ['filled', 'alpha_dash', Rule::exists('annotations', 'name')],
+                'transcriptome'              => ['filled', 'alpha_dash', Rule::exists('references', 'name')],
+                'threads'                    => ['filled', 'integer'],
+                'alignment_custom_arguments' => ['filled', 'string'],
+                'counting_custom_arguments'  => ['filled', 'string'],
             ]
         );
     }
@@ -181,7 +185,7 @@ class LongRnaJobType extends AbstractJob
             $secondInputFile = self::checksForCompression($this->model, $secondInputFile);
             [$firstTrimmedFastq, $secondTrimmedFastq] = [$firstInputFile, $secondInputFile];
             if ($trimGaloreEnable) {
-                [$firstTrimmedFastq, $secondTrimmedFastq] = self::runTrimGalore(
+                [$firstTrimmedFastq, $secondTrimmedFastq] = $this->runTrimGalore(
                     $this->model,
                     $paired,
                     $firstInputFile,

@@ -18,16 +18,22 @@ use Storage;
 trait UseAlignmentTrait
 {
 
+    abstract protected function appendCustomArguments(
+        array $commandLine,
+        string $modelParameter = 'custom_arguments',
+        string $commandLineParameter = '-A'
+    ): array;
+
     /**
      * Runs STAR
      *
-     * @param \App\Models\Job        $model
-     * @param bool                   $paired
-     * @param string                 $firstInputFile
-     * @param string|null            $secondInputFile
-     * @param \App\Models\Reference  $genome
-     * @param \App\Models\Annotation $annotation
-     * @param int                    $threads
+     * @param  \App\Models\Job  $model
+     * @param  bool  $paired
+     * @param  string  $firstInputFile
+     * @param  string|null  $secondInputFile
+     * @param  \App\Models\Reference  $genome
+     * @param  \App\Models\Annotation  $annotation
+     * @param  int  $threads
      *
      * @return string
      * @throws \App\Exceptions\ProcessingJobException
@@ -68,7 +74,7 @@ trait UseAlignmentTrait
             $command[] = $secondInputFile;
         }
         AbstractJob::runCommand(
-            $command,
+            $this->appendCustomArguments($command, 'alignment_custom_arguments'),
             $model->getAbsoluteJobDirectory(),
             null,
             static function ($type, $buffer) use ($model) {
@@ -103,12 +109,12 @@ trait UseAlignmentTrait
     /**
      * Runs HISAT
      *
-     * @param \App\Models\Job       $model
-     * @param bool                  $paired
-     * @param string                $firstInputFile
-     * @param string|null           $secondInputFile
-     * @param \App\Models\Reference $genome
-     * @param int                   $threads
+     * @param  \App\Models\Job  $model
+     * @param  bool  $paired
+     * @param  string  $firstInputFile
+     * @param  string|null  $secondInputFile
+     * @param  \App\Models\Reference  $genome
+     * @param  int  $threads
      *
      * @return string
      * @throws \App\Exceptions\ProcessingJobException
@@ -143,7 +149,7 @@ trait UseAlignmentTrait
             $command[] = $secondInputFile;
         }
         AbstractJob::runCommand(
-            $command,
+            $this->appendCustomArguments($command, 'alignment_custom_arguments'),
             $model->getAbsoluteJobDirectory(),
             null,
             static function ($type, $buffer) use ($model) {
@@ -175,13 +181,13 @@ trait UseAlignmentTrait
     /**
      * Runs Salmon
      *
-     * @param \App\Models\Job       $model
-     * @param bool                  $paired
-     * @param string                $firstInputFile
-     * @param string|null           $secondInputFile
-     * @param string                $inputType
-     * @param \App\Models\Reference $transcriptome
-     * @param int                   $threads
+     * @param  \App\Models\Job  $model
+     * @param  bool  $paired
+     * @param  string  $firstInputFile
+     * @param  string|null  $secondInputFile
+     * @param  string  $inputType
+     * @param  \App\Models\Reference  $transcriptome
+     * @param  int  $threads
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
@@ -232,7 +238,7 @@ trait UseAlignmentTrait
                 }
                 AbstractJob::addMap($command, $transcriptome);
                 AbstractJob::runCommand(
-                    $command,
+                    $this->appendCustomArguments($command, 'alignment_custom_arguments'),
                     $model->getAbsoluteJobDirectory(),
                     null,
                     static function ($type, $buffer) use ($model) {
@@ -270,7 +276,7 @@ trait UseAlignmentTrait
                 ];
                 AbstractJob::addMap($command, $transcriptome);
                 AbstractJob::runCommand(
-                    $command,
+                    $this->appendCustomArguments($command, 'alignment_custom_arguments'),
                     $model->getAbsoluteJobDirectory(),
                     null,
                     static function ($type, $buffer) use ($model) {

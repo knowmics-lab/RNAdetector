@@ -20,13 +20,19 @@ trait UseCountingTrait
 
     use ConvertsBamToFastqTrait;
 
+    abstract protected function appendCustomArguments(
+        array $commandLine,
+        string $modelParameter = 'custom_arguments',
+        string $commandLineParameter = '-A'
+    ): array;
+
     /**
      * Runs HTseq-count
      *
-     * @param \App\Models\Job        $model
-     * @param string                 $countingInputFile
-     * @param \App\Models\Annotation $annotation
-     * @param int                    $threads
+     * @param  \App\Models\Job  $model
+     * @param  string  $countingInputFile
+     * @param  \App\Models\Annotation  $annotation
+     * @param  int  $threads
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
@@ -59,7 +65,7 @@ trait UseCountingTrait
         ];
         AbstractJob::addMap($command, $annotation);
         AbstractJob::runCommand(
-            $command,
+            $this->appendCustomArguments($command, 'counting_custom_arguments'),
             $model->getAbsoluteJobDirectory(),
             null,
             static function ($type, $buffer) use ($model) {
@@ -81,7 +87,6 @@ trait UseCountingTrait
         if (!file_exists($harmonized)) {
             throw new ProcessingJobException('Unable to create harmonized output file');
         }
-        // $model->appendLog($output);
         $model->appendLog('Counting completed.');
 
         return [$htseqOutputRelative, $htseqOutputUrl, $harmonizedRelative, $harmonizedUrl];
@@ -90,10 +95,10 @@ trait UseCountingTrait
     /**
      * Runs FeatureCount
      *
-     * @param \App\Models\Job        $model
-     * @param string                 $countingInputFile
-     * @param \App\Models\Annotation $annotation
-     * @param int                    $threads
+     * @param  \App\Models\Job  $model
+     * @param  string  $countingInputFile
+     * @param  \App\Models\Annotation  $annotation
+     * @param  int  $threads
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
@@ -126,7 +131,7 @@ trait UseCountingTrait
         ];
         AbstractJob::addMap($command, $annotation);
         AbstractJob::runCommand(
-            $command,
+            $this->appendCustomArguments($command, 'counting_custom_arguments'),
             $model->getAbsoluteJobDirectory(),
             null,
             static function ($type, $buffer) use ($model) {
@@ -157,11 +162,11 @@ trait UseCountingTrait
     /**
      * Run salmon for counting
      *
-     * @param \App\Models\Job       $model
-     * @param bool                  $paired
-     * @param string                $inputFile
-     * @param \App\Models\Reference $transcriptome
-     * @param int                   $threads
+     * @param  \App\Models\Job  $model
+     * @param  bool  $paired
+     * @param  string  $inputFile
+     * @param  \App\Models\Reference  $transcriptome
+     * @param  int  $threads
      *
      * @return array
      * @throws \App\Exceptions\ProcessingJobException
@@ -204,7 +209,7 @@ trait UseCountingTrait
         }
         AbstractJob::addMap($command, $transcriptome);
         AbstractJob::runCommand(
-            $command,
+            $this->appendCustomArguments($command, 'counting_custom_arguments'),
             $model->getAbsoluteJobDirectory(),
             null,
             static function ($type, $buffer) use ($model) {

@@ -12,28 +12,6 @@ use Illuminate\Database\Eloquent\Model;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 
-/**
- * App\Models\Reference
- *
- * @property int                             $id
- * @property string                          $name
- * @property string                          $path
- * @property string|null                     $map_path
- * @property array                           $available_for
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @method static Builder|Reference newModelQuery()
- * @method static Builder|Reference newQuery()
- * @method static Builder|Reference query()
- * @method static Builder|Reference whereAvailableFor($value)
- * @method static Builder|Reference whereCreatedAt($value)
- * @method static Builder|Reference whereId($value)
- * @method static Builder|Reference whereName($value)
- * @method static Builder|Reference wherePath($value)
- * @method static Builder|Reference whereMapPath($value)
- * @method static Builder|Reference whereUpdatedAt($value)
- * @mixin \Eloquent
- */
 class Reference extends Model
 {
 

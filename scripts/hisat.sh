@@ -62,6 +62,10 @@ if [ ! -w "$(dirname "$OUTPUT")" ]; then
   exit 6
 fi
 
+if [ -n "$OTHER_ARGS" ]; then
+  echo "Processing with custom arguments: \"${OTHER_ARGS}\""
+fi
+
 #### Alignment ####
 TMP_OUTPUT="$(dirname "$OUTPUT")/temp.bam"
 if [ $PAIRED = "true" ]; then

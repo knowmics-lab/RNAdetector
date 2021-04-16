@@ -74,6 +74,10 @@ if [ ! -w "$(dirname "$OUTPUT")" ]; then
   exit 7
 fi
 
+if [ -n "$OTHER_ARGS" ]; then
+  echo "Processing with custom arguments: \"${OTHER_ARGS}\""
+fi
+
 #### Alignment ####
 if [ $PAIRED = "true" ]; then
   if [ "$REPAIR" = true ]; then
