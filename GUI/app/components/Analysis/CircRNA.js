@@ -35,6 +35,9 @@ import SamplesField, {
   prepareFileArray,
   prepareSamplesArray
 } from '../UI/SamplesField';
+import CustomArgumentsField, {
+  ProcessCustomArguments
+} from '../Form/CustomArgumentsField';
 
 type Props = {
   refreshJobs: () => void,
@@ -268,31 +271,43 @@ class CircRNA extends React.Component<Props, State> {
           <>
             <SwitchField label="Enable Trimming?" name="trimGalore.enable" />
             {enable && (
-              <FormGroup row className={classes.formControl}>
-                <Grid
-                  container
-                  justify="center"
-                  alignItems="flex-start"
-                  spacing={1}
-                >
-                  <Grid item xs={6}>
-                    <TextField
-                      label="Min PHREAD quality"
-                      name="trimGalore.quality"
-                      type="number"
-                    />
+              <>
+                <FormGroup row className={classes.formControl}>
+                  <Grid
+                    container
+                    justify="center"
+                    alignItems="flex-start"
+                    spacing={1}
+                  >
+                    <Grid item xs={6}>
+                      <TextField
+                        label="Min PHREAD quality"
+                        name="trimGalore.quality"
+                        type="number"
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        label="Min reads length"
+                        name="trimGalore.length"
+                        type="number"
+                      />
+                    </Grid>
                   </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      label="Min reads length"
-                      name="trimGalore.length"
-                      type="number"
-                    />
-                  </Grid>
-                </Grid>
-              </FormGroup>
+                </FormGroup>
+                <CustomArgumentsField
+                  name="trimGalore.custom_arguments"
+                  labelEnable="Enable Custom Arguments for TrimGalore?"
+                />
+              </>
             )}
           </>
+        )}
+        {!ciriQuant && (
+          <CustomArgumentsField
+            name="alignment_custom_arguments"
+            labelEnable="Enable Custom Arguments for the BWA algorithm?"
+          />
         )}
         {!ciriQuant && (
           <SwitchField label="Use CIRI v. 1?" name="ciriUseVersion1" />
@@ -518,8 +533,27 @@ class CircRNA extends React.Component<Props, State> {
       name,
       samples: samplesData,
       descriptionFile: description,
-      ...params
+      trimGalore: trimGaloreParameters,
+      alignment_custom_arguments: alignmentCustomArguments,
+      ...tempParams
     } = values;
+    const {
+      custom_arguments: trimGaloreCustomArguments,
+      ...trimGalore
+    } = trimGaloreParameters;
+    const params = ProcessCustomArguments(
+      {
+        ...tempParams,
+        trimGalore: ProcessCustomArguments(
+          trimGalore,
+          trimGaloreCustomArguments,
+          'custom_arguments'
+        )
+      },
+      alignmentCustomArguments,
+      'alignment_custom_arguments'
+    );
+
     const isPairedFiles = paired && inputType === 'fastq';
     const { pushNotification, redirect, refreshJobs } = this.props;
 

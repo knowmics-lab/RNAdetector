@@ -36,6 +36,7 @@ export default function TextField({
   placeholder,
   required,
   helperText,
+  multiline,
   ...props
 }: TextFieldProps) {
   const classes = useStyles();
@@ -54,6 +55,7 @@ export default function TextField({
       onBlur={onBlur}
       onChange={onChange}
       value={value}
+      multiline={multiline}
       helperText={touched && error ? error : helperText}
     />
   );

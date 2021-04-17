@@ -45,36 +45,30 @@ function InternalLogsDialog({
   const [timer, setTimer] = React.useState();
   const isOpen = !!jobId && open;
   const hasJob = jobId && has(jobs.items, jobId);
-  const startTimer = React.useCallback(
-    (val: ?number = null) => {
-      if (timer) {
-        clearInterval(timer);
-      }
-      setTimer(setInterval(fnRequestJob, (val || timeout) * 1000));
-    },
-    [timer, timeout]
-  );
-  const stopTimer = React.useCallback(() => {
+  const startTimer = (val: ?number = null) => {
+    if (timer) {
+      clearInterval(timer);
+    }
+    setTimer(setInterval(fnRequestJob, (val || timeout) * 1000));
+  };
+  const stopTimer = () => {
     if (timer) {
       clearInterval(timer);
       setTimer(null);
     }
-  }, [timer]);
-  const handleTimeoutChange = React.useCallback(
-    e => {
-      const val = +e.target.value;
-      if (timeout !== val) {
-        setTimeout(val);
-        if (timer) startTimer(val);
-      }
-    },
-    [timeout, timer]
-  );
-  const internalOnClose = React.useCallback(() => {
+  };
+  const handleTimeoutChange = e => {
+    const val = +e.target.value;
+    if (timeout !== val) {
+      setTimeout(val);
+      if (timer) startTimer(val);
+    }
+  };
+  const internalOnClose = () => {
     stopTimer();
     setFirst(true);
     onClose();
-  }, []);
+  };
   const needsRefresh =
     jobId && hasJob && jobs.items[jobId].status === 'processing';
   const doRequestJob = isOpen && !hasJob && !jobs.fetching;

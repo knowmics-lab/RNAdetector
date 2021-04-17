@@ -39,6 +39,9 @@ import SamplesField, {
   prepareFileArray,
   prepareSamplesArray
 } from '../UI/SamplesField';
+import CustomArgumentsField, {
+  ProcessCustomArguments
+} from '../Form/CustomArgumentsField';
 
 type Props = {
   refreshJobs: () => void,
@@ -309,29 +312,35 @@ class SmallRNA extends React.Component<Props, State> {
           <>
             <SwitchField label="Enable Trimming?" name="trimGalore.enable" />
             {enable && (
-              <FormGroup row className={classes.formControl}>
-                <Grid
-                  container
-                  justify="center"
-                  alignItems="center"
-                  spacing={1}
-                >
-                  <Grid item xs={6}>
-                    <TextField
-                      label="Min PHREAD quality"
-                      name="trimGalore.quality"
-                      type="number"
-                    />
+              <>
+                <FormGroup row className={classes.formControl}>
+                  <Grid
+                    container
+                    justify="center"
+                    alignItems="center"
+                    spacing={1}
+                  >
+                    <Grid item xs={6}>
+                      <TextField
+                        label="Min PHREAD quality"
+                        name="trimGalore.quality"
+                        type="number"
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        label="Min reads length"
+                        name="trimGalore.length"
+                        type="number"
+                      />
+                    </Grid>
                   </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      label="Min reads length"
-                      name="trimGalore.length"
-                      type="number"
-                    />
-                  </Grid>
-                </Grid>
-              </FormGroup>
+                </FormGroup>
+                <CustomArgumentsField
+                  name="trimGalore.custom_arguments"
+                  labelEnable="Enable Custom Arguments for TrimGalore?"
+                />
+              </>
             )}
           </>
         )}
@@ -341,12 +350,22 @@ class SmallRNA extends React.Component<Props, State> {
           options={ALGORITHMS}
           helperText={this.algorithmMessage(values)}
         />
+        <CustomArgumentsField
+          name="alignment_custom_arguments"
+          labelEnable="Enable Custom Arguments for the alignment algorithm?"
+        />
         {(algorithm === 'hisat2' || algorithm === 'star') && (
-          <SelectField
-            label="Counting Algorithm"
-            name="countingAlgorithm"
-            options={COUNTING_ALGORITHMS}
-          />
+          <>
+            <SelectField
+              label="Counting Algorithm"
+              name="countingAlgorithm"
+              options={COUNTING_ALGORITHMS}
+            />
+            <CustomArgumentsField
+              name="counting_custom_arguments"
+              labelEnable="Enable Custom Arguments for the counting algorithm?"
+            />
+          </>
         )}
       </>
     );
@@ -542,8 +561,32 @@ class SmallRNA extends React.Component<Props, State> {
       name,
       samples: samplesData,
       descriptionFile: description,
-      ...params
+      trimGalore: trimGaloreParameters,
+      alignment_custom_arguments: alignmentCustomArguments,
+      counting_custom_arguments: countingCustomArguments,
+      ...tempParams
     } = values;
+    const {
+      custom_arguments: trimGaloreCustomArguments,
+      ...trimGalore
+    } = trimGaloreParameters;
+    const params = ProcessCustomArguments(
+      ProcessCustomArguments(
+        {
+          ...tempParams,
+          trimGalore: ProcessCustomArguments(
+            trimGalore,
+            trimGaloreCustomArguments,
+            'custom_arguments'
+          )
+        },
+        alignmentCustomArguments,
+        'alignment_custom_arguments'
+      ),
+      countingCustomArguments,
+      'counting_custom_arguments'
+    );
+
     const isPairedFiles = paired && inputType === 'fastq';
     const { pushNotification, redirect, refreshJobs } = this.props;
     const filteredParams = Common.filterParamsByAlgorithm(params);
@@ -638,10 +681,22 @@ class SmallRNA extends React.Component<Props, State> {
                 trimGalore: {
                   enable: true,
                   quality: 20,
-                  length: 14
+                  length: 14,
+                  custom_arguments: {
+                    enable: false,
+                    value: ''
+                  }
                 },
                 algorithm: 'star',
+                alignment_custom_arguments: {
+                  enable: false,
+                  value: ''
+                },
                 countingAlgorithm: 'feature-counts',
+                counting_custom_arguments: {
+                  enable: false,
+                  value: ''
+                },
                 genome: 'Human_hg19_genome',
                 transcriptome: 'Human_hg19_transcriptome',
                 annotation: 'Human_hg19_gencode_19_gtf',

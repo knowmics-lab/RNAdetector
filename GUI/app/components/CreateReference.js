@@ -21,6 +21,9 @@ import Wizard from './UI/Wizard';
 import FileSelector from './UI/FileSelector';
 import type { File } from './UI/FileSelector';
 import UploadProgress from './UI/UploadProgress';
+import CustomArgumentsField, {
+  ProcessCustomArguments
+} from './Form/CustomArgumentsField';
 
 type Props = {
   refreshJobs: () => void,
@@ -122,8 +125,9 @@ class CreateReference extends React.Component<Props, State> {
     );
   };
 
-  getStep1 = () => {
+  getStep1 = values => {
     const { classes } = this.props;
+    const { availableFor } = values;
     return (
       <>
         <Typography className={classes.instructions}>
@@ -143,6 +147,30 @@ class CreateReference extends React.Component<Props, State> {
           multiple
           required
         />
+        {availableFor.includes('bwa') && (
+          <CustomArgumentsField
+            name="custom_arguments.bwa"
+            labelEnable="Enable Custom Arguments for BWA indexing?"
+          />
+        )}
+        {availableFor.includes('hisat') && (
+          <CustomArgumentsField
+            name="custom_arguments.hisat"
+            labelEnable="Enable Custom Arguments for HISAT2 indexing?"
+          />
+        )}
+        {availableFor.includes('salmon') && (
+          <CustomArgumentsField
+            name="custom_arguments.salmon"
+            labelEnable="Enable Custom Arguments for Salmon indexing?"
+          />
+        )}
+        {availableFor.includes('star') && (
+          <CustomArgumentsField
+            name="custom_arguments.star"
+            labelEnable="Enable Custom Arguments for STAR indexing?"
+          />
+        )}
       </>
     );
   };
@@ -181,7 +209,9 @@ class CreateReference extends React.Component<Props, State> {
                 title="Select FASTA file"
                 onFileRemove={this.handleFileRemove('fastaFile')}
                 onFileAdd={this.handleFileAdd('fastaFile')}
-                filters={[{ name: 'FASTA files', extensions: ['fa', 'fasta'] }]}
+                filters={[
+                  { name: 'FASTA files', extensions: ['fa', 'fasta', 'gz'] }
+                ]}
                 disabled={isUploading}
               />
             </Grid>
@@ -241,6 +271,16 @@ class CreateReference extends React.Component<Props, State> {
       refreshJobs,
       refreshReferences
     } = this.props;
+    const { availableFor, custom_arguments: customArguments } = values;
+    let finalCustomArguments = {};
+    // eslint-disable-next-line no-restricted-syntax
+    for (const algo of availableFor) {
+      finalCustomArguments = ProcessCustomArguments(
+        finalCustomArguments,
+        customArguments[algo],
+        algo
+      );
+    }
     const { fastaFile, mapFile } = this.state;
     if (!fastaFile) {
       pushNotification('You must select a FASTA file.', 'error');
@@ -250,8 +290,9 @@ class CreateReference extends React.Component<Props, State> {
         const data = await Api.References.create(
           values.name,
           fastaFile.name,
-          values.availableFor,
-          mapFile ? mapFile.name : null
+          availableFor,
+          mapFile ? mapFile.name : null,
+          finalCustomArguments
         );
         if (data.validationErrors) {
           pushNotification(
@@ -319,7 +360,13 @@ class CreateReference extends React.Component<Props, State> {
             <Formik
               initialValues={{
                 name: '',
-                availableFor: []
+                availableFor: [],
+                custom_arguments: {
+                  bwa: { enable: false, value: '' },
+                  salmon: { enable: false, value: '' },
+                  hisat: { enable: false, value: '' },
+                  star: { enable: false, value: '' }
+                }
               }}
               initialErrors={validationErrors}
               validationSchema={this.getValidationSchema()}
@@ -327,13 +374,15 @@ class CreateReference extends React.Component<Props, State> {
                 this.formSubmit(v).catch(() => false);
               }}
             >
-              <Form>
-                <Wizard steps={steps} submitButton={this.getSubmitButton}>
-                  <div>{this.getStep0()}</div>
-                  <div>{this.getStep1()}</div>
-                  <div>{this.getStep2()}</div>
-                </Wizard>
-              </Form>
+              {({ values }) => (
+                <Form>
+                  <Wizard steps={steps} submitButton={this.getSubmitButton}>
+                    <div>{this.getStep0()}</div>
+                    <div>{this.getStep1(values)}</div>
+                    <div>{this.getStep2()}</div>
+                  </Wizard>
+                </Form>
+              )}
             </Formik>
           </Paper>
         </Box>

@@ -6,7 +6,13 @@ import type {
   Reference,
   ReferencesCollection
 } from '../types/references';
-import type { SortingSpec, ResponseType, SimpleMapType } from '../types/common';
+import type {
+  SortingSpec,
+  ResponseType,
+  SimpleMapType,
+  MapType,
+  RecursiveMapType
+} from '../types/common';
 import type { Job } from '../types/jobs';
 import type { Package } from '../types/local';
 
@@ -39,22 +45,27 @@ export default {
     name: string,
     fastaFile: string,
     availableFor: string[],
-    map_file: ?string = null
+    map_file: ?string = null,
+    customArguments: ?SimpleMapType<string> = undefined
   ): Promise<ResponseType<Job>> {
+    const parameters: RecursiveMapType<*> = {
+      name,
+      fastaFile,
+      index: Object.fromEntries(
+        ['bwa', 'hisat', 'salmon', 'star'].map(v => [
+          v,
+          availableFor.includes(v)
+        ])
+      ),
+      map_file
+    };
+    if (customArguments && customArguments !== {}) {
+      parameters.custom_arguments = customArguments;
+    }
     const result = await Connector.callPost('jobs', {
       name: `Create and index reference ${name}`,
       type: 'reference_upload_job_type',
-      parameters: {
-        name,
-        fastaFile,
-        index: Object.fromEntries(
-          ['bwa', 'hisat', 'salmon', 'star'].map(v => [
-            v,
-            availableFor.includes(v)
-          ])
-        ),
-        map_file
-      }
+      parameters
     });
     if (result.validationErrors) {
       return result;

@@ -9,12 +9,15 @@ namespace App\Jobs\Types;
 
 
 use App\Exceptions\ProcessingJobException;
+use App\Jobs\Types\Traits\HandlesCompressedFastqTrait;
 use App\Models\Reference;
 use Illuminate\Http\Request;
 use Storage;
 
 class ReferenceUploadJobType extends AbstractJob
 {
+
+    use HandlesCompressedFastqTrait;
 
     /**
      * Returns an array containing for each input parameter an help detailing its content and use.
@@ -271,6 +274,10 @@ class ReferenceUploadJobType extends AbstractJob
         $index = (array)$this->model->getParameter('index', []);
         $mapFile = $this->model->getParameter('map_file');
         $absoluteSourceFilename = $this->model->getAbsoluteJobDirectory() . '/' . $file;
+        $absoluteSourceFilename = self::checksForCompression($this->model, $absoluteSourceFilename);
+        if ($absoluteSourceFilename === null) {
+            throw new ProcessingJobException("An unknown error occurred!");
+        }
         $referenceDirname = config('rnadetector.reference_path') . '/' . $name;
         $referenceFilename = $referenceDirname . '/reference.fa';
         if (!mkdir($referenceDirname, 0777, true) && !is_dir($referenceDirname)) {
