@@ -10,7 +10,6 @@ import type {
   SortingSpec,
   ResponseType,
   SimpleMapType,
-  MapType,
   RecursiveMapType
 } from '../types/common';
 import type { Job } from '../types/jobs';
@@ -59,7 +58,7 @@ export default {
       ),
       map_file
     };
-    if (customArguments && customArguments !== {}) {
+    if (customArguments && Object.keys(customArguments).length !== 0) {
       parameters.custom_arguments = customArguments;
     }
     const result = await Connector.callPost('jobs', {
