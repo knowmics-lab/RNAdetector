@@ -56,7 +56,7 @@ fi
 
 #### Genome indexing ####
 # shellcheck disable=SC2086
-if ! hisat2-build $OTHER_ARGS -p "$THREADS" "$FASTA_FILE" "$PREFIX_OUTPUT"; then
+if ! hisat2-build -p "$THREADS" $OTHER_ARGS "$FASTA_FILE" "$PREFIX_OUTPUT"; then
   echo "An error occurred during hisat2-build execution!"
   exit 6
 fi

@@ -60,9 +60,9 @@ REFERENCE_DIR="${PREFIX_OUTPUT}_star"
 
 #### Genome indexing ####
 STAR --runThreadN "$THREADS" \
-  --runMode genomeGenerate \
+  --runMode genomeGenerate $OTHER_ARGS \
   --genomeDir "$REFERENCE_DIR" \
-  --genomeFastaFiles "$FASTA_FILE" $OTHER_ARGS || (
+  --genomeFastaFiles "$FASTA_FILE" || (
   echo "An error occurred during indexing!" && exit 6
 )
 
