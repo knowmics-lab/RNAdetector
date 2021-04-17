@@ -283,7 +283,7 @@ class ReferenceUploadJobType extends AbstractJob
         }
         $referenceDirname = config('rnadetector.reference_path') . '/' . $name;
         $referenceFilename = $referenceDirname . '/reference.fa';
-        if (!mkdir($referenceDirname, 0777, true) && !is_dir($referenceDirname)) {
+        if (!file_exists($referenceDirname) && !mkdir($referenceDirname, 0777, true) && !is_dir($referenceDirname)) {
             throw new ProcessingJobException(sprintf('Directory "%s" was not created', $referenceDirname));
         }
         @chmod($referenceDirname, 0777);
