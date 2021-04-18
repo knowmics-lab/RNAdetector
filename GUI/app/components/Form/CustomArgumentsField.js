@@ -10,7 +10,13 @@ import type { MapType } from '../../types/common';
 const useStyles = makeStyles(theme => ({
   formControl: {
     margin: theme.spacing(1),
-    minWidth: 120
+    minWidth: 120,
+    flexGrow: 1
+  },
+  formIndented: {
+    margin: theme.spacing(1),
+    marginTop: theme.spacing(-2),
+    flexGrow: 1
   }
 }));
 
@@ -54,11 +60,13 @@ export default function CustomArgumentsField({
       <>
         <SwitchField label={labelEnable} name={`${name}.enable`} />
         {!!value && (
-          <TextField
-            label={labelTextField || 'Custom Arguments'}
-            name={`${name}.value`}
-            type="text"
-          />
+          <FormGroup row className={classes.formIndented}>
+            <TextField
+              label={labelTextField || 'Custom Arguments'}
+              name={`${name}.value`}
+              type="text"
+            />
+          </FormGroup>
         )}
       </>
     </FormGroup>
