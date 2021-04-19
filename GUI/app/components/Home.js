@@ -10,7 +10,7 @@ import NERVIANO_LOGO from '../resources/nerviano.png';
 import OHIO_LOGO from '../resources/ohio-logo.png';
 import IOR_LOGO from '../resources/ior-logo.png';
 import { GUI_VERSION } from '../constants/system.json';
-import { Utils } from '../api';
+import { Settings, Utils } from '../api';
 import type { Capabilities } from '../types/common';
 
 type Props = {};
@@ -33,19 +33,24 @@ export default class Home extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      capabilities: undefined
+      capabilities: Utils.capabilities()
     };
   }
 
   componentDidMount() {
     if (!Utils.capabilitiesLoaded()) {
-      ipcRenderer.send('display-blocking-message', {
-        message: 'Loading...',
-        error: false
-      });
+      if (!Settings.isLocal()) {
+        ipcRenderer.send('display-blocking-message', {
+          message: 'Loading...',
+          error: false
+        });
+      }
       let timer;
       const doRefresh = async () => {
         if ((await this.refreshCapabilities()) && timer) {
+          if (!Settings.isLocal()) {
+            ipcRenderer.send('hide-blocking-message');
+          }
           clearInterval(timer);
         }
       };

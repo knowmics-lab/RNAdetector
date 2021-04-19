@@ -15,6 +15,9 @@ export default {
   capabilitiesLoaded() {
     return containerCapabilities !== null;
   },
+  capabilities() {
+    return containerCapabilities;
+  },
   async refreshCapabilities() {
     const response = await Connector.callGet<Capabilities>('sys-info');
     const tmp = response.data.data;
