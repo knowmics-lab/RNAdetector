@@ -1,14 +1,14 @@
-# RNAdetector: a free user-friendly and stand-alone software for RNA-Seq data analysis
+# RNAdetector: a free user-friendly stand-alone and cloud-based system for RNA-Seq data analysis
 <img src="logo/logoRNAdetectorBlack.png" width="300" hight="200"><img src="logo/unict-logo-png-3.png" width="200" hight="100">
 
-***RNAdetector*** is a user-friendly software for the analysis of protein-coding genes and ncRNAs from RNA-Seq data
+***RNAdetector*** is a user-friendly software for the analysis of protein-coding genes and ncRNAs from RNA-Seq data. It can be run as stand-alone application or as a cloud based system.
 ## Performed analyses
 ***RNAdetector*** allows to perform several types of analysis such as:
 - Quantification and normalization
 - Differential expression analysis
 - miRNA-sensitive topological pathway analysis.
 
-***RNAdetector*** supports any organisms whose genomes\transcriptoms have been sequenced. However, some commonly studied species such as ***Human***, ***Mouse***, and ***C.elegans*** are available for download in our remote repository.
+***RNAdetector*** supports any organisms whose genomes\transcriptoms have been sequenced. However, some commonly studied species such as ***Human***, ***Mouse***, and ***C.elegans*** are available for download in our remote repository. The list of organisms will keeped updated.
 
 In any case, ***any other organisms*** can be easily added by uploading their genomes and\or transcriptomes and the genomic coordinates of the RNA molecules intended to be analyzed following the step-by-step procedures detailed in the user interface.
 ## Non-coding RNAs analyzed
