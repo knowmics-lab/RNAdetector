@@ -30,7 +30,7 @@ The genomic annotations of all these above-mentioned classes of ncRNAs are alrea
 - Easy installation and dependencies management
 - Cross-platform (Windows Professional, macOS, Ubuntu) and deployable as ***cloud-based system***
 - Remotely controllable
-[/ Completely off line /]
+<!-- Completely off line -->
 - Graphical User Interface (GUI)
 - Interactive graphical reports with the results of the analysis
 # RNAdetector installation
