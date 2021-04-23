@@ -2,9 +2,8 @@
 import React, { Component } from 'react';
 import TextInfoContent from '@mui-treasury/components/content/textInfo';
 import styled from 'styled-components';
-import GridList from '@material-ui/core/GridList';
-import GridListTile from '@material-ui/core/GridListTile';
 import { ipcRenderer } from 'electron';
+import Grid from '@material-ui/core/Grid';
 import UNICT_LOGO from '../resources/unict.png';
 import NERVIANO_LOGO from '../resources/nerviano.png';
 import OHIO_LOGO from '../resources/ohio-logo.png';
@@ -21,10 +20,7 @@ type State = {
 
 const FooterContainer = styled.div`
   text-align: center;
-  position: fixed;
-  bottom: 0;
-  margin-bottom: 20px;
-  width: 100% !important;
+  margin-top: 200px;
 `;
 
 export default class Home extends Component<Props, State> {
@@ -88,36 +84,36 @@ export default class Home extends Component<Props, State> {
           }`}
         />
         <FooterContainer>
-          <GridList cellHeight={55} cols={3}>
-            <GridListTile cols={1}>
+          <Grid container alignItems="center" justify="center" spacing={2}>
+            <Grid item xs={12} sm={6} md={4} xl={3}>
               <img
                 src={UNICT_LOGO}
                 alt="UNICT"
                 style={{ height: '50px', width: 'auto' }}
               />
-            </GridListTile>
-            <GridListTile cols={1}>
+            </Grid>
+            <Grid item xs={12} sm={6} md={4} xl={3}>
               <img
                 src={NERVIANO_LOGO}
-                alt="UNICT"
+                alt="NMS"
                 style={{ height: '50px', width: 'auto' }}
               />
-            </GridListTile>
-            <GridListTile cols={1}>
+            </Grid>
+            <Grid item xs={12} sm={6} md={4} xl={3}>
               <img
                 src={IOR_LOGO}
-                alt="UNICT"
+                alt="IOR"
                 style={{ height: '50px', width: 'auto' }}
               />
-            </GridListTile>
-            <GridListTile cols={3}>
+            </Grid>
+            <Grid item xs={12} sm={6} md={4} xl={3}>
               <img
                 src={OHIO_LOGO}
-                alt="UNICT"
+                alt="OSU"
                 style={{ height: '50px', width: 'auto' }}
               />
-            </GridListTile>
-          </GridList>
+            </Grid>
+          </Grid>
         </FooterContainer>
       </div>
     );

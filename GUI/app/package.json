@@ -1,7 +1,7 @@
 {
   "name": "rna-detector",
   "productName": "RNAdetector",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A pipeline for the analysis of RNA-seq data",
   "main": "./main.prod.js",
   "author": {
