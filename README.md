@@ -7,7 +7,7 @@ Developed by
 
 in collaboration with
 
-<img src="logo/ohio_logo.png" width="200" hight="100"><img src="logo/nerviano.png" width="150" hight="75"><img src="logo/ior_logo.jpg" width="250" hight="125" hspace="30">
+<img src="logo/ohio-logo.png" width="200" hight="100"><img src="logo/nerviano.png" width="150" hight="75"><img src="logo/ior_logo.jpg" width="250" hight="125" hspace="30">
 
 ***RNAdetector*** is a user-friendly software for the analysis of protein-coding genes and ncRNAs from RNA-Seq data. It can be run as stand-alone application or as a cloud based system.
 ## Performed analyses
