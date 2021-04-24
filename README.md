@@ -1,7 +1,14 @@
 # RNAdetector: a free user-friendly stand-alone and cloud-based system for RNA-Seq data analysis
 <img src="logo/logoRNAdetectorBlack.png" width="300" hight="200">
 
+Developed by
+
 <img src="logo/new_unict_logo.png" width="200" hight="100">
+
+in collaboration with
+<img src="logo/osu_logo.jpg" width="200" hight="100">
+<img src="logo/nms_logo.png" width="200" hight="100">
+<img src="logo/ior_logo.jpg" width="200" hight="100">
 
 ***RNAdetector*** is a user-friendly software for the analysis of protein-coding genes and ncRNAs from RNA-Seq data. It can be run as stand-alone application or as a cloud based system.
 ## Performed analyses
