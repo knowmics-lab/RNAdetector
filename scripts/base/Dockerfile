@@ -70,9 +70,9 @@ RUN rm -rf /var/log/mysql && rm -rf /var/lib/mysql
 
 # Install trim_galore
 RUN mkdir -p /rnadetector/tmp/ && PW=$(pwd) && cd /rnadetector/tmp/ && \
-    curl -fsSL https://github.com/FelixKrueger/TrimGalore/archive/0.6.5.tar.gz -o trim_galore.tar.gz && \
+    curl -fsSL https://github.com/FelixKrueger/TrimGalore/archive/0.6.6.tar.gz -o trim_galore.tar.gz && \
     tar -zxvf trim_galore.tar.gz && \
-    cp TrimGalore-0.6.5/trim_galore /usr/local/bin/ && cd "$PW" && rm -r /rnadetector/tmp/
+    cp TrimGalore-0.6.6/trim_galore /usr/local/bin/ && cd "$PW" && rm -r /rnadetector/tmp/
 
 # Install pandoc 2.9.2.1
 RUN mkdir -p /rnadetector/tmp/ && PW=$(pwd) && cd /rnadetector/tmp/ && \
