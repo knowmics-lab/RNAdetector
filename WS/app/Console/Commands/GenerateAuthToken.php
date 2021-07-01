@@ -30,7 +30,7 @@ class GenerateAuthToken extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return int
      */
     public function handle(): int
     {
@@ -75,5 +75,6 @@ class GenerateAuthToken extends Command
                 $this->info('Token generated. The new token is: ' . $token);
             }
         }
+        return 0;
     }
 }
