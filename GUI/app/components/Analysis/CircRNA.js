@@ -553,10 +553,8 @@ class CircRNA extends React.Component<Props, State> {
       alignmentCustomArguments,
       'alignment_custom_arguments'
     );
-
     const isPairedFiles = paired && inputType === 'fastq';
     const { pushNotification, redirect, refreshJobs } = this.props;
-
     const files = prepareFileArray(samplesData);
     const validLength = Common.checkLength(
       files,
@@ -648,7 +646,15 @@ class CircRNA extends React.Component<Props, State> {
                   enable: true,
                   quality: 20,
                   length: 40,
-                  hardTrim: false
+                  hardTrim: false,
+                  custom_arguments: {
+                    enable: false,
+                    value: ''
+                  }
+                },
+                alignment_custom_arguments: {
+                  enable: false,
+                  value: ''
                 },
                 genome: 'Human_hg19_genome',
                 annotation: 'Human_hg19_gencode_19_gtf',
