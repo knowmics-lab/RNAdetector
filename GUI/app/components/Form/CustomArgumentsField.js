@@ -41,7 +41,7 @@ export function ProcessCustomArguments(
   parameterName: string
 ) {
   const tmp = { ...params };
-  if (customArguments.enable && customArguments.value) {
+  if (customArguments && customArguments.enable && customArguments.value) {
     tmp[parameterName] = customArguments.value;
   }
   return tmp;
