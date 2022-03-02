@@ -101,7 +101,7 @@ Once one of the abovementioned analysis is performed, it is possibile to execute
 **A more detailed [user guide](https://github.com/alessandrolaferlita/RNAdetector/wiki) is available in the wiki section**
 
 # Cite us
-if you use ***RNAdetector*** cite:
+if you use ***RNAdetector*** cite: La Ferlita A, Alaimo S, Di Bella S, Martorana E, Laliotis GI, Bertoni F, Cascione L, Tsichlis PN, Ferro A, Bosotti R, Pulvirenti A. RNAdetector: a free user-friendly stand-alone and cloud-based system for RNA-Seq data analysis. BMC Bioinformatics. 2021 Jun 3;22(1):298. doi: 10.1186/s12859-021-04211-7.
 # Contact us 
 [Alessandro La Ferlita](https://www.researchgate.net/profile/Alessandro_La_Ferlita2) (alessandro.laferlita@unict.it)
 
