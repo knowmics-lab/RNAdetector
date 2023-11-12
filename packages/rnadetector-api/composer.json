@@ -1,0 +1,26 @@
+{
+    "name": "knowmics-lab/rnadetector-api",
+    "type": "library",
+    "description": "Main API for RNAdetector v. 2",
+    "version": "2.0.0",
+    "authors": [
+        {
+            "name": "Salvatore Alaimo",
+            "email": "salvatore.alaimo@unict.it",
+            "homepage": "https://alaimos.com"
+        }
+    ],
+    "homepage": "https://github.com/knowmics-lab/rnadetector-api",
+    "license": "See LICENSE file",
+    "require": {
+        "php": "^8.2"
+    },
+    "require-dev": {
+        "roave/security-advisories": "dev-latest"
+    },
+    "autoload": {
+        "psr-4": {
+            "RnaDetector\\Api\\": "src"
+        }
+    }
+}

@@ -1,0 +1,69 @@
+{
+    "name": "knowmics-lab/rnadetector-monorepo",
+    "description": "Monorepo for RNAdetector v. 2.0",
+    "authors": [
+        {
+            "name": "Salvatore Alaimo",
+            "email": "salvatore.alaimo@unict.it",
+            "homepage": "https://alaimos.com"
+        }
+    ],
+    "homepage": "https://github.com/knowmics-lab/RNAdetector",
+    "license": "See LICENSE file",
+    "require": {
+        "php": "^8.2",
+        "guzzlehttp/guzzle": "^7.2",
+        "inertiajs/inertia-laravel": "^0.6.3",
+        "laravel/breeze": "^1.26",
+        "laravel/framework": "^10.10",
+        "laravel/sanctum": "^3.2",
+        "laravel/tinker": "^2.8",
+        "tightenco/ziggy": "^1.0"
+    },
+    "require-dev": {
+        "fakerphp/faker": "^1.9.1",
+        "laravel/pint": "^1.0",
+        "laravel/sail": "^1.18",
+        "mockery/mockery": "^1.4.4",
+        "nunomaduro/collision": "^7.0",
+        "roave/security-advisories": "dev-latest",
+        "spatie/laravel-ignition": "^2.0",
+        "symplify/monorepo-builder": "^11.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "packages/rnadetector-app/app/",
+            "Database\\Factories\\": "packages/rnadetector-app/database/factories/",
+            "Database\\Seeders\\": "packages/rnadetector-app/database/seeders/",
+            "RnaDetector\\Api\\": "packages/rnadetector-api/src",
+            "RnaDetector\\Monorepo\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "packages/rnadetector-app/tests/"
+        }
+    },
+    "extra": {
+        "laravel": []
+    },
+    "version": "2.0.0",
+    "replace": {
+        "knowmics-lab/rnadetector-api": "self.version",
+        "knowmics-lab/rnadetector-app": "self.version",
+        "laravel/laravel": "self.version"
+    },
+    "scripts": {
+        "monorepo": "monorepo-builder"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": false
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

@@ -1,0 +1,85 @@
+{
+  "name": "knowmics-lab/rnadetector-app",
+  "type": "project",
+  "description": "Main App for RNAdetector v. 2",
+  "version": "2.0.0",
+  "authors": [
+    {
+      "name": "Salvatore Alaimo",
+      "email": "salvatore.alaimo@unict.it",
+      "homepage": "https://alaimos.com"
+    }
+  ],
+  "homepage": "https://github.com/knowmics-lab/rnadetector-app",
+  "require": {
+    "php": "^8.2",
+    "guzzlehttp/guzzle": "^7.2",
+    "inertiajs/inertia-laravel": "^0.6.3",
+    "laravel/breeze": "^1.26",
+    "laravel/framework": "^10.10",
+    "laravel/sanctum": "^3.2",
+    "laravel/tinker": "^2.8",
+    "knowmics-lab/rnadetector-api": "^2.0",
+    "tightenco/ziggy": "^1.0"
+  },
+  "require-dev": {
+    "roave/security-advisories": "dev-latest",
+    "fakerphp/faker": "^1.9.1",
+    "laravel/pint": "^1.0",
+    "laravel/sail": "^1.18",
+    "mockery/mockery": "^1.4.4",
+    "nunomaduro/collision": "^7.0",
+    "pestphp/pest": "^2.0",
+    "pestphp/pest-plugin-laravel": "^2.0",
+    "spatie/laravel-ignition": "^2.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/",
+      "Database\\Factories\\": "database/factories/",
+      "Database\\Seeders\\": "database/seeders/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "post-autoload-dump": [
+      "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+      "@php artisan package:discover --ansi"
+    ],
+    "post-update-cmd": [
+      "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+    ],
+    "post-root-package-install": [
+      "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+    ],
+    "post-create-project-cmd": [
+      "@php artisan key:generate --ansi"
+    ]
+  },
+  "extra": {
+    "laravel": {
+      "dont-discover": []
+    }
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "preferred-install": "dist",
+    "sort-packages": true,
+    "allow-plugins": {
+      "pestphp/pest-plugin": true,
+      "php-http/discovery": true
+    }
+  },
+  "repositories": [
+    {
+      "type": "path",
+      "url": "../rnadetector-api"
+    }
+  ],
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}
